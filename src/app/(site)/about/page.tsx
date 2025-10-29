@@ -10,10 +10,10 @@ export default function AboutPage() {
     <main className="bg-white">
       <Section>
         <div className="container max-w-3xl">
-          <span className="kicker">Company</span>
-          <h1 className="mt-2 text-4xl md:text-5xl font-bold">About UMS</h1>
+          <span className="kicker">About</span>
+          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Ultimate Marketing <span style={{ color: "var(--primary)" }}>Smash</span></h1>
           <p className="mt-4 text-black/70">
-            We’re an engineering-first studio focused on performant web, app & software development with a dedicated
+            We’re an engineering-first studio focused on performant web, app &amp; software development with a dedicated
             growth arm for SEO, analytics, and multi-channel digital marketing. Based in South Africa, shipping globally.
           </p>
           <ul className="mt-6 list-disc pl-5 text-black/70 space-y-2">

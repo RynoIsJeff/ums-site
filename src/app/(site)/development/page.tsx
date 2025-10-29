@@ -21,7 +21,7 @@ export default function DevPage() {
       <Section>
         <div className="container">
           <span className="kicker">Engineering First</span>
-          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Web, App & Software Development</h1>
+          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Web, App &amp; Software Development</h1>
           <p className="mt-4 text-black/70 max-w-2xl">
             Greenfield builds, upgrades, and rescues with maintainable, scalable foundations. We scope per-project;
             no public pricing.
@@ -29,7 +29,7 @@ export default function DevPage() {
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {items.map(({ Icon, t, d }) => (
               <Card key={t}>
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: "color-mix(in oklab, var(--primary) 20%, #fff)" }}>
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify.center rounded-xl" style={{ background: "color-mix(in oklab, var(--primary) 10%, #0000)" }}>
                   <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>
                 <h3 className="text-lg font-semibold">{t}</h3>

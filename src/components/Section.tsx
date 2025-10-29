@@ -1,5 +1,11 @@
 export default function Section({
-  children, className = "",
+  children,
+  className = "",
 }: { children: React.ReactNode; className?: string }) {
-  return <section className={`bg-white py-16 md:py-24 ${className}`}>{children}</section>;
+  return (
+    <section className={`bg-white ums-bg-glow py-16 md:py-24 ${className}`}>
+      <div className="ums-stripe mb-10" />
+      {children}
+    </section>
+  );
 }
