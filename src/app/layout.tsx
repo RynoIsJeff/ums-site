@@ -21,6 +21,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className="antialiased">
+      <nav className="hidden gap-6 text-sm text-ink/80 md:flex">
+        <a href="/development" className="hover:text-ink">Web & App Dev</a>
+        <a href="/marketing" className="hover:text-ink">Digital Marketing</a>
+        <a href="/work" className="hover:text-ink">Work</a>
+        <a href="/about" className="hover:text-ink">About</a>
+        <a href="/contact" className="hover:text-ink">Contact</a>
+      </nav>
         {children}
       </body>
     </html>
