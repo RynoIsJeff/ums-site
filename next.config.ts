@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  reactStrictMode: true,
+  // If Turbopack keeps failing, uncomment this to force Webpack:
+  // experimental: { turbo: { enabled: false } },
 };
 
 export default nextConfig;
