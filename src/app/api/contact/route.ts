@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
 
-export const runtime = "edge"; // fast, cold-start friendly
+export const runtime = "edge";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
 const Schema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email().max(200),
@@ -23,7 +22,7 @@ export async function POST(req: Request) {
     }
     const { name, email, intent, message, company } = parsed.data;
 
-    // Honeypot: if filled, drop silently with ok=true
+    // honeypot
     if (company && company.trim().length > 0) {
       return NextResponse.json({ ok: true });
     }
@@ -47,7 +46,7 @@ export async function POST(req: Request) {
       to,
       subject: `UMS enquiry — ${intent || "General"}`,
       html,
-      replyTo: email, // correct camelCase
+      replyTo: email,
     });
 
     return NextResponse.json({ ok: true });
@@ -56,7 +55,6 @@ export async function POST(req: Request) {
   }
 }
 
-// tiny HTML escaper to avoid accidental HTML injection in email
 function escapeHtml(input: string) {
   return input
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")

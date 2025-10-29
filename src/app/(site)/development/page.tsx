@@ -1,6 +1,6 @@
-import { Code2, Wrench, ShieldCheck, Workflow, Palette, LineChart } from "lucide-react";
 import Section from "@/components/Section";
 import Card from "@/components/ui/Card";
+import { Code2, Wrench, ShieldCheck, Workflow, Palette, LineChart } from "lucide-react";
 
 export const metadata = {
   title: "Web, App & Software Development — UMS",
@@ -20,19 +20,20 @@ export default function DevPage() {
     <main className="bg-white">
       <Section>
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold">Web, App & Software Development</h1>
-          <p className="mt-4 text-ink/70 max-w-2xl">
+          <span className="kicker">Engineering First</span>
+          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Web, App & Software Development</h1>
+          <p className="mt-4 text-black/70 max-w-2xl">
             Greenfield builds, upgrades, and rescues with maintainable, scalable foundations. We scope per-project;
             no public pricing.
           </p>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {items.map(({ Icon, t, d }) => (
               <Card key={t}>
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[color:var(--primary)]/10">
-                  <Icon className="h-5 w-5 text-[color:var(--primary)]" />
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: "color-mix(in oklab, var(--primary) 20%, #fff)" }}>
+                  <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>
                 <h3 className="text-lg font-semibold">{t}</h3>
-                <p className="mt-2 text-sm text-ink/70">{d}</p>
+                <p className="mt-2 text-sm text-black/70">{d}</p>
               </Card>
             ))}
           </div>

@@ -1,4 +1,3 @@
-// src/app/sitemap.ts
 import type { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://ultimatemarketingsmash.com";
@@ -8,6 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/marketing`, changeFrequency: "monthly" },
     { url: `${base}/work`, changeFrequency: "monthly" },
     { url: `${base}/about`, changeFrequency: "yearly" },
-    { url: `${base}/contact`, changeFrequency: "yearly" }
+    { url: `${base}/contact`, changeFrequency: "yearly" },
   ];
 }
