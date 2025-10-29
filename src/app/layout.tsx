@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/80 backdrop-blur">
           <div className="container flex h-16 items-center justify-between">
             <a href="/" className="flex items-center gap-3">
-              <img src="/ums-logo.png" alt="UMS" className="h-9 w-9" />
+              <img src="/ums-logo.svg" alt="UMS" className="h-9 w-9" />
               <div className="leading-tight">
                 <span className="block text-sm font-bold tracking-wide">
                   <span>Ultimate Marketing </span>
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="border-t border-black/[0.06] bg-white py-12">
           <div className="container grid gap-8 md:grid-cols-4">
             <div className="space-y-3">
-              <img src="/ums-logo.png" alt="UMS" className="h-8 w-8" />
+              <img src="/ums-logo.svg" alt="UMS" className="h-8 w-8" />
               <p className="text-sm text-black/70">
                 Full-stack development &amp; growth studio. Build right, then scale.
               </p>
