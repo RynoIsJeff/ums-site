@@ -5,6 +5,11 @@ import { Megaphone, LineChart, Users } from "lucide-react";
 export const metadata = {
   title: "Digital Marketing — UMS",
   description: "Paid, SEO, CRM. Once your product is solid, we scale it across the right channels.",
+    openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 export default function MarketingPage() {

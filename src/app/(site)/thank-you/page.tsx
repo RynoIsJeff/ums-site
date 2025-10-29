@@ -1,6 +1,11 @@
 export const metadata = {
   title: "Thanks — UMS",
   description: "We’ve received your message. We’ll be in touch shortly.",
+    openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 export default function ThankYou() {

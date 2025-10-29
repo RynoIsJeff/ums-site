@@ -3,6 +3,11 @@ import Section from "@/components/Section";
 export const metadata = {
   title: "About — UMS",
   description: "UMS is a full-stack studio. Build right, then scale.",
+  openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 export default function AboutPage() {

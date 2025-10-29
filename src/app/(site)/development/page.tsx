@@ -5,6 +5,11 @@ import { Code2, Wrench, ShieldCheck, Workflow, Palette, LineChart } from "lucide
 export const metadata = {
   title: "Web, App & Software Development — UMS",
   description: "Engineering-first builds, upgrades, and rescues. Maintainable, scalable, measurable.",
+    openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 export default function DevPage() {

@@ -4,6 +4,11 @@ import Card from "@/components/ui/Card";
 export const metadata = {
   title: "Work — UMS",
   description: "Selected projects and outcomes.",
+    openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 const CASES = [

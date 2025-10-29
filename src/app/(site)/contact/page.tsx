@@ -4,6 +4,11 @@ import ContactClient from "./ContactClient";
 export const metadata = {
   title: "Contact — UMS",
   description: "Start a project. No public pricing — every roadmap is tailored to your context.",
+  openGraph: {
+    images: [
+      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+    ],
+  },
 };
 
 export default function ContactPage() {
