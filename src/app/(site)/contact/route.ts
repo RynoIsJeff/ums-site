@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       to: process.env.CONTACT_TO || "hello@example.com",
       subject: `UMS enquiry — ${intent || "General"}`,
       html,
-      reply_to: email,
+      replyTo : email,
     });
 
     return NextResponse.json({ ok: true });
