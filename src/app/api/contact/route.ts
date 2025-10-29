@@ -1,3 +1,4 @@
+// src/app/api/contact/route.ts
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -6,7 +7,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: Request) {
   try {
     const { name, email, intent, message } = await req.json();
-
     if (!name || !email || !message) {
       return NextResponse.json({ ok: false, error: "Missing fields" }, { status: 400 });
     }
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       to: process.env.CONTACT_TO || "hello@example.com",
       subject: `UMS enquiry — ${intent || "General"}`,
       html,
-      replyTo : email,
+      replyTo: email, // ← correct property
     });
 
     return NextResponse.json({ ok: true });
