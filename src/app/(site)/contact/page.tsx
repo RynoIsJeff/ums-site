@@ -1,11 +1,13 @@
-// src/app/(site)/contact/page.tsx (replace <form> with controlled submit)
+// src/app/(site)/contact/page.tsx
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Section from "@/components/Section";
 
 export default function ContactPage() {
   const [state, setState] = useState<"idle"|"sending"|"ok"|"err">("idle");
   const [err, setErr] = useState("");
+  const router = useRouter();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -16,11 +18,22 @@ export default function ContactPage() {
       email: (form.elements.namedItem("email") as HTMLInputElement).value,
       intent: (form.elements.namedItem("intent") as HTMLSelectElement).value,
       message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+      // honeypot:
+      company: (form.elements.namedItem("company") as HTMLInputElement)?.value || "",
     };
-    const res = await fetch("/api/contact", { method: "POST", body: JSON.stringify(data) });
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
     const json = await res.json();
-    if (json.ok) setState("ok");
-    else { setErr(json.error || "Something went wrong"); setState("err"); }
+    if (json.ok) {
+      setState("ok");
+      router.push("/thank-you");
+      return;
+    }
+    setErr(json.error || "Something went wrong");
+    setState("err");
   }
 
   return (
@@ -36,6 +49,7 @@ export default function ContactPage() {
           <form onSubmit={onSubmit} className="mt-8 grid gap-4 max-w-xl">
             <input name="name" className="rounded-xl border border-black/10 px-3 py-2 text-sm" placeholder="Name" required />
             <input name="email" type="email" className="rounded-xl border border-black/10 px-3 py-2 text-sm" placeholder="Email" required />
+            <input name="company" className="hidden" tabIndex={-1} autoComplete="off" />
             <select name="intent" className="rounded-xl border border-black/10 px-3 py-2 text-sm" defaultValue="New build">
               <option>New build</option><option>Upgrade / Refactor</option><option>Rescue</option><option>Marketing / Growth</option>
             </select>
