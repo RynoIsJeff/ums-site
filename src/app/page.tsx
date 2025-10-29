@@ -4,11 +4,9 @@ import Badge from "@/components/ui/Badge";
 export default function Home() {
   return (
     <>
-      {/* Hero with blue glow */}
       <section className="bg-white py-20 md:py-28 ums-bg-glow">
         <div className="container grid items-center gap-12 md:grid-cols-2">
           <div>
-            {/* SWAP: hero eyebrow now shows “Build • Ship • Grow” */}
             <span className="kicker">Build • Ship • Grow</span>
             <h1 className="mt-4 text-4xl md:text-6xl font-extrabold leading-[1.1] tracking-tight">
               We design &amp; build modern products — then help you grow them.
@@ -40,7 +38,7 @@ export default function Home() {
           </div>
 
           <div className="card p-4">
-            <div className="aspect-[16/10] w-full overflow-hidden rounded-xl border border.black/[0.06] bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))] grid place-items-center">
+            <div className="aspect-[16/10] w-full overflow-hidden rounded-xl border border-black/[0.06] bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))] grid place-items-center">
               <div className="text-center">
                 <Cpu className="mx-auto h-10 w-10" style={{ color: "var(--primary)" }} />
                 <p className="mt-3 text-sm text-black/70">Swap for a case-study reel or product shots.</p>
@@ -50,8 +48,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section divider visible under hero on home */}
-      <div className="ums-stripe" />
+      {/* REMOVED extra ums-stripe here; layout now adds one globally before footer */}
     </>
   );
 }

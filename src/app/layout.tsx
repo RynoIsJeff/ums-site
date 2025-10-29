@@ -19,18 +19,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className="antialiased">
         <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/80 backdrop-blur">
-          <div className="ums-stripe" />
+          {/* REMOVED header stripe */}
           <div className="container flex h-16 items-center justify-between">
             <a href="/" className="flex items-center gap-3">
-              {/* Use icon-only logo in /public/ums-logo.png if desired */}
               <img src="/ums-logo.png" alt="UMS" className="h-9 w-9" />
               <div className="leading-tight">
                 <span className="block text-sm font-bold tracking-wide">
-                  {/* Color only the word “Smash” */}
                   <span>Ultimate Marketing </span>
                   <span style={{ color: "var(--primary)" }}>Smash</span>
                 </span>
-                {/* SWAP: Header tagline becomes “Your success is our Priority” */}
                 <span className="block text-[10px] uppercase tracking-[0.2em] text-black/60">
                   Your success is our Priority
                 </span>
@@ -46,7 +43,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
 
             <div className="hidden items-center gap-3 md:flex">
-              {/* Social icons in header */}
               <a href={SOCIALS.facebook} aria-label="Facebook" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                 <Facebook className="h-5 w-5" style={{ color: "var(--primary)" }} />
               </a>
@@ -62,12 +58,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        {/* global section divider at very top of page content */}
-        <div className="ums-stripe" />
-
+        {/* REMOVED global stripe after header */}
         <main>{children}</main>
 
-        <footer className="border-t border-black/[0.06] bg.white py-12">
+        {/* ✅ Stripe appears once, right before the footer on every page */}
+        <div className="ums-stripe" />
+
+        <footer className="border-t border-black/[0.06] bg-white py-12">
           <div className="container grid gap-8 md:grid-cols-4">
             <div className="space-y-3">
               <img src="/ums-logo.png" alt="UMS" className="h-8 w-8" />
@@ -75,11 +72,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Full-stack development &amp; growth studio. Build right, then scale.
               </p>
               <div className="mt-2 flex items-center gap-2">
-                {/* Social icons in footer */}
                 <a href={SOCIALS.facebook} aria-label="Facebook" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                   <Facebook className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </a>
-                <a href={SOCIALS.instagram} aria-label="Instagram" className="p-1.5 rounded-md hover:bg.black/[0.06]">
+                <a href={SOCIALS.instagram} aria-label="Instagram" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                   <Instagram className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </a>
                 <a href={SOCIALS.linkedin} aria-label="LinkedIn" className="p-1.5 rounded-md hover:bg-black/[0.06]">
@@ -114,9 +110,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
           <div className="container mt-10 flex items-center justify-between text-xs text-black/60">
-            {/* SWAP: footer can keep the original line or remain minimal */}
             <p>© {new Date().getFullYear()} Ultimate Marketing Smash (Pty) Ltd. All rights reserved.</p>
-            <p>Built • Ship • Grow</p>
+            <p>Build • Ship • Grow</p>
           </div>
         </footer>
       </body>
