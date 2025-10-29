@@ -46,6 +46,9 @@ export default function WorkPage() {
                       <span key={t} className="inline-flex items-center rounded-full border border-black/5 bg-black/[0.02] px-3 py-1 text-xs text-ink/70">{t}</span>
                     ))}
                   </div>
+                  <a href={`/work/${encodeURIComponent(c.title.toLowerCase().split(" — ")[0].replaceAll(" ", ""))}`} className="mt-3 inline-block text-sm text-[color:var(--primary)] underline-offset-4 hover:underline">
+                    Read the case →
+                    </a>
                 </div>
               </Card>
             ))}
