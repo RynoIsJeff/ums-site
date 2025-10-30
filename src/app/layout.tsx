@@ -111,7 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <div className="container mt-10 flex items-center justify-between text-xs text-black/60">
             <p>© {new Date().getFullYear()} Ultimate Marketing Smash (Pty) Ltd. All rights reserved.</p>
-            <p>Build • Ship • Grow</p>
+            <p>YOUR SUCCESS IS OUR PRIORITY</p>
           </div>
         </footer>
       </body>

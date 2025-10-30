@@ -1,41 +1,73 @@
 import Section from "@/components/Section";
+import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
 import { Code2, Wrench, ShieldCheck, Workflow, Palette, LineChart } from "lucide-react";
-import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "Web, App & Software Development — UMS",
-  description: "Engineering-first builds, upgrades, and rescues. Maintainable, scalable, measurable.",
-    openGraph: {
+  description:
+    "Engineering-first builds, upgrades, and rescues. Maintainable, scalable, measurable.",
+  openGraph: {
     images: [
-      "https://ultimatemarketingsmash.com/og?title=Digital%20Marketing&subtitle=Your%20success%20is%20our%20Priority",
+      "https://ultimatemarketingsmash.com/og?title=Web%2C%20App%20%26%20Software%20Development&subtitle=Your%20success%20is%20our%20Priority",
     ],
   },
 };
 
 export default function DevPage() {
   const items = [
-    { Icon: Code2, t: "Web & Platforms", d: "Next.js apps, portals, dashboards, e-commerce, headless CMS." },
-    { Icon: Wrench, t: "Upgrades & Rescues", d: "Refactors, performance, accessibility, dependency audits, CI/CD." },
-    { Icon: ShieldCheck, t: "Security & QA", d: "API hardening, tests, telemetry, Sentry, on-call support." },
-    { Icon: Workflow, t: "Process", d: "Milestone-based delivery, tight feedback loops, clear docs." },
-    { Icon: Palette, t: "Design Systems", d: "Tokens, shadcn/ui, accessible components that scale." },
-    { Icon: LineChart, t: "Instrumentation", d: "Analytics, flags, A/B tests to guide the roadmap." },
+    {
+      Icon: Code2,
+      t: "Web & Platforms",
+      d: "Next.js apps, portals, dashboards, e-commerce, headless CMS.",
+    },
+    {
+      Icon: Wrench,
+      t: "Upgrades & Rescues",
+      d: "Refactors, performance, accessibility, dependency audits, CI/CD.",
+    },
+    {
+      Icon: ShieldCheck,
+      t: "Security & QA",
+      d: "API hardening, tests, telemetry, Sentry, on-call support.",
+    },
+    {
+      Icon: Workflow,
+      t: "Process",
+      d: "Milestone-based delivery, tight feedback loops, clear docs.",
+    },
+    {
+      Icon: Palette,
+      t: "Design Systems",
+      d: "Tokens, shadcn/ui, accessible components that scale.",
+    },
+    {
+      Icon: LineChart,
+      t: "Instrumentation",
+      d: "Analytics, flags, A/B tests to guide the roadmap.",
+    },
   ];
+
   return (
     <main className="bg-white">
       <Section>
         <div className="container">
           <span className="kicker">Engineering First</span>
-          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Web, App &amp; Software Development</h1>
+          <h1 className="mt-2 text-4xl md:text-5xl font-bold">
+            Web, App &amp; Software Development
+          </h1>
           <p className="mt-4 text-black/70 max-w-2xl">
-            Greenfield builds, upgrades, and rescues with maintainable, scalable foundations. We scope per-project;
-            no public pricing.
+            We build and modernize products first — then you can market them confidently. Every build is scoped to your
+            stack, team and delivery timelines.
           </p>
+
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {items.map((it, i) => (
-              <Card key={it.t} index={i}>
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify.center rounded-xl" style={{ background: "color-mix(in oklab, var(--primary) 10%, #0000)" }}>
+            {items.map(({ Icon, t, d }, i) => (
+              <Card key={t} index={i}>
+                <div
+                  className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{ background: "color-mix(in oklab, var(--primary) 12%, #fff)" }}
+                >
                   <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>
                 <h3 className="text-lg font-semibold">{t}</h3>
@@ -45,6 +77,7 @@ export default function DevPage() {
           </div>
         </div>
       </Section>
+
       <CtaBand />
     </main>
   );
