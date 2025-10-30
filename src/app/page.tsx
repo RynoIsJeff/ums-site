@@ -16,7 +16,13 @@ export const metadata = {
 export default function Home() {
   return (
     <>
-      <section className="bg-white py-20 md:py-28 ums-bg-glow">
+      {/* hero */}
+      <section
+        className="
+          bg-white ums-bg-glow
+          py-14 md:py-16   /* 👈 was bigger before, made smaller */
+        "
+      >
         <div className="container grid items-center gap-12 md:grid-cols-2">
           <div>
             <span className="kicker">Build • Ship • Grow</span>
@@ -69,7 +75,10 @@ export default function Home() {
         </div>
       </section>
 
-      <CtaBand />
+      {/* CTA — remove extra top padding so it hugs the hero */}
+      <div className="pt-0"> {/* 👈 this kills the double-gap */}
+        <CtaBand />
+      </div>
     </>
   );
 }
