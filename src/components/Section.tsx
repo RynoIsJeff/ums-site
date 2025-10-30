@@ -7,7 +7,7 @@ export default function Section({
   className = "",
 }: { children: React.ReactNode; className?: string }) {
   return (
-    <section className={`bg-white ums-bg-glow py-16 md:py-24 ${className}`}>
+    <section className={`bg-white ums-bg-glow py-8 md:py-12 ${className}`}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
