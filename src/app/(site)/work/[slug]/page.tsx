@@ -9,41 +9,68 @@ type Case = {
   summary: string;
   stack: string[];
   outcomes: string[];
+  heroImage?: string;
 };
 
 const CASES: Case[] = [
   {
     slug: "supatrade",
-    title: "Build It SupaTrade — Corporate Site & Ops",
-    summary: "Next.js platform with job listings, admin flows, growth stack.",
-    stack: ["Next.js", "Supabase", "Tailwind", "Prisma"],
-    outcomes: [
-      "HR & job posting flow in one place",
-      "Cleaner IA compared to legacy setup",
-      "Modern stack ready for SupaTrade expansion",
+    title: "SupaTrade Build It Group",
+    summary:
+      "From a one-store social-media trial in Sept 2022 to a full multi-store, multi-brand rollout (5 Build It stores + Mbazwana Engen/Steers/Debonairs) with more than 2500% growth in social engagement. Upcoming: HR Management platform (2026).",
+    stack: [
+      "Social Strategy",
+      "Content System",
+      "Multi-Store Rollout",
+      "Analytics & Reporting",
+      "Upcoming HR Platform (2026)",
     ],
+    outcomes: [
+      "2500% growth vs previous social media manager",
+      "Scaled from 1 store (Pongola) to 5 stores + Mbazwana brands",
+      "Consistent brand & campaign execution across regions",
+      "Identified hiring-process gap → proposed HR platform for 2026",
+    ],
+    heroImage: "/work/supatrade-hero.png",
   },
   {
     slug: "caplant",
-    title: "CAPlant — Website Modernization",
-    summary: "Migration from legacy Gulp stack, perf uplift, UX clean-up.",
-    stack: ["Gulp", "SCSS", "Leaflet", "Vercel"],
-    outcomes: [
-      "Modern build & hosting pipeline",
-      "Improved navigation & CTAs",
-      "Better SEO foundations for plant hire keywords",
+    title: "Civils Agri Plant (CAPlant)",
+    summary:
+      "UMS designed, built and now hosts CAPlant’s website to showcase Plant Hire, Sand & Stone and Bricks — structured around their real services, with a clear lead/contact funnel.",
+    stack: [
+      "Website Build",
+      "Service-First Navigation",
+      "Contact & Quote Flow",
+      "Hosted by UMS",
+      "SEO-Ready Structure",
     ],
+    outcomes: [
+      "Modern, mobile-friendly site reflecting actual offering",
+      "Service pages for Plant Hire, Sand & Stone, Bricks",
+      "Ongoing hosting & content updates handled by UMS",
+      "Marketing-ready structure for future campaigns",
+    ],
+    heroImage: "/work/caplant-hero.png",
   },
   {
     slug: "tugam",
-    title: "Tugam — Brand & Site Overhaul",
-    summary: "Design system, content structure, and faster page loads.",
-    stack: ["Design System", "SEO", "React", "Tailwind"],
-    outcomes: [
-      "Consistent, reusable components",
-      "Clearer product story",
-      "Reduced bounce on landing pages",
+    title: "Tugam Game Farm",
+    summary:
+      "Phase 1: fast GoDaddy website to get TugamGameFarm.co.za live quickly. Phase 2 (in progress): rebuild on the same modern UMS stack as CAPlant for better performance, more pages and easier updates.",
+    stack: [
+      "GoDaddy v1 (fast launch)",
+      "Next.js + Tailwind (rebuild)",
+      "Accommodation / Activities structure",
+      "UMS Managed Hosting",
     ],
+    outcomes: [
+      "Immediate online presence to share with guests and hunters",
+      "Clear path to a proper component-based site",
+      "Easier future updates (gallery, animals, accommodation)",
+      "Consistent tech stack with other UMS sites",
+    ],
+    heroImage: "/work/tugam-hero.png",
   },
 ];
 
@@ -61,9 +88,11 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
     description: item.summary,
     openGraph: {
       images: [
-        `https://ultimatemarketingsmash.com/og?title=${encodeURIComponent(
-          item.title
-        )}&subtitle=${encodeURIComponent("Case Study")}`,
+        item.heroImage
+          ? `https://ultimatemarketingsmash.com${item.heroImage}`
+          : `https://ultimatemarketingsmash.com/og?title=${encodeURIComponent(
+              item.title
+            )}&subtitle=${encodeURIComponent("Case Study")}`,
       ],
     },
   };
@@ -82,12 +111,20 @@ export default function CasePage({ params }: { params: { slug: string } }) {
           <p className="mt-4 text-black/70">{item.summary}</p>
 
           <div className="mt-8">
-            <div className="aspect-[16/9] w-full rounded-xl border border-black/10 bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))]" />
+            {item.heroImage ? (
+              <img
+                src={item.heroImage}
+                alt={item.title}
+                className="w-full rounded-xl border border-black/10"
+              />
+            ) : (
+              <div className="aspect-[16/9] w-full rounded-xl border border-black/10 bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))]" />
+            )}
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             <Card index={0}>
-              <h3 className="font-semibold">Stack</h3>
+              <h3 className="font-semibold">Stack / Services</h3>
               <div className="mt-3 flex flex-wrap gap-2">
                 {item.stack.map((t) => (
                   <span key={t} className="badge">

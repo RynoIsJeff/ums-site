@@ -33,11 +33,12 @@ const CASES = [
   },
   {
     slug: "tugam",
-    title: "Tugam — Brand & Site Overhaul",
+    title: "Tugam Game Farm",
     summary:
-      "Design-system-driven React rebuild improving brand cohesion, accessibility, and search performance.",
-    stack: ["Design System", "SEO", "React", "Tailwind"],
-    status: "Completed",
+      "Fast v1 on GoDaddy to get TugamGameFarm.co.za live, now being rebuilt on the same modern UMS stack as CAPlant for better performance and easier updates.",
+    stack: ["GoDaddy v1", "Next.js Rebuild", "Accommodation Pages", "UMS Managed"],
+    status: "Live (rebuild in progress)",
+    highlight: "Launch fast → Rebuild right",
   },
 ];
 
