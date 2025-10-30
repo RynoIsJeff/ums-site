@@ -1,5 +1,6 @@
 import { Code2, Megaphone, Cpu } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import CtaBand from "@/components/CtaBand";
 
 export default function Home() {
   return (
@@ -47,6 +48,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <CtaBand />
 
       {/* REMOVED extra ums-stripe here; layout now adds one globally before footer */}
     </>

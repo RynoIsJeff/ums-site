@@ -1,4 +1,5 @@
 import Section from "@/components/Section";
+import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "About — UMS",
@@ -28,6 +29,8 @@ export default function AboutPage() {
           </ul>
         </div>
       </Section>
+      <CtaBand />
+
     </main>
   );
 }

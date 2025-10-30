@@ -1,5 +1,6 @@
 import Section from "@/components/Section";
 import Card from "@/components/ui/Card";
+import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "Work — UMS",
@@ -64,6 +65,8 @@ export default function WorkPage() {
           </div>
         </div>
       </Section>
+      <CtaBand />
+
     </main>
   );
 }

@@ -1,21 +1,12 @@
 "use client";
-
 import { usePathname } from "next/navigation";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
-
-const SOCIALS = {
-  facebook: "https://facebook.com/your-page",      // TODO: replace
-  instagram: "https://instagram.com/your-handle",  // TODO: replace
-  linkedin: "https://www.linkedin.com/company/your-company/", // TODO: replace
-};
+import { SOCIALS } from "@/lib/site";
 
 export default function NavClient() {
   const path = usePathname();
-
-  function linkClass(href: string) {
-    const active = path === href;
-    return `nav-link hover:text-black ${active ? "text-black font-semibold" : "text-black/80"}`;
-  }
+  const linkClass = (href: string) =>
+    `nav-link hover:text-black ${path === href ? "text-black font-semibold" : "text-black/80"}`;
 
   return (
     <>

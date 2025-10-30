@@ -1,6 +1,7 @@
 import Section from "@/components/Section";
 import Card from "@/components/ui/Card";
 import { Megaphone, LineChart, Users } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "Digital Marketing — UMS",
@@ -29,8 +30,8 @@ export default function MarketingPage() {
             engagement is scoped to your context.
           </p>
           <div className="mt-10 grid gap-6 md:grid-cols-3 text-left">
-            {items.map(({ Icon, t, d }) => (
-              <Card key={t}>
+            {items.map((it, i) => (
+              <Card key={it.t} index={i}>
                 <Icon className="h-5 w-5 mb-3" style={{ color: "var(--primary)" }} />
                 <h3 className="font-semibold">{t}</h3>
                 <p className="mt-1 text-sm text-black/70">{d}</p>
@@ -39,6 +40,8 @@ export default function MarketingPage() {
           </div>
         </div>
       </Section>
+      <CtaBand />
+
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavClient from "@/components/NavClient";
+import { SOCIALS } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Ultimate Marketing Smash — Build • Ship • Grow",
@@ -61,19 +62,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </p>
               {/* Socials duplicated in footer for convenience */}
               <div className="mt-2 flex items-center gap-2">
-                <a href="https://facebook.com/your-page" aria-label="Facebook" className="p-1.5 rounded-md hover:bg-black/[0.06]">
+                <a href={SOCIALS.facebook} aria-label="Facebook" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" style={{ color: "var(--primary)" }}>
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3.5l.5-4H14V7a1 1 0 0 1 1-1h3z" strokeWidth="2"></path>
                   </svg>
                 </a>
-                <a href="https://instagram.com/your-handle" aria-label="Instagram" className="p-1.5 rounded-md hover:bg-black/[0.06]">
+                <a href={SOCIALS.instagram} aria-label="Instagram" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" style={{ color: "var(--primary)" }}>
                     <rect x="2" y="2" width="20" height="20" rx="5" strokeWidth="2"></rect>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" strokeWidth="2"></path>
                     <line x1="17.5" y1="6.5" x2="17.5" y2="6.5" strokeWidth="2"></line>
                   </svg>
                 </a>
-                <a href="https://www.linkedin.com/company/your-company/" aria-label="LinkedIn" className="p-1.5 rounded-md hover:bg-black/[0.06]">
+                <a href={SOCIALS.linkedin} aria-label="LinkedIn" className="p-1.5 rounded-md hover:bg-black/[0.06]">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" style={{ color: "var(--primary)" }}>
                     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-14h4v2" strokeWidth="2"></path>
                     <rect x="2" y="9" width="4" height="12" strokeWidth="2"></rect>

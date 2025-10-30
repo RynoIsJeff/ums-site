@@ -1,5 +1,6 @@
 import Section from "@/components/Section";
 import ContactClient from "./ContactClient";
+import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "Contact — UMS",
@@ -27,6 +28,8 @@ export default function ContactPage() {
           <ContactClient />
         </div>
       </Section>
+      <CtaBand />
+
     </main>
   );
 }

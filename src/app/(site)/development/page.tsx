@@ -1,6 +1,7 @@
 import Section from "@/components/Section";
 import Card from "@/components/ui/Card";
 import { Code2, Wrench, ShieldCheck, Workflow, Palette, LineChart } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
 
 export const metadata = {
   title: "Web, App & Software Development — UMS",
@@ -32,8 +33,8 @@ export default function DevPage() {
             no public pricing.
           </p>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {items.map(({ Icon, t, d }) => (
-              <Card key={t}>
+            {items.map((it, i) => (
+              <Card key={it.t} index={i}>
                 <div className="mb-4 inline-flex h-11 w-11 items-center justify.center rounded-xl" style={{ background: "color-mix(in oklab, var(--primary) 10%, #0000)" }}>
                   <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>
@@ -44,6 +45,7 @@ export default function DevPage() {
           </div>
         </div>
       </Section>
+      <CtaBand />
     </main>
   );
 }
