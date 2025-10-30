@@ -21,6 +21,7 @@ const CASES = [
     stack: ["Social Strategy", "Content Systems", "Analytics", "Upcoming HR Platform"],
     status: "Active + Upcoming Project",
     highlight: "2500% engagement growth",
+    logo: "/client-logo/supatrade.png",
   },
   {
     slug: "caplant",
@@ -30,6 +31,7 @@ const CASES = [
     stack: ["Website Build", "Service Pages", "Contact & Quote", "Hosted by UMS"],
     status: "Completed & Managed",
     highlight: "Live on caplant.co.za",
+    logo: "/client-logo/caplant.png",
   },
   {
     slug: "tugam",
@@ -39,9 +41,9 @@ const CASES = [
     stack: ["GoDaddy v1", "Next.js Rebuild", "Accommodation Pages", "UMS Managed"],
     status: "Live (rebuild in progress)",
     highlight: "Launch fast → Rebuild right",
+    logo: "/client-logo/tugam.png",
   },
 ];
-
 
 export default function WorkPage() {
   return (
@@ -54,15 +56,26 @@ export default function WorkPage() {
           </h1>
           <p className="mt-4 text-black/70 max-w-2xl">
             A snapshot of key projects we’ve built, scaled, or modernized — from multi-store retail
-            groups to specialized service brands. Each shows how UMS combines full-stack development
-            with measurable marketing growth.
+            groups to construction and agri/tourism. Each one shows the “build right → grow” mindset.
           </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {CASES.map((c, i) => (
               <Card key={c.slug} index={i}>
-                <div className="aspect-[16/10] w-full rounded-xl border border-black/10 bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))]" />
-                <div className="mt-4">
+                {/* logo block */}
+                <div className="flex h-60 items-center justify-center rounded-xl border border-black/10 bg-white mb-4">
+                  {c.logo ? (
+                    <img
+                      src={c.logo}
+                      alt={c.title}
+                      className="max-h-42 w-auto object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm text-black/40">Client logo</span>
+                  )}
+                </div>
+
+                <div>
                   <h3 className="font-semibold">{c.title}</h3>
                   <p className="mt-1 text-sm text-black/70">{c.summary}</p>
 
@@ -77,10 +90,7 @@ export default function WorkPage() {
                   <div className="mt-3 flex items-center justify-between text-xs text-black/60">
                     <span>{c.status}</span>
                     {c.highlight && (
-                      <span
-                        className="font-semibold text-[var(--primary)]"
-                        title={c.highlight}
-                      >
+                      <span className="font-semibold text-[var(--primary)]">
                         {c.highlight}
                       </span>
                     )}
