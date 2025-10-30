@@ -1,7 +1,13 @@
 "use client";
+
 import { motion } from "framer-motion";
 
-export default function Card({ children, index = 0 }: { children: React.ReactNode; index?: number }) {
+type CardProps = {
+  children: React.ReactNode;
+  index?: number; // 👈 this is the key
+};
+
+export default function Card({ children, index = 0 }: CardProps) {
   return (
     <motion.div
       className="card-accent p-6"

@@ -24,11 +24,12 @@ const CASES = [
   },
   {
     slug: "caplant",
-    title: "CAPlant — Website Modernization",
+    title: "Civils Agri Plant (CAPlant)",
     summary:
-      "Migration from legacy Gulp stack to a modern responsive build with faster load times, refined UX, and SEO optimization.",
-    stack: ["Gulp", "SCSS", "Leaflet", "Vercel"],
-    status: "Completed",
+      "UMS designed, built and now hosts Civils Agri Plant’s full website — showcasing their Plant Hire, Sand & Stone and Brick divisions with clear service pages and a lead-driven contact funnel.",
+    stack: ["Website Build", "Service Pages", "Contact & Quote", "Hosted by UMS"],
+    status: "Completed & Managed",
+    highlight: "Live on caplant.co.za",
   },
   {
     slug: "tugam",
@@ -39,6 +40,7 @@ const CASES = [
     status: "Completed",
   },
 ];
+
 
 export default function WorkPage() {
   return (
