@@ -15,21 +15,28 @@ export const metadata = {
 const CASES = [
   {
     slug: "supatrade",
-    title: "Build It SupaTrade — Corporate Site & Ops",
-    summary: "Next.js + Supabase platform with HR/admin flows.",
-    stack: ["Next.js", "Supabase", "Tailwind", "Prisma"],
+    title: "SupaTrade Build It Group",
+    summary:
+      "From a one-store social-media trial to a full-scale digital partnership across five Build It branches and multiple brands — achieving over 2500% growth in engagement since 2022.",
+    stack: ["Social Strategy", "Content Systems", "Analytics", "Upcoming HR Platform"],
+    status: "Active + Upcoming Project",
+    highlight: "2500% engagement growth",
   },
   {
     slug: "caplant",
     title: "CAPlant — Website Modernization",
-    summary: "Legacy Gulp → modern stack, performance uplift, UX clean-up.",
+    summary:
+      "Migration from legacy Gulp stack to a modern responsive build with faster load times, refined UX, and SEO optimization.",
     stack: ["Gulp", "SCSS", "Leaflet", "Vercel"],
+    status: "Completed",
   },
   {
     slug: "tugam",
     title: "Tugam — Brand & Site Overhaul",
-    summary: "Design system, content structure, faster landing experiences.",
+    summary:
+      "Design-system-driven React rebuild improving brand cohesion, accessibility, and search performance.",
     stack: ["Design System", "SEO", "React", "Tailwind"],
+    status: "Completed",
   },
 ];
 
@@ -43,7 +50,9 @@ export default function WorkPage() {
             Case studies &amp; outcomes
           </h1>
           <p className="mt-4 text-black/70 max-w-2xl">
-            Real projects from real clients — migrations, rebuilds, and growth-ready sites.
+            A snapshot of key projects we’ve built, scaled, or modernized — from multi-store retail
+            groups to specialized service brands. Each shows how UMS combines full-stack development
+            with measurable marketing growth.
           </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -53,6 +62,7 @@ export default function WorkPage() {
                 <div className="mt-4">
                   <h3 className="font-semibold">{c.title}</h3>
                   <p className="mt-1 text-sm text-black/70">{c.summary}</p>
+
                   <div className="mt-3 flex flex-wrap gap-2">
                     {c.stack.map((t) => (
                       <span key={t} className="badge">
@@ -60,6 +70,19 @@ export default function WorkPage() {
                       </span>
                     ))}
                   </div>
+
+                  <div className="mt-3 flex items-center justify-between text-xs text-black/60">
+                    <span>{c.status}</span>
+                    {c.highlight && (
+                      <span
+                        className="font-semibold text-[var(--primary)]"
+                        title={c.highlight}
+                      >
+                        {c.highlight}
+                      </span>
+                    )}
+                  </div>
+
                   <a
                     href={`/work/${c.slug}`}
                     className="mt-3 inline-block text-sm"
