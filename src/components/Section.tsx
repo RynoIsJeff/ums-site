@@ -5,7 +5,10 @@ import { motion } from "framer-motion";
 export default function Section({
   children,
   className = "",
-}: { children: React.ReactNode; className?: string }) {
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <section className={`bg-white ums-bg-glow py-8 md:py-11 ${className}`}>
       <motion.div

@@ -6,15 +6,21 @@ export default function CtaBand() {
           <div>
             <p className="kicker">Let’s build something excellent</p>
             <h2 className="mt-2 text-2xl md:text-3xl font-bold">
-              Ready to turn your idea into a product — or upgrade what you’ve got?
+              Ready to turn your idea into a product — or upgrade what you’ve
+              got?
             </h2>
             <p className="mt-2 text-black/70 max-w-2xl">
-              No public pricing. We scope to your context and goals, then ship in milestones.
+              No public pricing. We scope to your context and goals, then ship
+              in milestones.
             </p>
           </div>
           <div className="flex gap-3">
-            <a href="/contact" className="btn-primary">Start a project</a>
-            <a href="/work" className="btn-outline">View our work</a>
+            <a href="/contact" className="btn-primary">
+              Start a project
+            </a>
+            <a href="/work" className="btn-outline">
+              View our work
+            </a>
           </div>
         </div>
       </div>
