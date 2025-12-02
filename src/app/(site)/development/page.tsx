@@ -76,7 +76,7 @@ export default function DevPage() {
       <Section>
         <div className="container max-w-4xl">
           <span className="kicker">Development</span>
-          <h1 className="mt-2 text-4xl md:text-5xl font-bold">
+          <h1 className="mt-2 text-[2.1rem] md:text-5xl font-bold">
             Web, app &amp; software development built to grow with you.
           </h1>
           <p className="mt-4 text-black/70">
@@ -85,6 +85,23 @@ export default function DevPage() {
             build and modernise websites, apps and platforms on a modern stack —
             so your marketing and operations have something solid to stand on.
           </p>
+
+          {/* Who this is for */}
+          <p className="mt-4 text-sm text-black/60">Who this is for:</p>
+          <ul className="mt-1 text-sm text-black/70 list-disc pl-5 space-y-1">
+            <li>
+              Retail &amp; service brands that have outgrown a basic theme or
+              site builder.
+            </li>
+            <li>
+              Teams that need a job portal or internal tool to replace manual
+              spreadsheets and WhatsApp threads.
+            </li>
+            <li>
+              Founders who want a solid v1 that marketing can confidently send
+              traffic to.
+            </li>
+          </ul>
         </div>
       </Section>
 
@@ -98,6 +115,8 @@ export default function DevPage() {
             We don&apos;t force you into a one-size-fits-all package. You might
             need a fresh build, a rebuild of something that&apos;s already live,
             or a focused internal tool for your staff — we scope around that.
+            Recent examples include Civils Agri Plant, Tugam Game Farm and the
+            upcoming SupaTrade HR &amp; recruitment platform.
           </p>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
@@ -144,6 +163,21 @@ export default function DevPage() {
               </Card>
             ))}
           </div>
+        </div>
+      </Section>
+
+      {/* MINI CTA BEFORE GLOBAL CTA BAND */}
+      <Section>
+        <div className="container max-w-3xl text-center">
+          <h2 className="text-2xl font-semibold">
+            Not sure if you need a rebuild or a fresh start?
+          </h2>
+          <p className="mt-3 text-sm text-black/70">
+            Send us your current website link or a quick Loom, and we&apos;ll
+            tell you honestly whether it&apos;s worth upgrading, rebuilding or
+            leaving as-is. No pressure, no hard sell — just a practical next
+            step.
+          </p>
         </div>
       </Section>
 
