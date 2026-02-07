@@ -42,7 +42,7 @@ export default function SupaTradeCase() {
 
       {/* OVERVIEW */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Background</h2>
           <p className="mt-3 text-black/70">
             In August 2022, Ultimate Marketing Smash approached SupaTrade Build It Pongola
@@ -79,7 +79,7 @@ export default function SupaTradeCase() {
 
       {/* RESULTS */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Results</h2>
           <p className="mt-3 text-black/70">
             Since taking over SupaTrade’s social media channels, UMS has achieved
@@ -112,7 +112,7 @@ export default function SupaTradeCase() {
 
       {/* UPCOMING PROJECT */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Upcoming — SupaTrade HR Management Platform</h2>
           <p className="mt-3 text-black/70">
             In 2025, UMS identified a gap in SupaTrade’s internal hiring process and proposed

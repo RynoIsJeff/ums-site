@@ -25,7 +25,7 @@ const CASES = [
   },
   {
     slug: "caplant",
-    title: "Civils Agri Plant (CAPlant)",
+    title: "Civils Agri Plant",
     summary:
       "UMS designed, built and now hosts Civils Agri Plant’s full website — showcasing their Plant Hire, Sand & Stone and Brick divisions with clear service pages and a lead-driven contact funnel.",
     stack: ["Website Build", "Service Pages", "Contact & Quote", "Hosted by UMS"],
@@ -35,12 +35,12 @@ const CASES = [
   },
   {
     slug: "tugam",
-    title: "Tugam Game Farm",
+    title: "Tugam Cattle & Game Farm",
     summary:
-      "Fast v1 on GoDaddy to get TugamGameFarm.co.za live, now being rebuilt on the same modern UMS stack as CAPlant for better performance and easier updates.",
-    stack: ["GoDaddy v1", "Next.js Rebuild", "Accommodation Pages", "UMS Managed"],
-    status: "Live (rebuild in progress)",
-    highlight: "Launch fast → Rebuild right",
+      "Phase 1: fast GoDaddy site to get TugamGameFarm.co.za live. Phase 2: full custom static site (Gulp/HTML/SCSS, Bootstrap) on Vercel — accommodation, cattle, hunting, venue hire and contact.",
+    stack: ["GoDaddy v1", "Custom Static Site", "Vercel Deploy", "UMS Managed"],
+    status: "Live on Vercel",
+    highlight: "Launch fast → Build right",
     logo: "/client-logo/tugam.png",
   },
 ];
@@ -49,7 +49,7 @@ export default function WorkPage() {
   return (
     <main className="bg-white">
       <Section>
-        <div className="container">
+        <div className="container max-w-5xl">
           <span className="kicker">Selected Work</span>
           <h1 className="mt-2 text-4xl md:text-5xl font-bold">
             Case studies &amp; outcomes

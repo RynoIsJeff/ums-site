@@ -3,12 +3,12 @@ import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
 
 export const metadata = {
-  title: "Case Study — Tugam Game Farm",
+  title: "Case Study — Tugam Cattle & Game Farm",
   description:
-    "How UMS launched TugamGameFarm.co.za fast on GoDaddy to get them online, and is now rebuilding it on the modern UMS stack for long-term growth.",
+    "How UMS launched TugamGameFarm.co.za fast on GoDaddy, then built a full custom static site (Gulp/SCSS/Bootstrap) on Vercel — accommodation, cattle, hunting, venue hire and contact.",
   openGraph: {
     images: [
-      "https://ultimatemarketingsmash.com/og?title=Tugam%20Game%20Farm&subtitle=Fast%20launch%20%E2%86%92%20Modern%20rebuild",
+      "https://ultimatemarketingsmash.com/og?title=Tugam%20Cattle%20%26%20Game%20Farm&subtitle=Launch%20fast%20%E2%86%92%20Build%20right",
     ],
   },
 };
@@ -20,18 +20,17 @@ export default function TugamCase() {
       <Section>
         <div className="container max-w-5xl">
           <span className="kicker">Case Study</span>
-          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Tugam Game Farm</h1>
+          <h1 className="mt-2 text-4xl md:text-5xl font-bold">Tugam Cattle & Game Farm</h1>
           <p className="mt-4 text-black/70 max-w-3xl">
-            Tugam needed to get online quickly with a professional website to showcase their game farm,
-            accommodation and experiences. UMS first shipped a fast GoDaddy builder site to get them live,
-            and is now rebuilding it using the same modern stack we used for CAPlant to make it easier to
-            update, expand and market.
+            Tugam needed a professional website to showcase their game farm in Pongola, KwaZulu-Natal — accommodation,
+            venue hire, Ankole cattle and hunting experiences. UMS first shipped a fast GoDaddy builder site to get them
+            live, then built a full custom static site (Gulp/HTML/SCSS, Bootstrap) deployed on Vercel.
           </p>
 
           <div className="mt-8">
             <img
               src="/work/tugam-hero.png"
-              alt="Tugam Game Farm website"
+              alt="Tugam Cattle & Game Farm website"
               className="w-full rounded-xl border border-black/10"
             />
           </div>
@@ -40,19 +39,21 @@ export default function TugamCase() {
 
       {/* PROJECT CONTEXT */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Project Context</h2>
           <p className="mt-3 text-black/70">
-            The goal was speed-to-live: Tugam needed a credible web presence fast — something they could
-            point guests, hunters and partners to — without waiting for a full React/Next.js build. The
-            first version was therefore done on GoDaddy’s website builder: fast to launch, clean and on-brand.
+            The goal was speed-to-live first: Tugam needed a credible web presence fast — something they could
+            point guests, hunters and partners to. Phase 1 used GoDaddy’s website builder for a quick go-live.
+            Phase 2 was a full custom build: static HTML/SCSS, Gulp, Bootstrap 4, deployed on Vercel — with dedicated
+            pages for accommodation (and lodge galleries), cattle, hunting, venue hire and contact (including a
+            serverless contact form).
           </p>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             <Card index={0}>
               <h3 className="font-semibold text-lg">Client</h3>
               <p className="mt-2 text-sm text-black/70">
-                Tugam Game Farm — accommodation, hunting &amp; farm experiences
+                Tugam Cattle & Game Farm — accommodation, venue hire, Ankole cattle &amp; hunting, Pongola
               </p>
             </Card>
             <Card index={1}>
@@ -64,7 +65,7 @@ export default function TugamCase() {
             <Card index={2}>
               <h3 className="font-semibold text-lg">Phase 2</h3>
               <p className="mt-2 text-sm text-black/70">
-                Rebuild on UMS stack (Next.js + Tailwind), same approach as CAPlant
+                Custom static site (Gulp, SCSS, Bootstrap) on Vercel — built &amp; maintained by UMS
               </p>
             </Card>
           </div>
@@ -73,11 +74,11 @@ export default function TugamCase() {
 
       {/* PHASE 1: FAST LAUNCH */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Phase 1 — Fast Launch</h2>
           <p className="mt-3 text-black/70">
             We prioritised time-to-value: a neat hero, farm description, accommodation info, contact details,
-            and a way for visitors to reach out. Using GoDaddy meant Tugam was live quickly, and could start
+            and a way for visitors to reach out. Using GoDaddy meant Tugam was live quickly and could start
             sharing the link on social and with guests.
           </p>
 
@@ -102,33 +103,35 @@ export default function TugamCase() {
         </div>
       </Section>
 
-      {/* PHASE 2: MODERN REBUILD */}
+      {/* PHASE 2: CUSTOM STATIC SITE */}
       <Section>
-        <div className="container max-w-4xl">
-          <h2 className="text-2xl font-semibold">Phase 2 — Modern Rebuild (Current)</h2>
+        <div className="container max-w-5xl">
+          <h2 className="text-2xl font-semibold">Phase 2 — Custom Static Site (Live)</h2>
           <p className="mt-3 text-black/70">
-            Now that Tugam is live and using the site, UMS is rebuilding it on the same stack as Civils Agri Plant.
-            That gives Tugam a proper component-based site, easier updates, and better performance — and opens the door
-            for marketing campaigns later.
+            UMS built a full custom site for Tugam Cattle & Game Farm: static HTML with Gulp partials, SCSS, Bootstrap 4,
+            jQuery, Slick, Colorbox, Shuffle and Leaflet for maps. The site is built from source, deployed on Vercel
+            (GitHub → auto-deploy), and includes a serverless contact form (Vercel serverless function) so enquiries
+            go to the client.
           </p>
 
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             <Card index={0}>
               <h3 className="font-semibold">Tech stack</h3>
               <p className="mt-2 text-sm text-black/70">
-                Next.js, Tailwind CSS, modern layout, image optimisation.
+                Gulp, HTML partials, SCSS → CSS, Bootstrap 4, jQuery, Slick, Colorbox, Shuffle, Leaflet. Deploy: Vercel.
               </p>
             </Card>
             <Card index={1}>
-              <h3 className="font-semibold">Content structure</h3>
+              <h3 className="font-semibold">Pages &amp; content</h3>
               <p className="mt-2 text-sm text-black/70">
-                Separate pages/sections for accommodation, farm info, animals/hunting, gallery.
+                Home, About, Accommodation (with lodge galleries — Ankole Kraal, Giraffe, Impala, Kudu, Matumi, Nyala, Zebra),
+                Cattle, Hunting, Venue, Contact, Privacy, Terms.
               </p>
             </Card>
             <Card index={2}>
-              <h3 className="font-semibold">Why rebuild?</h3>
+              <h3 className="font-semibold">Contact form</h3>
               <p className="mt-2 text-sm text-black/70">
-                Easier to scale content, better SEO, faster pages, consistent with other UMS sites.
+                Contact form submits to /api/contact (Vercel serverless). Env vars for SMTP and TO_EMAIL; enquiries to client.
               </p>
             </Card>
           </div>
@@ -137,24 +140,24 @@ export default function TugamCase() {
 
       {/* OUTCOME */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Outcome</h2>
           <p className="mt-3 text-black/70">
-            Tugam got online quickly without over-investing in v1, and now has a clear path to a fully custom,
-            UMS-managed site that can grow with the business. This “launch fast → rebuild right” pattern is ideal for
-            small tourism/agri brands that need to be visible immediately but still want a serious product later.
+            Tugam got online quickly with Phase 1, then received a full custom site that reflects their real offering:
+            accommodation, cattle, hunting, venue hire and clear contact. The “launch fast → build right” pattern gave
+            them immediate visibility and a serious, maintainable product — live on TugamGameFarm.co.za and maintained by UMS.
           </p>
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <Card index={0}>
               <h3 className="font-semibold">Immediate visibility</h3>
               <p className="mt-2 text-sm text-black/70">
-                TugamGameFarm.co.za gave them a URL to send to visitors, hunters and partners.
+                TugamGameFarm.co.za gave them a URL to send to visitors, hunters and partners from day one.
               </p>
             </Card>
             <Card index={1}>
-              <h3 className="font-semibold">Future-proofed</h3>
+              <h3 className="font-semibold">Full custom site</h3>
               <p className="mt-2 text-sm text-black/70">
-                Rebuild on UMS stack means they can later add booking, galleries, or even a customer portal.
+                Phase 2 delivers dedicated pages, lodge galleries, map, contact form and Vercel hosting — all maintained by UMS.
               </p>
             </Card>
           </div>

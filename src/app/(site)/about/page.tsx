@@ -17,7 +17,7 @@ export default function AboutPage() {
     <main className="bg-white">
       {/* INTRO */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <span className="kicker">About</span>
           <h1 className="mt-2 text-4xl md:text-5xl font-bold">
             Ultimate Marketing <span style={{ color: "var(--primary)" }}>Smash</span>
@@ -130,7 +130,7 @@ export default function AboutPage() {
               <li>• Hardware &amp; building supply (SupaTrade Build It Group)</li>
               <li>• Construction / Civils / Plant hire (Civils Agri Plant)</li>
               <li>• Fuel, convenience &amp; QSR (Engen Mbazwana, Steers, Debonairs)</li>
-              <li>• Agri / Game farms / Tourism (Tugam Game Farm)</li>
+              <li>• Agri / Game farms / Tourism (Tugam Cattle & Game Farm)</li>
               <li>• E-commerce brands running digital ads</li>
               <li>• International clients needing a remote dev/marketing team</li>
             </ul>
@@ -159,7 +159,7 @@ export default function AboutPage() {
 
       {/* NO PUBLIC PRICING */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">No public pricing — on purpose</h2>
           <p className="mt-3 text-black/70">
             A hardware store with 5 branches is not the same as a one-location café. An international

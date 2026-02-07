@@ -3,7 +3,7 @@ import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
 
 export const metadata = {
-  title: "Case Study — Civils Agri Plant (CAPlant)",
+  title: "Case Study — Civils Agri Plant",
   description:
     "How UMS designed, built and now hosts Civils Agri Plant’s website to showcase plant hire, sand & stone and bricks, with a clear lead funnel.",
   openGraph: {
@@ -13,17 +13,17 @@ export const metadata = {
   },
 };
 
-export default function CAPlantCase() {
+export default function CivilsAgriPlantCase() {
   return (
     <main className="bg-white">
       <Section>
         <div className="container max-w-5xl">
           <span className="kicker">Case Study</span>
           <h1 className="mt-2 text-4xl md:text-5xl font-bold">
-            Civils Agri Plant (CAPlant)
+            Civils Agri Plant
           </h1>
           <p className="mt-4 text-black/70 max-w-3xl">
-            CAPlant needed a modern, product-led website to showcase their construction and agriculture
+            Civils Agri Plant needed a modern, product-led website to showcase their construction and agriculture
             services — plant hire, sand &amp; stone, and bricks — and convert visitors into quote requests.
             UMS built the site, structured the services, and hosts it for them.
           </p>
@@ -39,7 +39,7 @@ export default function CAPlantCase() {
       </Section>
 
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Project Context</h2>
           <p className="mt-3 text-black/70">
             Civils Agri Plant serves the Western Cape construction and agriculture sector, offering
@@ -53,7 +53,7 @@ export default function CAPlantCase() {
             <Card index={0}>
               <h3 className="font-semibold text-lg">Client</h3>
               <p className="mt-2 text-sm text-black/70">
-                Civils Agri Plant (CAPlant), Paarl, Western Cape, South Africa
+                Civils Agri Plant, Paarl, Western Cape, South Africa
               </p>
             </Card>
             <Card index={1}>
@@ -73,10 +73,10 @@ export default function CAPlantCase() {
       </Section>
 
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">What UMS Built</h2>
           <p className="mt-3 text-black/70">
-            We built a clean, sectional website that matches CAPlant’s actual service tree — so the
+            We built a clean, sectional website that matches Civils Agri Plant’s actual service tree — so the
             pages people visit most (“Plant Hire”, “Sand &amp; Stone”, “Bricks”) are now direct entries
             from the nav and not hidden under generic content. Each service page is written to convert:
             headline, what we supply, and a clear contact/quote action.
@@ -105,10 +105,10 @@ export default function CAPlantCase() {
       </Section>
 
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Hosting &amp; Ongoing Management</h2>
           <p className="mt-3 text-black/70">
-            UMS hosts the CAPlant website and keeps content, links and contact details up to date.
+            UMS hosts the Civils Agri Plant website and keeps content, links and contact details up to date.
             The client doesn’t have to manage servers or updates — they send changes to UMS and we ship.
           </p>
           <div className="mt-6 grid gap-6 md:grid-cols-3">
@@ -135,10 +135,10 @@ export default function CAPlantCase() {
       </Section>
 
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl font-semibold">Outcome</h2>
           <p className="mt-3 text-black/70">
-            CAPlant now has a modern, mobile-friendly site that actually reflects how the business
+            Civils Agri Plant now has a modern, mobile-friendly site that actually reflects how the business
             sells: materials + services + contact. It’s structured for future growth — more products,
             more service pages, and more media in the gallery — without rebuilding the whole thing.
           </p>

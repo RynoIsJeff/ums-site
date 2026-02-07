@@ -74,7 +74,7 @@ export default function DevPage() {
     <main className="bg-white">
       {/* HERO */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <span className="kicker">Development</span>
           <h1 className="mt-2 text-[2.1rem] md:text-5xl font-bold">
             Web, app &amp; software development built to grow with you.
@@ -115,7 +115,7 @@ export default function DevPage() {
             We don&apos;t force you into a one-size-fits-all package. You might
             need a fresh build, a rebuild of something that&apos;s already live,
             or a focused internal tool for your staff — we scope around that.
-            Recent examples include Civils Agri Plant, Tugam Game Farm and the
+            Recent examples include Civils Agri Plant, Tugam Cattle & Game Farm and the
             upcoming SupaTrade HR &amp; recruitment platform.
           </p>
 
@@ -144,7 +144,7 @@ export default function DevPage() {
 
       {/* PROCESS */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl md:text-3xl font-semibold">
             What working with UMS looks like
           </h2>

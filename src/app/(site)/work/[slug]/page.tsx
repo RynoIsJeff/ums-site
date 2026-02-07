@@ -35,9 +35,9 @@ const CASES: Case[] = [
   },
   {
     slug: "caplant",
-    title: "Civils Agri Plant (CAPlant)",
+    title: "Civils Agri Plant",
     summary:
-      "UMS designed, built and now hosts CAPlant’s website to showcase Plant Hire, Sand & Stone and Bricks — structured around their real services, with a clear lead/contact funnel.",
+      "UMS designed, built and now hosts Civils Agri Plant’s website to showcase Plant Hire, Sand & Stone and Bricks — structured around their real services, with a clear lead/contact funnel.",
     stack: [
       "Website Build",
       "Service-First Navigation",
@@ -55,20 +55,20 @@ const CASES: Case[] = [
   },
   {
     slug: "tugam",
-    title: "Tugam Game Farm",
+    title: "Tugam Cattle & Game Farm",
     summary:
-      "Phase 1: fast GoDaddy website to get TugamGameFarm.co.za live quickly. Phase 2 (in progress): rebuild on the same modern UMS stack as CAPlant for better performance, more pages and easier updates.",
+      "Phase 1: fast GoDaddy site to get TugamGameFarm.co.za live. Phase 2: full custom static site (Gulp/HTML/SCSS, Bootstrap) on Vercel — accommodation, cattle, hunting, venue hire and contact.",
     stack: [
       "GoDaddy v1 (fast launch)",
-      "Next.js + Tailwind (rebuild)",
-      "Accommodation / Activities structure",
-      "UMS Managed Hosting",
+      "Custom static site (Gulp, SCSS, Bootstrap)",
+      "Vercel deploy & contact API",
+      "UMS Managed",
     ],
     outcomes: [
-      "Immediate online presence to share with guests and hunters",
-      "Clear path to a proper component-based site",
-      "Easier future updates (gallery, animals, accommodation)",
-      "Consistent tech stack with other UMS sites",
+      "Immediate online presence (Phase 1) to share with guests and hunters",
+      "Full site: Accommodation, Cattle, Hunting, Venue, Contact with form",
+      "Lodge galleries, Leaflet map, serverless contact form",
+      "Live on TugamGameFarm.co.za (Vercel)",
     ],
     heroImage: "/work/tugam-hero.png",
   },
@@ -105,7 +105,7 @@ export default function CasePage({ params }: { params: { slug: string } }) {
   return (
     <main className="bg-white">
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <span className="kicker">Case study</span>
           <h1 className="mt-2 text-4xl md:text-5xl font-bold">{item.title}</h1>
           <p className="mt-4 text-black/70">{item.summary}</p>

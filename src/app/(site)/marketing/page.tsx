@@ -52,7 +52,7 @@ export default function MarketingPage() {
     <main className="bg-white">
       {/* HERO */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <span className="kicker">Marketing</span>
           <h1 className="mt-2 text-[2.1rem] md:text-5xl font-bold">
             Digital marketing for brands that want results.
@@ -116,7 +116,7 @@ export default function MarketingPage() {
 
       {/* PROCESS */}
       <Section>
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h2 className="text-2xl md:text-3xl font-semibold">How we work</h2>
           <p className="mt-3 text-black/70 max-w-2xl">
             Whether you&apos;re running a single store or multiple brands, our

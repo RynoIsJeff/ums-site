@@ -2,7 +2,7 @@ import Section from "@/components/Section";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import CtaBand from "@/components/CtaBand";
-import { Code2, Megaphone, Cpu } from "lucide-react";
+import { Code2, Megaphone, TrendingUp, Globe, Zap } from "lucide-react";
 
 export const metadata = {
   title: "Ultimate Marketing Smash — Web, App & Digital Marketing",
@@ -27,7 +27,7 @@ const HOME_CASES = [
   {
     slug: "caplant",
     logo: "/client-logo/caplant.png",
-    title: "Civils Agri Plant (CAPlant)",
+    title: "Civils Agri Plant",
     metric: "Built & hosted by UMS",
     summary:
       "Service-first website for Plant Hire, Sand & Stone and Bricks — built and managed by UMS.",
@@ -35,10 +35,10 @@ const HOME_CASES = [
   {
     slug: "tugam",
     logo: "/client-logo/tugam.png",
-    title: "Tugam Game Farm",
-    metric: "Launch fast → rebuild right",
+    title: "Tugam Cattle & Game Farm",
+    metric: "Custom site on Vercel",
     summary:
-      "GoDaddy v1 to get live quickly, now moving to a full Next.js rebuild on the UMS stack.",
+      "Full static site: accommodation, cattle, hunting, venue hire and contact — built and hosted by UMS.",
   },
 ];
 
@@ -116,7 +116,7 @@ export default function Home() {
                 />
                 <img
                   src="/client-logo/tugam.png"
-                  alt="Tugam Game Farm"
+                  alt="Tugam Cattle & Game Farm"
                   className="h-12 md:h-16 xl:h-20 w-auto object-contain"
                 />
               </div>
@@ -149,18 +149,38 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right side visual */}
-          <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(3,3,3,0.06)] overflow-hidden">
-            <div className="aspect-[16/10] w-full overflow-hidden rounded-xl border border-black/[0.06] bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))] grid place-items-center">
-              <div className="text-center px-6">
-                <Cpu
-                  className="mx-auto h-10 w-10"
-                  style={{ color: "var(--primary)" }}
-                />
-                <p className="mt-3 text-sm text-black/70">
-                  This is where your UMS intro video will sit — autoplaying
-                  silently to show your work in motion.
-                </p>
+          {/* Right side: stats / proof strip */}
+          <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(3,3,3,0.06)] overflow-hidden p-6 md:p-8">
+            <p className="text-xs font-semibold tracking-wide text-black/50 uppercase mb-6">
+              Results that speak
+            </p>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="flex items-start gap-4">
+                <div className="rounded-xl bg-[linear-gradient(135deg,rgba(2,214,228,0.12),rgba(5,134,173,0.08))] p-3">
+                  <TrendingUp className="h-6 w-6" style={{ color: "var(--primary)" }} />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: "var(--primary)" }}>2500%</p>
+                  <p className="mt-1 text-sm text-black/70">engagement growth (SupaTrade)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="rounded-xl bg-[linear-gradient(135deg,rgba(2,214,228,0.12),rgba(5,134,173,0.08))] p-3">
+                  <Globe className="h-6 w-6" style={{ color: "var(--primary)" }} />
+                </div>
+                <div>
+                  <p className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: "var(--primary)" }}>Web &amp; app</p>
+                  <p className="mt-1 text-sm text-black/70">sites built and hosted by UMS</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 sm:col-span-2">
+                <div className="rounded-xl bg-[linear-gradient(135deg,rgba(2,214,228,0.12),rgba(5,134,173,0.08))] p-3">
+                  <Zap className="h-6 w-6" style={{ color: "var(--primary)" }} />
+                </div>
+                <div>
+                  <p className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: "var(--primary)" }}>Local &amp; international</p>
+                  <p className="mt-1 text-sm text-black/70">From Pongola to multi-store rollouts and e‑commerce campaigns</p>
+                </div>
               </div>
             </div>
           </div>
