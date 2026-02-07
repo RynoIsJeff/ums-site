@@ -16,7 +16,7 @@ export default function ContactPage() {
   return (
     <main className="bg-white">
       <Section>
-        <div className="container">
+        <div className="container max-w-5xl">
           <span className="kicker">Let’s talk</span>
           <h1 className="mt-2 text-4xl md:text-5xl font-bold">Start a project</h1>
           <p className="mt-4 text-black/70 max-w-2xl">

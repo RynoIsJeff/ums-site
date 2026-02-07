@@ -4,7 +4,6 @@ import { z } from "zod";
 
 export const runtime = "edge";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const Schema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email().max(200),
@@ -15,20 +14,38 @@ const Schema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const apiKey = process.env.RESEND_API_KEY;
+    const to = process.env.CONTACT_TO;
+    if (!apiKey || !apiKey.trim()) {
+      return NextResponse.json(
+        { ok: false, error: "Contact form is not configured (missing RESEND_API_KEY)." },
+        { status: 503 }
+      );
+    }
+    if (!to || !to.trim()) {
+      return NextResponse.json(
+        { ok: false, error: "Contact form is not configured (missing CONTACT_TO)." },
+        { status: 503 }
+      );
+    }
+
     const json = await req.json().catch(() => ({}));
     const parsed = Schema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ ok: false, error: "Invalid payload" }, { status: 400 });
+      const msg = parsed.error.errors?.[0]?.message ?? "Invalid payload";
+      return NextResponse.json({ ok: false, error: msg }, { status: 400 });
     }
     const { name, email, intent, message, company } = parsed.data;
 
-    // honeypot
+    // honeypot — treat as success but don't send
     if (company && company.trim().length > 0) {
       return NextResponse.json({ ok: true });
     }
 
-    const from = process.env.CONTACT_FROM || "ums-site@example.com";
-    const to = process.env.CONTACT_TO || "hello@example.com";
+    // Resend: "from" must be a verified domain or use onboarding@resend.dev for testing
+    const from =
+      process.env.CONTACT_FROM?.trim() ||
+      "UMS Contact <onboarding@resend.dev>";
 
     const html = `
       <div style="font-family:Arial,sans-serif;font-size:14px;color:#111">
@@ -41,17 +58,26 @@ export async function POST(req: Request) {
       </div>
     `;
 
-    await resend.emails.send({
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
       from,
-      to,
+      to: to.trim().split(",").map((e) => e.trim()).filter(Boolean),
       subject: `UMS enquiry — ${intent || "General"}`,
       html,
       replyTo: email,
     });
 
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Send failed" }, { status: 500 });
+    if (error) {
+      return NextResponse.json(
+        { ok: false, error: error.message || "Email send failed" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ ok: true, id: data?.id });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Send failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 

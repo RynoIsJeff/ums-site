@@ -28,7 +28,7 @@ export default function ContactClient() {
       body: JSON.stringify(data),
     });
 
-    const json = await res.json();
+    const json = await res.json().catch(() => ({ ok: false, error: "Network error" }));
     if (json.ok) {
       setState("ok");
       router.push("/thank-you");
@@ -36,7 +36,7 @@ export default function ContactClient() {
     }
 
     setState("err");
-    setErr(json.error || "Something went wrong");
+    setErr(json.error || "Something went wrong. Please try again or email us directly.");
   }
 
   return (
