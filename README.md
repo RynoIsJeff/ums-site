@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+**Node.js:** This project requires Node.js 20 or later (see `package.json` `engines` and `.nvmrc`). Node 18.x is no longer supported.
+
 ## Getting Started
 
 First, run the development server:
