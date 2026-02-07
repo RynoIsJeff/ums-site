@@ -19,7 +19,7 @@ export default function ContactClient() {
       email: (form.elements.namedItem("email") as HTMLInputElement).value,
       intent: (form.elements.namedItem("intent") as HTMLSelectElement).value,
       message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
-      company: (form.elements.namedItem("company") as HTMLInputElement)?.value || "",
+      hp: (form.elements.namedItem("hp") as HTMLInputElement)?.value || "",
     };
 
     const res = await fetch("/api/contact", {
@@ -67,8 +67,8 @@ export default function ContactClient() {
         placeholder="Scope, timing, goals"
         required
       />
-      {/* honeypot */}
-      <input name="company" className="hidden" tabIndex={-1} autoComplete="off" />
+      {/* honeypot — name not "company" so browsers don't autofill and trigger skip-send */}
+      <input name="hp" type="text" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden />
 
       <button disabled={state === "sending"} className="btn-primary">
         {state === "sending" ? "Sending..." : "Send message"}

@@ -149,7 +149,7 @@ export default function AboutPage() {
               <span className="badge">Supabase</span>
               <span className="badge">Prisma</span>
               <span className="badge">Vercel</span>
-              <span className="badge">Resend</span>
+              <span className="badge">Formspree</span>
               <span className="badge">Highcharts</span>
               <span className="badge">Meta &amp; Google Ads</span>
             </div>
