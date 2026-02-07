@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const json = await req.json().catch(() => ({}));
     const parsed = Schema.safeParse(json);
     if (!parsed.success) {
-      const msg = parsed.error.errors?.[0]?.message ?? "Invalid payload";
+      const msg = parsed.error.issues?.[0]?.message ?? "Invalid payload";
       return NextResponse.json({ ok: false, error: msg }, { status: 400 });
     }
     const { name, email, intent, message, hp } = parsed.data;

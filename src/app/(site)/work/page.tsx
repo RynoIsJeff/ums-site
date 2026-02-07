@@ -90,7 +90,7 @@ export default function WorkPage() {
                   <div className="mt-3 flex items-center justify-between text-xs text-black/60">
                     <span>{c.status}</span>
                     {c.highlight && (
-                      <span className="font-semibold text-[var(--primary)]">
+                      <span className="font-semibold text-(--primary)">
                         {c.highlight}
                       </span>
                     )}

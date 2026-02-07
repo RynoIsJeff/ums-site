@@ -52,7 +52,7 @@ export default function NavClient() {
           aria-label="Facebook"
           target="_blank"
           rel="noreferrer"
-          className="rounded-md p-1.5 hover:bg-black/[0.06]"
+          className="rounded-md p-1.5 hover:bg-black/6"
         >
           <Facebook className="h-5 w-5" style={{ color: "var(--primary)" }} />
         </a>
@@ -61,7 +61,7 @@ export default function NavClient() {
           aria-label="Instagram"
           target="_blank"
           rel="noreferrer"
-          className="rounded-md p-1.5 hover:bg-black/[0.06]"
+          className="rounded-md p-1.5 hover:bg-black/6"
         >
           <Instagram className="h-5 w-5" style={{ color: "var(--primary)" }} />
         </a>
@@ -70,7 +70,7 @@ export default function NavClient() {
           aria-label="LinkedIn"
           target="_blank"
           rel="noreferrer"
-          className="rounded-md p-1.5 hover:bg-black/[0.06]"
+          className="rounded-md p-1.5 hover:bg-black/6"
         >
           <Linkedin className="h-5 w-5" style={{ color: "var(--primary)" }} />
         </a>
@@ -103,8 +103,8 @@ export default function NavClient() {
                   href={item.href}
                   className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
                     isActive(pathname, item.href)
-                      ? "bg-black/[0.03] text-black font-semibold"
-                      : "text-black/70 hover:bg-black/[0.02]"
+                      ? "bg-black/3 text-black font-semibold"
+                      : "text-black/70 hover:bg-black/2"
                   }`}
                   aria-current={
                     isActive(pathname, item.href) ? "page" : undefined
@@ -124,7 +124,7 @@ export default function NavClient() {
                   aria-label="Facebook"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                 >
                   <Facebook
                     className="h-4 w-4"
@@ -136,7 +136,7 @@ export default function NavClient() {
                   aria-label="Instagram"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                 >
                   <Instagram
                     className="h-4 w-4"
@@ -148,7 +148,7 @@ export default function NavClient() {
                   aria-label="LinkedIn"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                 >
                   <Linkedin
                     className="h-4 w-4"
@@ -160,7 +160,7 @@ export default function NavClient() {
               {/* Mobile CTA */}
               <Link
                 href="/contact"
-                className="inline-flex flex-1 justify-center rounded-full border border-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors"
+                className="inline-flex flex-1 justify-center rounded-full border border-(--primary) px-3 py-1.5 text-xs font-semibold text-(--primary) hover:bg-(--primary) hover:text-white transition-colors"
                 onClick={() => setOpen(false)}
               >
                 Start a Project

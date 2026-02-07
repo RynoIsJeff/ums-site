@@ -1,7 +1,9 @@
+import Link from "next/link";
+
 export default function CtaBand() {
   return (
     <section className="bg-white ums-bg-glow pt-10 pb-16 -mt-6 md:-mt-8">
-      <div className="container max-w-5xl rounded-2xl border border-black/[0.06] bg-[linear-gradient(135deg,rgba(2,214,228,0.08),rgba(5,134,173,0.06))] p-6 md:p-10">
+      <div className="container max-w-5xl rounded-2xl border border-black/6 bg-[linear-gradient(135deg,rgba(2,214,228,0.08),rgba(5,134,173,0.06))] p-6 md:p-10">
         <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
           <div>
             <p className="kicker">Let’s build something excellent</p>
@@ -15,12 +17,12 @@ export default function CtaBand() {
             </p>
           </div>
           <div className="flex gap-3">
-            <a href="/contact" className="btn-primary">
+            <Link href="/contact" className="btn-primary">
               Start a project
-            </a>
-            <a href="/work" className="btn-outline">
+            </Link>
+            <Link href="/work" className="btn-outline">
               View our work
-            </a>
+            </Link>
           </div>
         </div>
       </div>

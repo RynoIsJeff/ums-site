@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from "next/og";
 
 // Route: https://ultimatemarketingsmash.com/og?title=Your%20Title

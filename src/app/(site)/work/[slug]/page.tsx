@@ -118,7 +118,7 @@ export default function CasePage({ params }: { params: { slug: string } }) {
                 className="w-full rounded-xl border border-black/10"
               />
             ) : (
-              <div className="aspect-[16/9] w-full rounded-xl border border-black/10 bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))]" />
+              <div className="aspect-16/9 w-full rounded-xl border border-black/10 bg-[linear-gradient(135deg,rgba(2,214,228,0.10),rgba(5,134,173,0.06))]" />
             )}
           </div>
 

@@ -37,7 +37,7 @@ export default function RootLayout({
 
       <body suppressHydrationWarning className="antialiased bg-white">
         {/* HEADER */}
-        <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/80 backdrop-blur">
+        <header className="sticky top-0 z-50 border-b border-black/6 bg-white/80 backdrop-blur">
           <div className="container max-w-6xl flex h-16 items-center justify-between">
             <Link
               href="/"
@@ -66,7 +66,7 @@ export default function RootLayout({
         <div className="ums-stripe" />
 
         {/* FOOTER */}
-        <footer className="border-t border-black/[0.06] bg-white py-12">
+        <footer className="border-t border-black/6 bg-white py-12">
           <div className="container max-w-6xl grid gap-8 md:grid-cols-4">
             {/* Brand & socials */}
             <div className="space-y-3">
@@ -82,7 +82,7 @@ export default function RootLayout({
                 <a
                   href={SOCIALS.facebook}
                   aria-label="Facebook"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -102,7 +102,7 @@ export default function RootLayout({
                 <a
                   href={SOCIALS.instagram}
                   aria-label="Instagram"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -137,7 +137,7 @@ export default function RootLayout({
                 <a
                   href={SOCIALS.linkedin}
                   aria-label="LinkedIn"
-                  className="rounded-md p-1.5 hover:bg-black/[0.06]"
+                  className="rounded-md p-1.5 hover:bg-black/6"
                   target="_blank"
                   rel="noreferrer"
                 >

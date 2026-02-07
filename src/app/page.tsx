@@ -150,7 +150,7 @@ export default function Home() {
           </div>
 
           {/* Right side: stats / proof strip */}
-          <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_30px_rgba(3,3,3,0.06)] overflow-hidden p-6 md:p-8">
+          <div className="rounded-2xl border border-black/6 bg-white shadow-[0_8px_30px_rgba(3,3,3,0.06)] overflow-hidden p-6 md:p-8">
             <p className="text-xs font-semibold tracking-wide text-black/50 uppercase mb-6">
               Results that speak
             </p>
@@ -262,7 +262,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="font-semibold text-sm">{c.title}</h3>
-                <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
+                <p className="mt-1 text-xs font-semibold text-(--primary)">
                   {c.metric}
                 </p>
                 <p className="mt-1 text-xs text-black/70">{c.summary}</p>

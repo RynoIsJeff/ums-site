@@ -8,6 +8,8 @@ export const metadata = {
   },
 };
 
+import Link from "next/link";
+
 export default function ThankYou() {
   return (
     <main className="bg-white">
@@ -16,9 +18,9 @@ export default function ThankYou() {
         <p className="mt-4 text-black/70 max-w-xl mx-auto">
           We’ll review your message and get back to you with next steps.
         </p>
-        <a href="/" className="btn-primary mt-8 inline-block">
+        <Link href="/" className="btn-primary mt-8 inline-block">
           Back to home
-        </a>
+        </Link>
       </section>
     </main>
   );
