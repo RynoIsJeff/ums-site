@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Facebook, Instagram, Linkedin, Menu, X } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Menu, X, Lock } from "lucide-react";
 import { SOCIALS } from "@/lib/site";
 
 const NAV_ITEMS = [
@@ -74,6 +74,11 @@ export default function NavClient() {
         >
           <Linkedin className="h-5 w-5" style={{ color: "var(--primary)" }} />
         </a>
+
+        <Link href="/login" className="btn-employee-login">
+          <Lock className="h-3.5 w-3.5" />
+          Employee Login
+        </Link>
 
         <Link href="/contact" className="btn-primary">
           Start a Project
@@ -156,6 +161,16 @@ export default function NavClient() {
                   />
                 </a>
               </div>
+
+              {/* Mobile Employee Login */}
+              <Link
+                href="/login"
+                className="btn-employee-login"
+                onClick={() => setOpen(false)}
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Login
+              </Link>
 
               {/* Mobile CTA */}
               <Link
