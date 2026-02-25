@@ -1,38 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ultimate Marketing Smash — Marketing site + UMS Hub
 
-**Node.js:** This project requires Node.js 20 or later (see `package.json` `engines` and `.nvmrc`). Node 18.x is no longer supported.
+This is a [Next.js](https://nextjs.org) project (App Router) with a public marketing site and an authenticated internal app (**UMS Hub**) at `/hub`.
+
+**Node.js:** Node.js 20 or later (see `package.json` `engines`).
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the marketing site. Use [http://localhost:3000/login](http://localhost:3000/login) for UMS Hub (after Supabase + DB setup).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase setup (UMS Hub)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+UMS Hub uses **Supabase** for auth and Postgres.
 
-## Learn More
+1. **Create a Supabase project** at [supabase.com/dashboard](https://supabase.com/dashboard).
 
-To learn more about Next.js, take a look at the following resources:
+2. **Environment variables** — Copy `.env.example` to both `.env` and `.env.local`, then fill in:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   - **NEXT_PUBLIC_SUPABASE_URL** — Project URL (Project Settings → API).
+   - **NEXT_PUBLIC_SUPABASE_ANON_KEY** — anon/public key (Project Settings → API).
+   - **DATABASE_URL** — Session pooler URI (IPv4-friendly for Vercel). Supabase: Settings → Database → Connection string → **Session** mode. Example: `...@xxx.pooler.supabase.com:5432/postgres`.
+   Put these in `.env` (Prisma CLI reads `.env`). The seed script also reads `.env.local` if present.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Create a user in Supabase Auth** (Authentication → Users → Add user) with the same email you will use for `HUB_BOOTSTRAP_EMAIL` (e.g. `admin@ultimatemarketingsmash.com`). Set a password.
+
+4. **Apply migrations** (creates tables). Use **`migrate deploy`** only — it works with the pooler and does not need a direct connection. Do **not** use `migrate dev` (it requires a direct connection for the shadow DB).
+
+   ```bash
+   npm run prisma:generate
+   npm run prisma:migrate:deploy
+   ```
+
+5. **Seed** (creates app User for that email + default service plans):
+
+   ```bash
+   npm run prisma:seed
+   ```
+
+6. **Log in** at `/login` with the Supabase user email and password. You should be redirected to `/hub`.
+
+   **Adding new migrations later:** Create the migration SQL (e.g. with `npx prisma migrate diff --from-migrations-datamodel prisma/migrations --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/YYYYMMDD_name/migration.sql`), then run `npm run prisma:migrate:deploy` to apply.
+
+## Scripts
+
+| Command | Description |
+|--------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate:deploy` | Apply migrations (use this with Supabase pooler; no direct connection needed) |
+| `npm run prisma:seed` | Seed database |
+
+## Social scheduling (Facebook)
+
+At **Hub → Social** you can connect Facebook pages (Page ID + Page access token from [Meta for Developers](https://developers.facebook.com/) or Business Suite), create posts (draft or scheduled), and cancel them. A **worker** publishes scheduled posts at the chosen time.
+
+- **Worker:** `GET` or `POST` `/api/cron/social-publish`. Call it every few minutes (e.g. Vercel Cron). If `CRON_SECRET` is set in the environment, send `Authorization: Bearer <CRON_SECRET>`.
+- **Vercel:** Add `CRON_SECRET` in project env and use the `vercel.json` cron (runs every 5 minutes). Vercel sends the secret in the `Authorization` header when configured.
+
+## Security and operations
+
+See **[SECURITY.md](./SECURITY.md)** for:
+
+- Environment variable checklist and security notes
+- Backup and restore (pg_dump/pg_restore)
+- Least privilege guidance (DB, Supabase, Hub RBAC)
+- Security headers
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Set the same env vars in the Vercel project (Supabase URL, anon key, `DATABASE_URL` with the **Session pooler** URL). Add `CRON_SECRET` if you use the social publish cron. In your build command or a postinstall script, run `prisma generate` and `prisma migrate deploy` so the schema is applied using the pooler (no direct connection required).
