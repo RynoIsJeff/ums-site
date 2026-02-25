@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import LoginForm from "./LoginForm";
 
 export const metadata = {
@@ -23,14 +24,33 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <section className="container max-w-md py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">UMS Hub Login</h1>
-      <p className="mt-2 text-sm text-black/70">
-        Internal access only. Authorized UMS staff may sign in below.
-      </p>
-      <div className="mt-6">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--hub-content-bg)" }}>
+      <div className="w-full max-w-sm px-6">
+        <div className="mb-8 text-center">
+          <Link href="/hub" className="inline-flex items-center gap-2.5 mb-5">
+            <span
+              className="flex items-center justify-center w-10 h-10 rounded-xl font-bold text-base text-white"
+              style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+            >
+              H
+            </span>
+          </Link>
+          <h1 className="text-xl font-bold tracking-tight text-black/90">
+            Sign in to UMS Hub
+          </h1>
+          <p className="mt-1.5 text-sm text-black/50">
+            Internal workspace for authorized staff
+          </p>
+        </div>
+
         <LoginForm callbackUrl={nextUrl} />
+
+        <p className="mt-8 text-center text-xs text-black/35">
+          <Link href="/" className="hover:text-black/55 transition-colors">
+            &larr; Back to ultimatemarketingsmash.com
+          </Link>
+        </p>
       </div>
-    </section>
+    </div>
   );
 }

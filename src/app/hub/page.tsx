@@ -1,19 +1,35 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { canAccessSettings } from "@/lib/rbac";
+import {
+  Users,
+  CreditCard,
+  FileText,
+  Wallet,
+  Share2,
+  CheckSquare,
+  Settings,
+  ArrowRight,
+} from "lucide-react";
 
-const HUB_SECTIONS: { href: string; label: string; adminOnly?: boolean }[] = [
-  { href: "/hub/clients", label: "Clients" },
-  { href: "/hub/billing", label: "Billing" },
-  { href: "/hub/invoices", label: "Invoices" },
-  { href: "/hub/payments", label: "Payments" },
-  { href: "/hub/social", label: "Social" },
-  { href: "/hub/tasks", label: "Tasks" },
-  { href: "/hub/settings", label: "Settings", adminOnly: true },
+const HUB_SECTIONS: {
+  href: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  adminOnly?: boolean;
+}[] = [
+  { href: "/hub/clients", label: "Clients", description: "Manage client accounts and contacts", icon: Users },
+  { href: "/hub/billing", label: "Billing", description: "Track plans, renewals and revenue", icon: CreditCard },
+  { href: "/hub/invoices", label: "Invoices", description: "Create and send invoices", icon: FileText },
+  { href: "/hub/payments", label: "Payments", description: "Record and reconcile payments", icon: Wallet },
+  { href: "/hub/social", label: "Social", description: "Schedule and publish social posts", icon: Share2 },
+  { href: "/hub/tasks", label: "Tasks", description: "Assign and track work items", icon: CheckSquare },
+  { href: "/hub/settings", label: "Settings", description: "Users, permissions and config", icon: Settings, adminOnly: true },
 ];
 
 export const metadata = {
-  title: "UMS Hub",
+  title: "Dashboard — UMS Hub",
 };
 
 export default async function HubHomePage() {
@@ -25,34 +41,54 @@ export default async function HubHomePage() {
     (s) => !s.adminOnly || canAccessSettings(scope)
   );
 
-  return (
-    <section className="py-10">
-      <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-black/50">
-          Internal Dashboard
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Welcome to UMS Hub
-        </h1>
-        <p className="mt-2 text-sm text-black/70">
-          Signed in as {user.email} ({user.role})
-          {user.role === "STAFF" && (
-            <> — access to {user.assignedClientIds?.length ?? 0} client(s)</>
-          )}
-        </p>
+  const greeting = getGreeting();
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sections.map((section) => (
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="text-sm font-medium text-black/40 uppercase tracking-wider">
+          {greeting}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-black/90">
+          {user.name ?? user.email.split("@")[0]}
+        </h1>
+        <p className="mt-1 text-sm text-black/50">
+          {user.role === "ADMIN" ? "Full access" : `${user.assignedClientIds?.length ?? 0} client(s) assigned`}
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {sections.map((section) => {
+          const Icon = section.icon;
+          return (
             <Link
               key={section.href}
               href={section.href}
-              className="rounded-xl border border-black/10 p-4 text-sm transition hover:border-black/25 hover:bg-black/2"
+              className="group relative rounded-xl border border-black/[0.06] bg-white p-5 shadow-sm transition-all hover:border-black/[0.12] hover:shadow-md"
             >
-              {section.label}
+              <div className="flex items-start justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10">
+                  <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
+                </div>
+                <ArrowRight className="h-4 w-4 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-black/40" />
+              </div>
+              <h2 className="mt-3 text-sm font-semibold text-black/85">
+                {section.label}
+              </h2>
+              <p className="mt-0.5 text-xs text-black/50">
+                {section.description}
+              </p>
             </Link>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
+}
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
 }
