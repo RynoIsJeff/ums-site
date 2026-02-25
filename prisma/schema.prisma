@@ -1,0 +1,444 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  PAUSED
+  CHURNED
+}
+
+enum BillingFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  CUSTOM
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  EFT
+  CASH
+  CARD
+  OTHER
+}
+
+enum SocialProvider {
+  META
+  INSTAGRAM
+  LINKEDIN
+}
+
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PROCESSING
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum RecurrencePattern {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskOccurrenceStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+enum AuditAction {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  CLIENT_CREATED
+  CLIENT_UPDATED
+  CLIENT_DELETED
+  INVOICE_CREATED
+  INVOICE_SENT
+  PAYMENT_RECORDED
+  SOCIAL_POST_SCHEDULED
+  SOCIAL_POST_PUBLISHED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+model User {
+  id                              String                  @id @default(cuid())
+  email                           String                  @unique
+  passwordHash                    String
+  name                            String?
+  role                            Role                    @default(STAFF)
+  isActive                        Boolean                 @default(true)
+  twoFactorEnabled                Boolean                 @default(false)
+  twoFactorSecretEncrypted        String?
+  twoFactorRecoveryCodesEncrypted String?
+  createdAt                       DateTime                @default(now())
+  updatedAt                       DateTime                @updatedAt
+  accounts                        Account[]
+  sessions                        Session[]
+  assignedClients                 StaffClientAssignment[]
+  createdInvoices                 Invoice[]               @relation("InvoiceCreatedBy")
+  paymentsRecorded                Payment[]               @relation("PaymentRecordedBy")
+  socialPostsCreated              SocialPost[]            @relation("SocialPostCreatedBy")
+  tasksCreated                    Task[]                  @relation("TaskCreatedBy")
+  tasksAssigned                   Task[]                  @relation("TaskAssignedTo")
+  taskOccurrencesCompleted        TaskOccurrence[]        @relation("TaskOccurrenceCompletedBy")
+  auditLogs                       AuditLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model ServicePlan {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String?
+  monthlyPrice Decimal? @db.Decimal(12, 2)
+  currency     String   @default("ZAR")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  clients      Client[]
+}
+
+model Client {
+  id               String                  @id @default(cuid())
+  companyName      String
+  contactPerson    String
+  email            String?
+  phone            String?
+  vatNumber        String?
+  billingAddress   String?
+  planLabel        String?
+  startDate        DateTime?
+  renewalDate      DateTime?
+  billingFrequency BillingFrequency?
+  retainerAmount   Decimal?                @db.Decimal(12, 2)
+  notes            String?
+  status           ClientStatus            @default(LEAD)
+  servicePlanId    String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  servicePlan      ServicePlan?            @relation(fields: [servicePlanId], references: [id], onDelete: SetNull)
+  contacts         ClientContact[]
+  assignments      StaffClientAssignment[]
+  invoices         Invoice[]
+  payments         Payment[]
+  socialAccounts   SocialAccount[]
+  socialPosts      SocialPost[]
+  tasks            Task[]
+  auditLogs        AuditLog[]
+
+  @@index([status])
+  @@index([renewalDate])
+}
+
+model ClientContact {
+  id        String   @id @default(cuid())
+  clientId  String
+  name      String
+  email     String?
+  phone     String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
+
+model StaffClientAssignment {
+  id        String   @id @default(cuid())
+  staffId   String
+  clientId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  staff     User     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, clientId])
+  @@index([clientId])
+}
+
+model Invoice {
+  id             String            @id @default(cuid())
+  clientId       String
+  invoiceNumber  String            @unique
+  issueDate      DateTime
+  dueDate        DateTime
+  status         InvoiceStatus     @default(DRAFT)
+  includeVat     Boolean           @default(true)
+  vatRate        Decimal           @default(15.00) @db.Decimal(5, 2)
+  subtotalAmount Decimal           @default(0.00) @db.Decimal(12, 2)
+  vatAmount      Decimal           @default(0.00) @db.Decimal(12, 2)
+  totalAmount    Decimal           @default(0.00) @db.Decimal(12, 2)
+  currency       String            @default("ZAR")
+  notes          String?
+  sentAt         DateTime?
+  paidAt         DateTime?
+  voidedAt       DateTime?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy      User?             @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  lineItems      InvoiceLineItem[]
+  payments       Payment[]
+
+  @@index([clientId])
+  @@index([status, dueDate])
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal  @default(1.00) @db.Decimal(10, 2)
+  unitPrice   Decimal  @default(0.00) @db.Decimal(12, 2)
+  lineTotal   Decimal  @default(0.00) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  invoiceId    String?
+  clientId     String
+  amount       Decimal       @db.Decimal(12, 2)
+  method       PaymentMethod
+  paidAt       DateTime
+  reference    String?
+  notes        String?
+  recordedById String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  recordedBy   User?         @relation("PaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([invoiceId])
+}
+
+model SocialAccount {
+  id                    String         @id @default(cuid())
+  clientId              String
+  provider              SocialProvider
+  accountName           String
+  accountExternalId     String
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  metadata              Json?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  client                Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  pages                 SocialPage[]
+
+  @@unique([provider, accountExternalId])
+  @@index([clientId, provider])
+}
+
+model SocialPage {
+  id                       String         @id @default(cuid())
+  socialAccountId          String
+  provider                 SocialProvider
+  pageName                 String
+  pageExternalId           String
+  pageAccessTokenEncrypted String?
+  metadata                 Json?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  socialAccount            SocialAccount  @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  posts                    SocialPost[]
+
+  @@unique([provider, pageExternalId])
+  @@index([socialAccountId])
+}
+
+model SocialPost {
+  id             String            @id @default(cuid())
+  clientId       String
+  socialPageId   String?
+  provider       SocialProvider
+  status         SocialPostStatus  @default(DRAFT)
+  caption        String
+  scheduledFor   DateTime?
+  publishedAt    DateTime?
+  externalPostId String?
+  publishedUrl   String?
+  lastError      String?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  socialPage     SocialPage?       @relation(fields: [socialPageId], references: [id], onDelete: SetNull)
+  createdBy      User?             @relation("SocialPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  media          SocialPostMedia[]
+
+  @@index([clientId, status, scheduledFor])
+}
+
+model SocialPostMedia {
+  id           String     @id @default(cuid())
+  socialPostId String
+  mediaType    MediaType
+  mediaUrl     String
+  altText      String?
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+
+  @@index([socialPostId, sortOrder])
+}
+
+model Task {
+  id                 String            @id @default(cuid())
+  clientId           String?
+  title              String
+  description        String?
+  status             TaskStatus        @default(TODO)
+  recurrencePattern  RecurrencePattern @default(NONE)
+  recurrenceInterval Int               @default(1)
+  startDate          DateTime?
+  dueDate            DateTime?
+  completedAt        DateTime?
+  createdById        String?
+  assignedToId       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  client             Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  createdBy          User?             @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignedTo         User?             @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  occurrences        TaskOccurrence[]
+  taskTags           TaskTag[]
+
+  @@index([clientId, status, dueDate])
+  @@index([assignedToId, status, dueDate])
+}
+
+model TaskOccurrence {
+  id            String               @id @default(cuid())
+  taskId        String
+  dueDate       DateTime
+  status        TaskOccurrenceStatus @default(PENDING)
+  completedAt   DateTime?
+  completedById String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  task          Task                 @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedBy   User?                @relation("TaskOccurrenceCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+
+  @@index([taskId, dueDate])
+  @@index([status, dueDate])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  taskTags  TaskTag[]
+}
+
+model TaskTag {
+  id        String   @id @default(cuid())
+  taskId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId])
+  @@index([tagId])
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  actorUserId String?
+  clientId    String?
+  entityType  String?
+  entityId    String?
+  ipAddress   String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  actorUser   User?       @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  client      Client?     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([action, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([clientId, createdAt])
+}
