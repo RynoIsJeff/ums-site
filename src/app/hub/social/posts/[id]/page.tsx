@@ -56,14 +56,14 @@ export default async function PostDetailPage({ params }: PageProps) {
   return (
     <section className="py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/hub/social" className="text-sm text-[#65676b] hover:text-[#050505]">
+        <Link href="/hub/social" className="text-sm text-[var(--hub-muted)] hover:text-[var(--hub-text)]">
           ← Content Planner
         </Link>
         {canEdit && <CancelPostButton postId={id} />}
       </div>
 
       <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-[#050505]">Post</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">Post</h1>
         <span
           className={
             post.status === "PUBLISHED"
@@ -79,7 +79,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         </span>
       </div>
 
-      <p className="mt-2 text-sm text-[#65676b]">
+      <p className="mt-2 text-sm text-[var(--hub-muted)]">
         <Link href={`/hub/clients/${post.client.id}`} className="hover:underline">
           {post.client.companyName}
         </Link>
@@ -87,7 +87,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       </p>
 
       {canEdit ? (
-        <div className="mt-6 rounded-xl border border-[#e4e6eb] bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-xl border border-[var(--hub-border-light)] bg-white p-6 shadow-sm">
           <PostForm
             action={updateAction}
             clients={clients}
@@ -103,7 +103,7 @@ export default async function PostDetailPage({ params }: PageProps) {
           />
         </div>
       ) : (
-        <div className="mt-6 rounded-xl border border-[#e4e6eb] bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-xl border border-[var(--hub-border-light)] bg-white p-6 shadow-sm">
           <div className="whitespace-pre-wrap text-sm">{post.caption}</div>
           {post.scheduledFor && (
             <p className="mt-4 text-sm text-black/60">
@@ -116,7 +116,7 @@ export default async function PostDetailPage({ params }: PageProps) {
             </p>
           )}
           {post.publishedUrl && (
-            <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-[#1877F2] hover:underline">
+            <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-[var(--meta-blue)] hover:underline">
               View on Facebook →
             </a>
           )}

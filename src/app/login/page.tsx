@@ -29,10 +29,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="mb-8 text-center">
           <Link href="/hub" className="inline-flex items-center gap-2.5 mb-5">
             <span
-              className="flex items-center justify-center w-10 h-10 rounded-xl font-bold text-base text-white"
-              style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white shadow-sm border border-black/5 overflow-hidden"
             >
-              H
+              <img src="/ums-logo.svg" alt="UMS" className="h-7 w-7 object-contain" />
             </span>
           </Link>
           <h1 className="text-xl font-bold tracking-tight text-black/90">

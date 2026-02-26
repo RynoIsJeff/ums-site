@@ -48,13 +48,13 @@ export default async function HubHomePage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-sm font-medium text-black/40 uppercase tracking-wider">
+        <p className="text-sm font-medium text-[var(--hub-muted)] uppercase tracking-wider">
           {greeting}
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-black/90">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--hub-text)]">
           {user.name ?? user.email.split("@")[0]}
         </h1>
-        <p className="mt-1 text-sm text-black/50">
+        <p className="mt-1 text-sm text-[var(--hub-muted)]">
           {user.role === "ADMIN" ? "Full access" : `${user.assignedClientIds?.length ?? 0} client(s) assigned`}
         </p>
       </div>
@@ -74,10 +74,10 @@ export default async function HubHomePage() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-black/40" />
               </div>
-              <h2 className="mt-3 text-sm font-semibold text-black/85">
+              <h2 className="mt-3 text-sm font-semibold text-[var(--hub-text)]">
                 {section.label}
               </h2>
-              <p className="mt-0.5 text-xs text-black/50">
+              <p className="mt-0.5 text-xs text-[var(--hub-muted)]">
                 {section.description}
               </p>
             </Link>

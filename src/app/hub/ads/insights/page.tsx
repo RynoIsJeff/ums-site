@@ -20,22 +20,22 @@ export default async function InsightsPage() {
   return (
     <section className="py-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#050505]">
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">
           Insights
         </h1>
-        <p className="mt-1 text-sm text-[#65676b]">
+        <p className="mt-1 text-sm text-[var(--hub-muted)]">
           Ad performance, spend, reach, and conversions. Coming soon.
         </p>
       </div>
 
-      <div className="mt-12 rounded-xl border border-[#e4e6eb] bg-white p-12 text-center shadow-sm">
+      <div className="mt-12 rounded-xl border border-[var(--hub-border-light)] bg-white p-12 text-center shadow-sm">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
           <BarChart3 className="h-8 w-8 text-green-600" />
         </div>
-        <h2 className="mt-6 text-lg font-semibold text-[#050505]">
+        <h2 className="mt-6 text-lg font-semibold text-[var(--hub-text)]">
           Ad insights coming soon
         </h2>
-        <p className="mx-auto mt-2 max-w-md text-sm text-[#65676b]">
+        <p className="mx-auto mt-2 max-w-md text-sm text-[var(--hub-muted)]">
           View spend, impressions, clicks, and conversions from the Marketing API Insights.
           {adAccounts.length === 0
             ? " Connect an ad account first."
@@ -46,7 +46,7 @@ export default async function InsightsPage() {
             href="https://business.facebook.com/adsmanager"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#166fe5]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--meta-blue)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--meta-blue-hover)]"
           >
             <ExternalLink className="h-4 w-4" />
             View in Ads Manager
@@ -55,7 +55,7 @@ export default async function InsightsPage() {
             href="https://developers.facebook.com/docs/marketing-api/insights"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#e4e6eb] bg-white px-4 py-2.5 text-sm font-medium hover:bg-[#f0f2f5]"
+            className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2.5 text-sm font-medium hover:bg-black/5"
           >
             Insights API docs
           </a>

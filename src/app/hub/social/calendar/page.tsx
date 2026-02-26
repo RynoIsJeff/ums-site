@@ -72,19 +72,19 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
   return (
     <section className="py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/hub/social" className="text-sm text-[#65676b] hover:text-[#050505]">
+        <Link href="/hub/social" className="text-sm text-[var(--hub-muted)] hover:text-[var(--hub-text)]">
           ← Content Planner
         </Link>
         <Link
           href="/hub/social/posts/new"
-          className="rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#166fe5]"
+          className="rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90"
         >
           New post
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-[#050505]">Scheduling Calendar</h1>
-      <p className="mt-1 text-sm text-[#65676b]">
+      <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">Scheduling Calendar</h1>
+      <p className="mt-1 text-sm text-[var(--hub-muted)]">
         Filter by page, click a date to schedule, or click a post to view or edit.
       </p>
 
@@ -92,7 +92,7 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
         <div className="flex items-center gap-2">
           <Link
             href={`${baseUrl}?month=${prevMonth}&year=${prevYear}${selectedPageIds.length ? `&pages=${selectedPageIds.join(",")}` : ""}`}
-            className="rounded-lg border border-[#e4e6eb] px-3 py-2 text-sm font-medium hover:bg-[#f0f2f5]"
+            className="rounded-lg border border-[var(--hub-border-light)] px-3 py-2 text-sm font-medium hover:bg-black/5"
           >
             ← {new Date(prevYear, prevMonth - 1).toLocaleString("default", { month: "short" })} {prevYear}
           </Link>
@@ -101,14 +101,14 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
           </span>
           <Link
             href={`${baseUrl}?month=${nextMonth}&year=${nextYear}${selectedPageIds.length ? `&pages=${selectedPageIds.join(",")}` : ""}`}
-            className="rounded-lg border border-[#e4e6eb] px-3 py-2 text-sm font-medium hover:bg-[#f0f2f5]"
+            className="rounded-lg border border-[var(--hub-border-light)] px-3 py-2 text-sm font-medium hover:bg-black/5"
           >
             {new Date(nextYear, nextMonth - 1).toLocaleString("default", { month: "short" })} {nextYear} →
           </Link>
         </div>
         <Link
           href={`${baseUrl}?month=${now.getMonth() + 1}&year=${now.getFullYear()}${selectedPageIds.length ? `&pages=${selectedPageIds.join(",")}` : ""}`}
-          className="text-sm text-[#65676b] hover:text-[#050505]"
+          className="text-sm text-[var(--hub-muted)] hover:text-[var(--hub-text)]"
         >
           Today
         </Link>

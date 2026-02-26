@@ -68,7 +68,7 @@ export function PageCard({ page }: PageCardProps) {
   const fbPageUrl = `https://www.facebook.com/${page.pageExternalId}`;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#e4e6eb] bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-[var(--hub-border-light)] bg-white shadow-sm">
       {/* Cover — Facebook-style */}
       <div className="relative h-24 bg-linear-to-br from-[#1877F2] to-[#42b72a] sm:h-32">
         {page.coverPhotoUrl ? (
@@ -95,7 +95,7 @@ export function PageCard({ page }: PageCardProps) {
       {/* Profile picture */}
       <div className="relative px-4 -mt-10">
         <div className="relative inline-block">
-          <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-[#e4e6eb] shadow-md">
+          <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-[var(--hub-border-light)] shadow-md">
             {page.profilePictureUrl ? (
               <img
                 src={page.profilePictureUrl}
@@ -103,7 +103,7 @@ export function PageCard({ page }: PageCardProps) {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#65676b]">
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--hub-muted)]">
                 {page.pageName[0]}
               </div>
             )}
@@ -111,7 +111,7 @@ export function PageCard({ page }: PageCardProps) {
           <button
             type="button"
             onClick={() => setEditProfile(true)}
-            className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1877F2] text-white shadow-md hover:bg-[#166fe5]"
+            className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[var(--meta-blue)] text-white shadow-md hover:bg-[var(--meta-blue-hover)]"
           >
             <Camera className="h-3 w-3" />
           </button>
@@ -119,14 +119,14 @@ export function PageCard({ page }: PageCardProps) {
       </div>
 
       <div className="p-4 pt-2">
-        <h3 className="font-semibold text-[#050505]">{page.pageName}</h3>
-        <p className="text-sm text-[#65676b]">{page.clientName}</p>
+        <h3 className="font-semibold text-[var(--hub-text)]">{page.pageName}</h3>
+        <p className="text-sm text-[var(--hub-muted)]">{page.clientName}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <a
             href={fbPageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-medium text-[#1877F2] hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--meta-blue)] hover:underline"
           >
             View on Facebook
             <ExternalLink className="h-3 w-3" />
@@ -135,7 +135,7 @@ export function PageCard({ page }: PageCardProps) {
             type="button"
             onClick={handleRefresh}
             disabled={loading}
-            className="inline-flex items-center gap-1 text-xs font-medium text-[#65676b] hover:text-[#050505] disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--hub-muted)] hover:text-[var(--hub-text)] disabled:opacity-50"
           >
             <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -151,7 +151,7 @@ export function PageCard({ page }: PageCardProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-semibold">Change profile picture</h3>
-            <p className="mt-1 text-sm text-[#65676b]">
+            <p className="mt-1 text-sm text-[var(--hub-muted)]">
               Enter the URL of your new profile image (must be publicly accessible).
             </p>
             <form onSubmit={handleUpdateProfile} className="mt-4 space-y-4">
@@ -160,20 +160,20 @@ export function PageCard({ page }: PageCardProps) {
                 placeholder="https://..."
                 value={profileUrl}
                 onChange={(e) => setProfileUrl(e.target.value)}
-                className="w-full rounded-lg border border-[#e4e6eb] px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-[var(--hub-border-light)] px-3 py-2 text-sm"
               />
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:bg-[#166fe5] disabled:opacity-50"
+                  className="rounded-lg bg-[var(--meta-blue)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--meta-blue-hover)] disabled:opacity-50"
                 >
                   {loading ? "Updating…" : "Update"}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEditProfile(false); setError(null); }}
-                  className="rounded-lg border border-[#e4e6eb] px-4 py-2 text-sm font-medium hover:bg-[#f0f2f5]"
+                  className="rounded-lg border border-[var(--hub-border-light)] px-4 py-2 text-sm font-medium hover:bg-black/5"
                 >
                   Cancel
                 </button>
@@ -188,7 +188,7 @@ export function PageCard({ page }: PageCardProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-semibold">Change cover photo</h3>
-            <p className="mt-1 text-sm text-[#65676b]">
+            <p className="mt-1 text-sm text-[var(--hub-muted)]">
               Enter the URL of your new cover image (820×312 px recommended). Requires pages_manage_metadata. If it fails, update via Meta Business Suite.
             </p>
             <form onSubmit={handleUpdateCover} className="mt-4 space-y-4">
@@ -197,20 +197,20 @@ export function PageCard({ page }: PageCardProps) {
                 placeholder="https://..."
                 value={coverUrl}
                 onChange={(e) => setCoverUrl(e.target.value)}
-                className="w-full rounded-lg border border-[#e4e6eb] px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-[var(--hub-border-light)] px-3 py-2 text-sm"
               />
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:bg-[#166fe5] disabled:opacity-50"
+                  className="rounded-lg bg-[var(--meta-blue)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--meta-blue-hover)] disabled:opacity-50"
                 >
                   {loading ? "Updating…" : "Update"}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEditCover(false); setError(null); }}
-                  className="rounded-lg border border-[#e4e6eb] px-4 py-2 text-sm font-medium hover:bg-[#f0f2f5]"
+                  className="rounded-lg border border-[var(--hub-border-light)] px-4 py-2 text-sm font-medium hover:bg-black/5"
                 >
                   Cancel
                 </button>

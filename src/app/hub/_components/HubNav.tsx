@@ -80,7 +80,9 @@ export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseM
       {/* Logo area */}
       <div className="hub-sidebar__header">
         <Link href="/hub" className="hub-sidebar__logo">
-          <span className="hub-sidebar__logo-mark">H</span>
+          <span className="hub-sidebar__logo-mark hub-sidebar__logo-mark--img">
+            <img src="/ums-logo.svg" alt="UMS" className="h-5 w-5 object-contain" />
+          </span>
           {!collapsed && (
             <span className="hub-sidebar__logo-text">
               UMS <span className="hub-sidebar__logo-accent">Hub</span>
