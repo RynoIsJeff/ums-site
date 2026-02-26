@@ -4,13 +4,12 @@ import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { ConnectFacebookForm } from "./_components/ConnectFacebookForm";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import {
   Calendar,
   Plus,
   Clock,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
   FileText,
   Share2,
 } from "lucide-react";
@@ -247,25 +246,5 @@ export default async function HubSocialPage() {
         </div>
       </div>
     </section>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<
-    string,
-    { icon: React.ElementType; className: string }
-  > = {
-    SCHEDULED: { icon: Clock, className: "bg-amber-50 text-amber-700" },
-    DRAFT: { icon: FileText, className: "bg-slate-100 text-slate-600" },
-    PUBLISHED: { icon: CheckCircle2, className: "bg-green-50 text-green-700" },
-    FAILED: { icon: XCircle, className: "bg-red-50 text-red-600" },
-    CANCELLED: { icon: XCircle, className: "bg-slate-100 text-slate-500" },
-  };
-  const { icon: Icon, className } = config[status] ?? { icon: AlertCircle, className: "bg-slate-100 text-slate-600" };
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>
-      <Icon className="h-3 w-3" />
-      {status}
-    </span>
   );
 }

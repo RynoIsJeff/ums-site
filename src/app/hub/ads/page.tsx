@@ -49,7 +49,7 @@ export default async function AdsOverviewPage() {
               <Target className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">—</p>
+              <p className="text-2xl font-bold text-[var(--hub-text)]">0</p>
               <p className="text-sm text-[var(--hub-muted)]">Active campaigns</p>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default async function AdsOverviewPage() {
               <BarChart3 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">—</p>
+              <p className="text-2xl font-bold text-[var(--hub-text)]">N/A</p>
               <p className="text-sm text-[var(--hub-muted)]">Spend (MTD)</p>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default async function AdsOverviewPage() {
               <Megaphone className="h-5 w-5 text-slate-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">—</p>
+              <p className="text-2xl font-bold text-[var(--hub-text)]">N/A</p>
               <p className="text-sm text-[var(--hub-muted)]">Reach (MTD)</p>
             </div>
           </div>
@@ -132,8 +132,18 @@ export default async function AdsOverviewPage() {
       <div className="mt-8 rounded-xl border border-[var(--hub-border-light)] bg-black/[0.02] p-6">
         <h3 className="font-semibold text-[var(--hub-text)]">Getting started with Marketing API</h3>
         <p className="mt-2 text-sm text-[var(--hub-muted)]">
-          Your app (App ID: 813308991784121) and business (ID: 1950904372976756) are set up.
-          Connect ad accounts and ensure your access token has <code className="rounded bg-white px-1.5 py-0.5 text-xs">ads_management</code> and{" "}
+          {process.env.META_APP_ID && process.env.META_BUSINESS_ID ? (
+            <>
+              Your app (App ID: {process.env.META_APP_ID}) and business (ID: {process.env.META_BUSINESS_ID}) are set up.
+            </>
+          ) : (
+            <>
+              Set <code className="rounded bg-white px-1.5 py-0.5 text-xs">META_APP_ID</code> and{" "}
+              <code className="rounded bg-white px-1.5 py-0.5 text-xs">META_BUSINESS_ID</code> in your environment to display your app and business IDs here.
+            </>
+          )}{" "}
+          Connect ad accounts and ensure your access token has{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-xs">ads_management</code> and{" "}
           <code className="rounded bg-white px-1.5 py-0.5 text-xs">business_management</code> permissions.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
