@@ -33,7 +33,7 @@ export default async function HubBillingPage() {
     data: { status: "OVERDUE" },
   });
 
-  const [clientsWithRenewal, invoicesDueOrOverdue, paymentsThisMonth, allInvoices] =
+  const [clientsWithRenewal, invoicesDueOrOverdue, paymentsThisMonth, allInvoices, invoicesCreatedThisMonth] =
     await Promise.all([
       prisma.client.findMany({
         where: {
@@ -66,6 +66,12 @@ export default async function HubBillingPage() {
         },
         select: { totalAmount: true },
       }),
+      prisma.invoice.count({
+        where: {
+          ...clientIdClause,
+          createdAt: { gte: startOfMonth, lte: endOfMonth },
+        },
+      }),
     ]);
 
   const revenueThisMonth = paymentsThisMonth.reduce((s, p) => s + toNum(p.amount), 0);
@@ -83,40 +89,54 @@ export default async function HubBillingPage() {
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-black/10 bg-white p-4">
+        <Link
+          href="/hub/payments"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+        >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Revenue this month
           </p>
           <p className="mt-1 text-2xl font-semibold">
             R {revenueThisMonth.toLocaleString("en-ZA")}
           </p>
-        </div>
-        <div className="rounded-xl border border-black/10 bg-white p-4">
+          <p className="mt-1 text-xs text-black/40">View payments →</p>
+        </Link>
+        <Link
+          href="/hub/invoices"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+        >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Outstanding total
           </p>
           <p className="mt-1 text-2xl font-semibold">
             R {outstandingTotal.toLocaleString("en-ZA")}
           </p>
-        </div>
-        <div className="rounded-xl border border-black/10 bg-white p-4">
+          <p className="mt-1 text-xs text-black/40">View invoices →</p>
+        </Link>
+        <Link
+          href="/hub/invoices"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+        >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
-            Paid this month
+            Invoices created this month
           </p>
-          <p className="mt-1 text-2xl font-semibold">
-            R {revenueThisMonth.toLocaleString("en-ZA")}
-          </p>
-        </div>
-        <div className="rounded-xl border border-black/10 bg-white p-4">
+          <p className="mt-1 text-2xl font-semibold">{invoicesCreatedThisMonth}</p>
+          <p className="mt-1 text-xs text-black/40">View invoices →</p>
+        </Link>
+        <Link
+          href="#renewals"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+        >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Renewals due (30 days)
           </p>
           <p className="mt-1 text-2xl font-semibold">{renewalsBy60.length}</p>
-        </div>
+          <p className="mt-1 text-xs text-black/40">View renewals →</p>
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <div className="rounded-xl border border-black/10 bg-white p-5">
+        <div id="renewals" className="rounded-xl border border-black/10 bg-white p-5">
           <h2 className="text-lg font-semibold">Renewals due</h2>
           <p className="mt-1 text-sm text-black/60">
             Next 7 / 14 / 30 / 60 days (active clients only)

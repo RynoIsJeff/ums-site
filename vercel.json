@@ -1,8 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/social-publish",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  "buildCommand": "prisma generate && next build",
+  "crons": [{"path": "/api/cron/social-publish", "schedule": "*/5 * * * *"}]
 }
