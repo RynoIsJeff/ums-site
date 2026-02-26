@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { SetInvoiceStatusButton } from "../_components/SetInvoiceStatusButton";
 import { RecordPaymentForm } from "@/app/hub/payments/_components/RecordPaymentForm";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -89,19 +90,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             Due {invoice.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}
           </p>
         </div>
-        <span
-          className={
-            invoice.status === "PAID"
-              ? "text-green-600"
-              : invoice.status === "OVERDUE"
-                ? "text-red-600"
-                : invoice.status === "SENT"
-                  ? "text-amber-600"
-                  : "text-black/60"
-          }
-        >
-          {invoice.status}
-        </span>
+        <StatusBadge status={invoice.status} size="md" />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">

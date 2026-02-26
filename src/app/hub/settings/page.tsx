@@ -86,14 +86,14 @@ export default async function HubSettingsPage() {
             </a>
           </div>
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[500px] border-collapse text-sm">
+            <table className="hub-table min-w-[500px]">
               <thead>
-                <tr className="border-b border-[var(--hub-border-light)] text-left">
-                  <th className="pb-3 font-medium text-[var(--hub-muted)]">Email</th>
-                  <th className="pb-3 font-medium text-[var(--hub-muted)]">Name</th>
-                  <th className="pb-3 font-medium text-[var(--hub-muted)]">Role</th>
-                  <th className="pb-3 font-medium text-[var(--hub-muted)]">Status</th>
-                  <th className="pb-3 font-medium text-[var(--hub-muted)]">Clients</th>
+                <tr>
+                  <th className="text-[var(--hub-muted)]">Email</th>
+                  <th className="text-[var(--hub-muted)]">Name</th>
+                  <th className="text-[var(--hub-muted)]">Role</th>
+                  <th className="text-[var(--hub-muted)]">Status</th>
+                  <th className="text-[var(--hub-muted)]">Clients</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,10 +105,10 @@ export default async function HubSettingsPage() {
                   </tr>
                 ) : (
                   hubUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-[var(--hub-border-light)]/50">
-                      <td className="py-3 font-medium text-[var(--hub-text)]">{u.email}</td>
-                      <td className="py-3 text-[var(--hub-muted)]">{u.name ?? "—"}</td>
-                      <td className="py-3">
+                    <tr key={u.id}>
+                      <td className="font-medium text-[var(--hub-text)]">{u.email}</td>
+                      <td className="text-[var(--hub-muted)]">{u.name ?? "—"}</td>
+                      <td>
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                             u.role === "ADMIN"
@@ -119,7 +119,7 @@ export default async function HubSettingsPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="py-3">
+                      <td>
                         <span
                           className={
                             u.isActive ? "text-green-600" : "text-[var(--hub-muted)]"
@@ -128,7 +128,7 @@ export default async function HubSettingsPage() {
                           {u.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="py-3 text-[var(--hub-muted)]">
+                      <td className="text-[var(--hub-muted)]">
                         {u.role === "ADMIN"
                           ? "All"
                           : u.assignedClients.length > 0

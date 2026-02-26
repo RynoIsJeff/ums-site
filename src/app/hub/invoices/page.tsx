@@ -11,6 +11,7 @@ import {
   parseListParams,
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -113,15 +114,15 @@ export default async function HubInvoicesPage({
       </div>
 
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-[var(--hub-border-light)] bg-white text-sm">
+        <table className="hub-table min-w-[600px]">
           <thead>
-            <tr className="border-b border-[var(--hub-border-light)] text-left">
-              <th className="p-3 font-medium text-[var(--hub-text)]">Number</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Client</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Due date</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Amount</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Status</th>
-              <th className="p-3 font-medium" aria-label="Actions" />
+            <tr>
+              <th>Number</th>
+              <th>Client</th>
+              <th>Due date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
@@ -136,11 +137,8 @@ export default async function HubInvoicesPage({
               </tr>
             ) : (
               invoices.map((inv) => (
-                <tr
-                  key={inv.id}
-                  className="border-b border-black/5 hover:bg-black/[0.02]"
-                >
-                  <td className="p-3">
+                <tr key={inv.id}>
+                  <td>
                     <Link
                       href={`/hub/invoices/${inv.id}`}
                       className="font-medium text-[var(--hub-text)] hover:underline"
@@ -148,7 +146,7 @@ export default async function HubInvoicesPage({
                       {inv.invoiceNumber}
                     </Link>
                   </td>
-                  <td className="p-3">
+                  <td>
                     <Link
                       href={`/hub/clients/${inv.client.id}`}
                       className="text-[var(--hub-muted)] hover:underline"
@@ -156,30 +154,18 @@ export default async function HubInvoicesPage({
                       {inv.client.companyName}
                     </Link>
                   </td>
-                  <td className="p-3 text-[var(--hub-text)]">
+                  <td className="text-[var(--hub-text)]">
                     {inv.dueDate.toLocaleDateString("en-ZA", {
                       dateStyle: "medium",
                     })}
                   </td>
-                  <td className="p-3 text-[var(--hub-text)]">
+                  <td className="text-[var(--hub-text)]">
                     R {toNum(inv.totalAmount).toLocaleString("en-ZA")}
                   </td>
-                  <td className="p-3">
-                    <span
-                      className={
-                        inv.status === "PAID"
-                          ? "text-green-600"
-                          : inv.status === "OVERDUE"
-                            ? "text-red-600"
-                            : inv.status === "SENT"
-                              ? "text-amber-600"
-                              : "text-[var(--hub-muted)]"
-                      }
-                    >
-                      {inv.status}
-                    </span>
+                  <td>
+                    <StatusBadge status={inv.status} />
                   </td>
-                  <td className="p-3">
+                  <td>
                     <Link
                       href={`/hub/invoices/${inv.id}/print`}
                       target="_blank"

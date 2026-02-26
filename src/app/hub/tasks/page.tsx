@@ -10,6 +10,7 @@ import {
   parseListParams,
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 
 export const metadata = {
   title: "Tasks | UMS Hub",
@@ -105,15 +106,15 @@ export default async function HubTasksPage({
       </div>
 
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-[var(--hub-border-light)] bg-white text-sm">
+        <table className="hub-table min-w-[600px]">
           <thead>
-            <tr className="border-b border-[var(--hub-border-light)] text-left">
-              <th className="p-3 font-medium text-[var(--hub-text)]">Title</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Client</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Due</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Status</th>
-              <th className="p-3 font-medium text-[var(--hub-text)]">Recurrence</th>
-              <th className="p-3 font-medium" aria-label="Actions" />
+            <tr>
+              <th>Title</th>
+              <th>Client</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th>Recurrence</th>
+              <th aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
@@ -128,11 +129,8 @@ export default async function HubTasksPage({
               </tr>
             ) : (
               tasks.map((task) => (
-                <tr
-                  key={task.id}
-                  className="border-b border-black/5 hover:bg-black/[0.02]"
-                >
-                  <td className="p-3">
+                <tr key={task.id}>
+                  <td>
                     <Link
                       href={`/hub/tasks/${task.id}`}
                       className="font-medium text-[var(--hub-text)] hover:underline"
@@ -186,7 +184,7 @@ export default async function HubTasksPage({
                       </span>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td>
                     <Link
                       href={`/hub/tasks/${task.id}/edit`}
                       className="text-[var(--hub-muted)] hover:underline"

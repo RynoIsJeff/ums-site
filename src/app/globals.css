@@ -372,6 +372,36 @@ html, body { background-color: var(--bg); color: var(--ink); }
   .hub-sidebar-overlay { display: none !important; }
 }
 
+/* Hub tables — consistent spacing, hover/focus rows */
+.hub-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 0.75rem;
+  border: 1px solid var(--hub-border-light);
+  background: #fff;
+  font-size: 0.875rem;
+}
+.hub-table thead tr {
+  border-bottom: 1px solid var(--hub-border-light);
+  text-align: left;
+}
+.hub-table th {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  color: var(--hub-text);
+}
+.hub-table tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color 0.15s ease;
+}
+.hub-table tbody tr:hover,
+.hub-table tbody tr:focus-within {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+.hub-table td {
+  padding: 0.75rem 1rem;
+}
+
 /* Hub-specific print rules */
 @media print {
   .hub-sidebar { display: none !important; }

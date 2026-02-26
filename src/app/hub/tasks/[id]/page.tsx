@@ -4,6 +4,7 @@ import { toAuthScope } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { SetTaskStatusButton } from "../_components/SetTaskStatusButton";
 import { CompleteOccurrenceButton } from "../_components/CompleteOccurrenceButton";
 import { SkipOccurrenceButton } from "../_components/SkipOccurrenceButton";
@@ -60,17 +61,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{task.title}</h1>
-        <span
-          className={
-            task.status === "DONE"
-              ? "text-green-600"
-              : task.status === "IN_PROGRESS"
-                ? "text-amber-600"
-                : "text-black/60"
-          }
-        >
-          {task.status.replace("_", " ")}
-        </span>
+        <StatusBadge status={task.status} size="md" />
       </div>
 
       <p className="mt-2 text-sm text-black/70">
@@ -118,19 +109,9 @@ export default async function TaskDetailPage({ params }: PageProps) {
                 key={occ.id}
                 className="flex flex-wrap items-center justify-between gap-2 border-b border-black/5 pb-2 last:border-0"
               >
-                <span className="text-sm">
+                <span className="flex items-center gap-2 text-sm">
                   {occ.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}
-                  <span
-                    className={`ml-2 ${
-                      occ.status === "COMPLETED"
-                        ? "text-green-600"
-                        : occ.status === "SKIPPED"
-                          ? "text-black/40"
-                          : ""
-                    }`}
-                  >
-                    {occ.status}
-                  </span>
+                  <StatusBadge status={occ.status} />
                 </span>
                 {occ.status === "PENDING" && (
                   <span>

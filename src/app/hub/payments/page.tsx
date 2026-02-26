@@ -101,14 +101,14 @@ export default async function HubPaymentsPage({
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[500px] border-collapse rounded-xl border border-[var(--hub-border-light)] bg-white text-sm">
+            <table className="hub-table min-w-[500px]">
               <thead>
-                <tr className="border-b border-[var(--hub-border-light)] text-left">
-                  <th className="p-3 font-medium text-[var(--hub-text)]">Date</th>
-                  <th className="p-3 font-medium text-[var(--hub-text)]">Client</th>
-                  <th className="p-3 font-medium text-[var(--hub-text)]">Invoice</th>
-                  <th className="p-3 font-medium text-[var(--hub-text)]">Method</th>
-                  <th className="p-3 font-medium text-[var(--hub-text)]">Amount</th>
+                <tr>
+                  <th>Date</th>
+                  <th>Client</th>
+                  <th>Invoice</th>
+                  <th>Method</th>
+                  <th>Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,16 +123,13 @@ export default async function HubPaymentsPage({
                   </tr>
                 ) : (
                   payments.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="border-b border-black/5 hover:bg-black/[0.02]"
-                    >
-                      <td className="p-3 text-[var(--hub-text)]">
+                    <tr key={p.id}>
+                      <td className="text-[var(--hub-text)]">
                         {p.paidAt.toLocaleDateString("en-ZA", {
                           dateStyle: "medium",
                         })}
                       </td>
-                      <td className="p-3">
+                      <td>
                         <Link
                           href={`/hub/clients/${p.client.id}`}
                           className="font-medium text-[var(--hub-text)] hover:underline"
@@ -152,8 +149,8 @@ export default async function HubPaymentsPage({
                           <span className="text-[var(--hub-muted)]">—</span>
                         )}
                       </td>
-                      <td className="p-3 text-[var(--hub-text)]">{p.method}</td>
-                      <td className="p-3 text-[var(--hub-text)]">
+                      <td className="text-[var(--hub-text)]">{p.method}</td>
+                      <td className="text-[var(--hub-text)]">
                         R {toNum(p.amount).toLocaleString("en-ZA")}
                       </td>
                     </tr>

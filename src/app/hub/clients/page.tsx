@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
@@ -116,8 +117,8 @@ export default async function HubClientsPage({
                   {client.contactPerson}
                   {client.email ? ` · ${client.email}` : ""}
                 </div>
-                <div className="mt-1 text-xs text-[var(--hub-muted)]">
-                  {client.status}
+                <div className="mt-2">
+                  <StatusBadge status={client.status} />
                 </div>
               </Link>
             </li>

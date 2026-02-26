@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { ClientTabs } from "./_components/ClientTabs";
 import { DeleteClientButton } from "./_components/DeleteClientButton";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -121,7 +122,7 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
               <dl className="space-y-3 text-sm">
                 <div>
                   <dt className="font-medium text-black/60">Status</dt>
-                  <dd>{client.status}</dd>
+                  <dd><StatusBadge status={client.status} /></dd>
                 </div>
                 <div>
                   <dt className="font-medium text-black/60">Contact person</dt>
@@ -274,16 +275,10 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                         >
                           {inv.invoiceNumber}
                         </Link>
-                        <span className="text-sm text-[var(--hub-muted)]">
+                        <span className="flex items-center gap-2 text-sm text-[var(--hub-muted)]">
                           due {formatDate(inv.dueDate)} · R{" "}
-                          {toNum(inv.totalAmount).toLocaleString("en-ZA")} ·{" "}
-                          <span
-                            className={
-                              inv.status === "OVERDUE" ? "text-red-600" : "text-amber-600"
-                            }
-                          >
-                            {inv.status}
-                          </span>
+                          {toNum(inv.totalAmount).toLocaleString("en-ZA")}{" "}
+                          <StatusBadge status={inv.status} />
                         </span>
                       </li>
                     ))}
@@ -307,8 +302,9 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                       <Link href={`/hub/invoices/${inv.id}`} className="font-medium hover:underline">
                         {inv.invoiceNumber}
                       </Link>
-                      <span className="ml-2 text-black/60">
-                        due {formatDate(inv.dueDate)} · R {toNum(inv.totalAmount).toLocaleString("en-ZA")} · {inv.status}
+                      <span className="ml-2 flex items-center gap-2 text-[var(--hub-muted)]">
+                        due {formatDate(inv.dueDate)} · R {toNum(inv.totalAmount).toLocaleString("en-ZA")}{" "}
+                        <StatusBadge status={inv.status} />
                       </span>
                     </li>
                   ))}
@@ -369,10 +365,10 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                       <Link href={`/hub/tasks/${task.id}`} className="font-medium hover:underline">
                         {task.title}
                       </Link>
-                      <span className="ml-2 text-black/60">
-                        {task.status.replace("_", " ")}
-                        {task.dueDate && ` · due ${formatDate(task.dueDate)}`}
-                        {task.recurrencePattern !== "NONE" && ` · ${task.recurrencePattern}`}
+                      <span className="ml-2 flex items-center gap-2 text-[var(--hub-muted)]">
+                        <StatusBadge status={task.status} />
+                        {task.dueDate && `· due ${formatDate(task.dueDate)}`}
+                        {task.recurrencePattern !== "NONE" && `· ${task.recurrencePattern}`}
                       </span>
                     </li>
                   ))}
