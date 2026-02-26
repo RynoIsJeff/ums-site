@@ -1,91 +1,169 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
-import { taskWhere } from "@/lib/rbac";
+import { clientWhere, taskWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { Pagination } from "@/app/hub/_components/Pagination";
+import { TasksListFilters } from "./_components/TasksListFilters";
+import {
+  parseListParams,
+  paramsForPagination,
+} from "@/app/hub/_lib/listParams";
 
 export const metadata = {
   title: "Tasks | UMS Hub",
 };
 
-export default async function HubTasksPage() {
+const BASE_PATH = "/hub/tasks";
+
+export default async function HubTasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { user } = await getSession();
   if (!user) return null;
 
-  const scope = toAuthScope(user);
-  const where = taskWhere(scope);
+  const raw = await searchParams;
+  const params = parseListParams(raw as Record<string, string | undefined>);
 
-  const tasks = await prisma.task.findMany({
-    where,
-    orderBy: [
-      { status: "asc" },
-      { dueDate: "asc" },
-      { createdAt: "desc" },
-    ],
-    include: {
-      client: { select: { id: true, companyName: true } },
-      occurrences: { where: { status: "PENDING" }, orderBy: { dueDate: "asc" }, take: 1 },
-    },
-  });
+  const scope = toAuthScope(user);
+  const scopeWhere = taskWhere(scope) as Record<string, unknown>;
+
+  const where: Parameters<typeof prisma.task.findMany>[0]["where"] = {
+    ...scopeWhere,
+  };
+
+  if (params.status) {
+    where.status = params.status as "TODO" | "IN_PROGRESS" | "DONE" | "CANCELLED";
+  }
+
+  if (params.clientId) {
+    where.clientId = params.clientId;
+  }
+
+  if (params.dateFrom || params.dateTo) {
+    where.dueDate = {};
+    if (params.dateFrom) {
+      (where.dueDate as { gte?: Date }).gte = new Date(params.dateFrom);
+    }
+    if (params.dateTo) {
+      (where.dueDate as { lte?: Date }).lte = new Date(params.dateTo);
+    }
+  }
+
+  const [tasks, total, clients] = await Promise.all([
+    prisma.task.findMany({
+      where,
+      orderBy: [
+        { status: "asc" },
+        { dueDate: "asc" },
+        { createdAt: "desc" },
+      ],
+      include: {
+        client: { select: { id: true, companyName: true } },
+        occurrences: {
+          where: { status: "PENDING" },
+          orderBy: { dueDate: "asc" },
+          take: 1,
+        },
+      },
+      skip: (params.page - 1) * params.pageSize,
+      take: params.pageSize,
+    }),
+    prisma.task.count({ where }),
+    prisma.client.findMany({
+      where: clientWhere(scope),
+      orderBy: { companyName: "asc" },
+      select: { id: true, companyName: true },
+    }),
+  ]);
 
   return (
     <section className="py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
-          <p className="mt-2 text-sm text-black/70">
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
+            Tasks
+          </h1>
+          <p className="mt-2 text-sm text-[var(--hub-muted)]">
             Create and manage tasks. Use recurrence for repeating tasks.
           </p>
         </div>
         <Link
           href="/hub/tasks/new"
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           New task
         </Link>
       </div>
 
+      <div className="mt-6">
+        <TasksListFilters
+          params={params}
+          basePath={BASE_PATH}
+          clients={clients}
+        />
+      </div>
+
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-black/10 bg-white text-sm">
+        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-[var(--hub-border-light)] bg-white text-sm">
           <thead>
-            <tr className="border-b border-black/10 text-left">
-              <th className="p-3 font-medium">Title</th>
-              <th className="p-3 font-medium">Client</th>
-              <th className="p-3 font-medium">Due</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Recurrence</th>
+            <tr className="border-b border-[var(--hub-border-light)] text-left">
+              <th className="p-3 font-medium text-[var(--hub-text)]">Title</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Client</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Due</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Status</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Recurrence</th>
               <th className="p-3 font-medium" aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
             {tasks.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-black/50">
-                  No tasks yet. Create one to get started.
+                <td
+                  colSpan={6}
+                  className="p-6 text-center text-[var(--hub-muted)]"
+                >
+                  No tasks match your filters.
                 </td>
               </tr>
             ) : (
               tasks.map((task) => (
-                <tr key={task.id} className="border-b border-black/5 hover:bg-black/[0.02]">
+                <tr
+                  key={task.id}
+                  className="border-b border-black/5 hover:bg-black/[0.02]"
+                >
                   <td className="p-3">
-                    <Link href={`/hub/tasks/${task.id}`} className="font-medium hover:underline">
+                    <Link
+                      href={`/hub/tasks/${task.id}`}
+                      className="font-medium text-[var(--hub-text)] hover:underline"
+                    >
                       {task.title}
                     </Link>
                   </td>
                   <td className="p-3">
                     {task.client ? (
-                      <Link href={`/hub/clients/${task.client.id}`} className="text-black/70 hover:underline">
+                      <Link
+                        href={`/hub/clients/${task.client.id}`}
+                        className="text-[var(--hub-muted)] hover:underline"
+                      >
                         {task.client.companyName}
                       </Link>
                     ) : (
-                      <span className="text-black/40">—</span>
+                      <span className="text-[var(--hub-muted)]">—</span>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 text-[var(--hub-text)]">
                     {task.dueDate
-                      ? task.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })
+                      ? task.dueDate.toLocaleDateString("en-ZA", {
+                          dateStyle: "medium",
+                        })
                       : task.occurrences[0]
-                        ? task.occurrences[0].dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })
+                        ? task.occurrences[0].dueDate.toLocaleDateString(
+                            "en-ZA",
+                            { dateStyle: "medium" }
+                          )
                         : "—"}
                   </td>
                   <td className="p-3">
@@ -95,7 +173,7 @@ export default async function HubTasksPage() {
                           ? "text-green-600"
                           : task.status === "IN_PROGRESS"
                             ? "text-amber-600"
-                            : "text-black/60"
+                            : "text-[var(--hub-muted)]"
                       }
                     >
                       {task.status.replace("_", " ")}
@@ -103,9 +181,9 @@ export default async function HubTasksPage() {
                   </td>
                   <td className="p-3">
                     {task.recurrencePattern === "NONE" ? (
-                      <span className="text-black/40">—</span>
+                      <span className="text-[var(--hub-muted)]">—</span>
                     ) : (
-                      <span className="text-black/60">
+                      <span className="text-[var(--hub-muted)]">
                         {task.recurrencePattern} every {task.recurrenceInterval}
                       </span>
                     )}
@@ -113,7 +191,7 @@ export default async function HubTasksPage() {
                   <td className="p-3">
                     <Link
                       href={`/hub/tasks/${task.id}/edit`}
-                      className="text-black/60 hover:underline"
+                      className="text-[var(--hub-muted)] hover:underline"
                     >
                       Edit
                     </Link>
@@ -124,6 +202,16 @@ export default async function HubTasksPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        totalItems={total}
+        currentPage={params.page}
+        pageSize={params.pageSize}
+        basePath={BASE_PATH}
+        searchParams={
+          paramsForPagination(params) as Record<string, string | undefined>
+        }
+      />
     </section>
   );
 }

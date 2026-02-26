@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
-import { clientIdWhere } from "@/lib/rbac";
+import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { Pagination } from "@/app/hub/_components/Pagination";
+import { InvoicesListFilters } from "./_components/InvoicesListFilters";
+import {
+  parseListParams,
+  paramsForPagination,
+} from "@/app/hub/_lib/listParams";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -14,62 +20,124 @@ function toNum(d: unknown): number {
   return Number(d) || 0;
 }
 
-export default async function HubInvoicesPage() {
+const BASE_PATH = "/hub/invoices";
+
+export default async function HubInvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { user } = await getSession();
   if (!user) return null;
 
-  const scope = toAuthScope(user);
-  const where = clientIdWhere(scope);
+  const raw = await searchParams;
+  const params = parseListParams(raw as Record<string, string | undefined>);
 
-  const invoices = await prisma.invoice.findMany({
-    where,
-    orderBy: [{ status: "asc" }, { dueDate: "desc" }],
-    include: { client: { select: { id: true, companyName: true } } },
-  });
+  const scope = toAuthScope(user);
+  const scopeWhere = clientIdWhere(scope);
+
+  const where: Parameters<typeof prisma.invoice.findMany>[0]["where"] = {
+    ...scopeWhere,
+  };
+
+  if (params.search) {
+    where.invoiceNumber = { contains: params.search, mode: "insensitive" };
+  }
+
+  if (params.status) {
+    where.status = params.status as "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "VOID";
+  }
+
+  if (params.clientId) {
+    where.clientId = params.clientId;
+  }
+
+  if (params.dateFrom || params.dateTo) {
+    where.dueDate = {};
+    if (params.dateFrom) {
+      where.dueDate.gte = new Date(params.dateFrom);
+    }
+    if (params.dateTo) {
+      where.dueDate.lte = new Date(params.dateTo);
+    }
+  }
+
+  const [invoices, total, clients] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      orderBy: [{ status: "asc" }, { dueDate: "desc" }],
+      include: { client: { select: { id: true, companyName: true } } },
+      skip: (params.page - 1) * params.pageSize,
+      take: params.pageSize,
+    }),
+    prisma.invoice.count({ where }),
+    prisma.client.findMany({
+      where: clientWhere(scope),
+      orderBy: { companyName: "asc" },
+      select: { id: true, companyName: true },
+    }),
+  ]);
 
   return (
     <section className="py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
-          <p className="mt-2 text-sm text-black/70">
-            Create and manage invoices. Drafts can be edited; mark as Sent when ready.
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
+            Invoices
+          </h1>
+          <p className="mt-2 text-sm text-[var(--hub-muted)]">
+            Create and manage invoices. Drafts can be edited; mark as Sent when
+            ready.
           </p>
         </div>
         <Link
           href="/hub/invoices/new"
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           New invoice
         </Link>
       </div>
 
+      <div className="mt-6">
+        <InvoicesListFilters
+          params={params}
+          basePath={BASE_PATH}
+          clients={clients}
+        />
+      </div>
+
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-black/10 bg-white text-sm">
+        <table className="w-full min-w-[600px] border-collapse rounded-xl border border-[var(--hub-border-light)] bg-white text-sm">
           <thead>
-            <tr className="border-b border-black/10 text-left">
-              <th className="p-3 font-medium">Number</th>
-              <th className="p-3 font-medium">Client</th>
-              <th className="p-3 font-medium">Due date</th>
-              <th className="p-3 font-medium">Amount</th>
-              <th className="p-3 font-medium">Status</th>
+            <tr className="border-b border-[var(--hub-border-light)] text-left">
+              <th className="p-3 font-medium text-[var(--hub-text)]">Number</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Client</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Due date</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Amount</th>
+              <th className="p-3 font-medium text-[var(--hub-text)]">Status</th>
               <th className="p-3 font-medium" aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-black/50">
-                  No invoices yet. Create one to get started.
+                <td
+                  colSpan={6}
+                  className="p-6 text-center text-[var(--hub-muted)]"
+                >
+                  No invoices match your filters.
                 </td>
               </tr>
             ) : (
               invoices.map((inv) => (
-                <tr key={inv.id} className="border-b border-black/5 hover:bg-black/[0.02]">
+                <tr
+                  key={inv.id}
+                  className="border-b border-black/5 hover:bg-black/[0.02]"
+                >
                   <td className="p-3">
                     <Link
                       href={`/hub/invoices/${inv.id}`}
-                      className="font-medium hover:underline"
+                      className="font-medium text-[var(--hub-text)] hover:underline"
                     >
                       {inv.invoiceNumber}
                     </Link>
@@ -77,15 +145,19 @@ export default async function HubInvoicesPage() {
                   <td className="p-3">
                     <Link
                       href={`/hub/clients/${inv.client.id}`}
-                      className="text-black/70 hover:underline"
+                      className="text-[var(--hub-muted)] hover:underline"
                     >
                       {inv.client.companyName}
                     </Link>
                   </td>
-                  <td className="p-3">
-                    {inv.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}
+                  <td className="p-3 text-[var(--hub-text)]">
+                    {inv.dueDate.toLocaleDateString("en-ZA", {
+                      dateStyle: "medium",
+                    })}
                   </td>
-                  <td className="p-3">R {toNum(inv.totalAmount).toLocaleString("en-ZA")}</td>
+                  <td className="p-3 text-[var(--hub-text)]">
+                    R {toNum(inv.totalAmount).toLocaleString("en-ZA")}
+                  </td>
                   <td className="p-3">
                     <span
                       className={
@@ -95,7 +167,7 @@ export default async function HubInvoicesPage() {
                             ? "text-red-600"
                             : inv.status === "SENT"
                               ? "text-amber-600"
-                              : "text-black/60"
+                              : "text-[var(--hub-muted)]"
                       }
                     >
                       {inv.status}
@@ -106,7 +178,7 @@ export default async function HubInvoicesPage() {
                       href={`/hub/invoices/${inv.id}/print`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-black/60 hover:underline"
+                      className="text-[var(--hub-muted)] hover:underline"
                     >
                       Print
                     </Link>
@@ -117,6 +189,16 @@ export default async function HubInvoicesPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        totalItems={total}
+        currentPage={params.page}
+        pageSize={params.pageSize}
+        basePath={BASE_PATH}
+        searchParams={
+          paramsForPagination(params) as Record<string, string | undefined>
+        }
+      />
     </section>
   );
 }

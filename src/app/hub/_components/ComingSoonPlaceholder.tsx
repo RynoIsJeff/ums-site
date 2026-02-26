@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { EmptyState, type EmptyStateAction } from "./EmptyState";
 
 type ComingSoonPlaceholderProps = {
@@ -6,7 +7,7 @@ type ComingSoonPlaceholderProps = {
   feature: string;
   description: React.ReactNode;
   /** Optional icon - defaults to Clock for consistent "coming soon" look */
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: LucideIcon;
   iconClassName?: string;
   supplemental?: React.ReactNode;
   footer?: React.ReactNode;
