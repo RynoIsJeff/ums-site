@@ -3,6 +3,7 @@ import { toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { Target, ExternalLink } from "lucide-react";
+import { ComingSoonPlaceholder } from "@/app/hub/_components/ComingSoonPlaceholder";
 
 export const metadata = {
   title: "Campaigns | UMS Hub",
@@ -29,38 +30,32 @@ export default async function CampaignsPage() {
         </p>
       </div>
 
-      <div className="mt-12 rounded-xl border border-[var(--hub-border-light)] bg-white p-12 text-center shadow-sm">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--meta-blue)]/10">
-          <Target className="h-8 w-8 text-[var(--meta-blue)]" />
-        </div>
-        <h2 className="mt-6 text-lg font-semibold text-[var(--hub-text)]">
-          Campaign management coming soon
-        </h2>
-        <p className="mx-auto mt-2 max-w-md text-sm text-[var(--hub-muted)]">
-          Create, pause, and manage campaigns from the Hub using the Marketing API.
-          {adAccounts.length === 0
-            ? " Connect an ad account first."
-            : ` You have ${adAccounts.length} ad account(s) connected.`}
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="https://business.facebook.com/adsmanager"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--meta-blue)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--meta-blue-hover)]"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Open Ads Manager
-          </a>
-          <a
-            href="https://developers.facebook.com/docs/marketing-api/reference/ad-campaign-group"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2.5 text-sm font-medium hover:bg-black/5"
-          >
-            Campaigns API docs
-          </a>
-        </div>
+      <div className="mt-12">
+        <ComingSoonPlaceholder
+          feature="Campaign management"
+          description="Create, pause, and manage campaigns from the Hub using the Marketing API."
+          icon={Target}
+          iconClassName="text-[var(--meta-blue)]"
+          supplemental={
+            adAccounts.length === 0
+              ? "Connect an ad account first."
+              : `You have ${adAccounts.length} ad account(s) connected.`
+          }
+          primaryAction={{
+            href: "https://business.facebook.com/adsmanager",
+            label: "Open Ads Manager",
+            external: true,
+            meta: true,
+            icon: ExternalLink,
+          }}
+          secondaryActions={[
+            {
+              href: "https://developers.facebook.com/docs/marketing-api/reference/ad-campaign-group",
+              label: "Campaigns API docs",
+              external: true,
+            },
+          ]}
+        />
       </div>
     </section>
   );
