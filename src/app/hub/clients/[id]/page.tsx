@@ -8,6 +8,7 @@ import { ClientTabs } from "./_components/ClientTabs";
 import { DeleteClientButton } from "./_components/DeleteClientButton";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
+import { toNum } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -67,12 +68,6 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
   ]);
 
   if (!client) notFound();
-
-  function toNum(d: unknown): number {
-    if (d == null) return 0;
-    if (typeof d === "number" && !Number.isNaN(d)) return d;
-    return Number(d) || 0;
-  }
 
   const outstandingTotal = clientInvoices
     .filter((inv) => inv.status === "SENT" || inv.status === "OVERDUE")

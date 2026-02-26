@@ -4,15 +4,11 @@ import { toAuthScope } from "@/lib/auth";
 import { clientWhere, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
+import { toNum } from "@/lib/utils";
+
 export const metadata = {
   title: "Billing | UMS Hub",
 };
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
 
 export default async function HubBillingPage() {
   const { user } = await getSession();

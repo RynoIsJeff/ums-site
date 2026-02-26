@@ -8,6 +8,7 @@ import { SetInvoiceStatusButton } from "../_components/SetInvoiceStatusButton";
 import { RecordPaymentForm } from "@/app/hub/payments/_components/RecordPaymentForm";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
+import { toNum } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -19,12 +20,6 @@ export async function generateMetadata({ params }: PageProps) {
   });
   if (!invoice) return { title: "Invoice | UMS Hub" };
   return { title: `Invoice ${invoice.invoiceNumber} | UMS Hub` };
-}
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
 }
 
 export default async function InvoiceDetailPage({ params }: PageProps) {

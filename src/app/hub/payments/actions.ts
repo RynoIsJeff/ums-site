@@ -7,6 +7,7 @@ import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import type { PaymentMethod } from "@prisma/client";
+import { toNum } from "@/lib/utils";
 
 const methods: PaymentMethod[] = ["EFT", "CASH", "CARD", "OTHER"];
 
@@ -26,12 +27,6 @@ const RecordPaymentSchema = z
   });
 
 export type PaymentFormState = { error?: string };
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
 
 export async function recordPayment(
   _prev: PaymentFormState,

@@ -12,15 +12,11 @@ import {
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
 
+import { toNum } from "@/lib/utils";
+
 export const metadata = {
   title: "Payments | UMS Hub",
 };
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
 
 const BASE_PATH = "/hub/payments";
 

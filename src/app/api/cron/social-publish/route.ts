@@ -20,6 +20,15 @@ export async function POST(req: Request) {
 
 async function runWorker(req: Request) {
   const secret = process.env.CRON_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction && !secret) {
+    return NextResponse.json(
+      { error: "Cron endpoint unavailable" },
+      { status: 503 }
+    );
+  }
+
   if (secret) {
     const auth = req.headers.get("authorization");
     const token = auth?.replace(/^Bearer\s+/i, "").trim();

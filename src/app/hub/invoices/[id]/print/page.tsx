@@ -3,14 +3,9 @@ import { toAuthScope } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { toNum } from "@/lib/utils";
 
 type PageProps = { params: Promise<{ id: string }> };
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
 
 export default async function InvoicePrintPage({ params }: PageProps) {
   const { id } = await params;

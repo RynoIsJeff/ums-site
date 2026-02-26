@@ -16,12 +16,6 @@ const LineItemSchema = z.object({
   unitPrice: z.string().transform((s) => Number(s) || 0),
 });
 
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
-
 /** Returns next invoice number in 4-digit format (e.g. 0088). Next after 0087 is 0088. */
 export async function getNextInvoiceNumber(): Promise<string> {
   const { scope } = await requireHubAuth();

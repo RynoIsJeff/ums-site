@@ -18,6 +18,7 @@ import {
   UserPlus,
   Calendar,
 } from "lucide-react";
+import { toNum } from "@/lib/utils";
 
 const HUB_SECTIONS: {
   href: string;
@@ -46,12 +47,6 @@ const QUICK_ACTIONS = [
 export const metadata = {
   title: "Dashboard — UMS Hub",
 };
-
-function toNum(d: unknown): number {
-  if (d == null) return 0;
-  if (typeof d === "number" && !Number.isNaN(d)) return d;
-  return Number(d) || 0;
-}
 
 type ActivityItem =
   | { type: "payment"; at: Date; clientName: string; amount: number; id: string }
