@@ -17,7 +17,6 @@
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {
-    "-": "^0.0.1",
     "@prisma/client": "^6.16.3",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",

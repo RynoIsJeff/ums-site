@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
-import { canAccessClient } from "@/lib/rbac";
+import { canAccessClient, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import type { InvoiceStatus } from "@prisma/client";
 
@@ -24,7 +24,9 @@ function toNum(d: unknown): number {
 
 /** Returns next invoice number in 4-digit format (e.g. 0088). Next after 0087 is 0088. */
 export async function getNextInvoiceNumber(): Promise<string> {
+  const { scope } = await requireHubAuth();
   const all = await prisma.invoice.findMany({
+    where: clientIdWhere(scope),
     select: { invoiceNumber: true },
   });
   let maxNum = 87; // Next number is 0088 when no 4-digit invoices exist

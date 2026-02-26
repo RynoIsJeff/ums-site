@@ -10,15 +10,20 @@ import type { PaymentMethod } from "@prisma/client";
 
 const methods: PaymentMethod[] = ["EFT", "CASH", "CARD", "OTHER"];
 
-const RecordPaymentSchema = z.object({
-  clientId: z.string().min(1, "Client is required"),
-  invoiceId: z.string().optional(),
-  amount: z.string().transform((s) => Number(s) || 0),
-  method: z.enum(["EFT", "CASH", "CARD", "OTHER"]),
-  paidAt: z.string().min(1, "Date is required"),
-  reference: z.string().max(200).optional(),
-  notes: z.string().max(1000).optional(),
-});
+const RecordPaymentSchema = z
+  .object({
+    clientId: z.string().min(1, "Client is required"),
+    invoiceId: z.string().optional(),
+    amount: z.string().transform((s) => Number(s) || 0),
+    method: z.enum(["EFT", "CASH", "CARD", "OTHER"]),
+    paidAt: z.string().min(1, "Date is required"),
+    reference: z.string().max(200).optional(),
+    notes: z.string().max(1000).optional(),
+  })
+  .refine((data) => data.amount > 0, {
+    message: "Amount must be greater than 0",
+    path: ["amount"],
+  });
 
 export type PaymentFormState = { error?: string };
 
@@ -51,7 +56,6 @@ export async function recordPayment(
   }
 
   const { clientId, invoiceId, amount, method, paidAt, reference, notes } = parsed.data;
-  if (amount <= 0) return { error: "Amount must be greater than zero." };
 
   if (!canAccessClient(scope, clientId)) {
     return { error: "You do not have access to this client." };
