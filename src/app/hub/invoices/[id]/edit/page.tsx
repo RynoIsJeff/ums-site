@@ -66,7 +66,6 @@ export default async function EditInvoicePage({ params }: PageProps) {
           defaultInvoiceNumber={invoice.invoiceNumber}
           defaultIssueDate={invoice.issueDate.toISOString().slice(0, 10)}
           defaultDueDate={invoice.dueDate.toISOString().slice(0, 10)}
-          defaultIncludeVat={invoice.includeVat}
           defaultLineItems={defaultLineItems}
           defaultNotes={invoice.notes ?? ""}
           defaultClientId={invoice.clientId}

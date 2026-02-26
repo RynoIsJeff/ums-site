@@ -12,7 +12,6 @@ type InvoiceFormProps = {
   defaultInvoiceNumber: string;
   defaultIssueDate: string;
   defaultDueDate: string;
-  defaultIncludeVat: boolean;
   submitLabel: string;
   backHref: string;
   /** Edit mode: existing line items for default values */
@@ -28,7 +27,6 @@ export function InvoiceForm({
   defaultInvoiceNumber,
   defaultIssueDate,
   defaultDueDate,
-  defaultIncludeVat,
   submitLabel,
   backHref,
   defaultLineItems = [],
@@ -105,19 +103,6 @@ export function InvoiceForm({
             className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
         </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          id="includeVat"
-          name="includeVat"
-          type="checkbox"
-          defaultChecked={defaultIncludeVat}
-          className="h-4 w-4 rounded border-black/20"
-        />
-        <label htmlFor="includeVat" className="text-sm font-medium">
-          Include VAT (15%)
-        </label>
       </div>
 
       <div>

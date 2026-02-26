@@ -26,6 +26,7 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.548.0",
     "next": "^16.0.7",
+    "next-nprogress-bar": "^2.4.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "zod": "^4.1.12"
@@ -36,7 +37,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
-    "dotenv":"^16.4.5","baseline-browser-mapping": "^2.9.19",
+    "baseline-browser-mapping": "^2.9.19",
+    "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "postcss": "^8.5.6",

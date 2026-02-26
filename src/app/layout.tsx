@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NavigationProgress } from "./NavigationProgress";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body suppressHydrationWarning className="antialiased bg-white">
+        <NavigationProgress />
         {children}
       </body>
     </html>

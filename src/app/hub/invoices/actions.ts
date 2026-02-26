@@ -22,17 +22,20 @@ function toNum(d: unknown): number {
   return Number(d) || 0;
 }
 
+/** Returns next invoice number in 4-digit format (e.g. 0088). Next after 0087 is 0088. */
 export async function getNextInvoiceNumber(): Promise<string> {
-  const year = new Date().getFullYear();
-  const prefix = `INV-${year}-`;
-  const latest = await prisma.invoice.findFirst({
-    where: { invoiceNumber: { startsWith: prefix } },
-    orderBy: { invoiceNumber: "desc" },
+  const all = await prisma.invoice.findMany({
     select: { invoiceNumber: true },
   });
-  if (!latest) return `${prefix}1001`;
-  const num = parseInt(latest.invoiceNumber.slice(prefix.length), 10) || 1000;
-  return `${prefix}${num + 1}`;
+  let maxNum = 87; // Next number is 0088 when no 4-digit invoices exist
+  for (const inv of all) {
+    const m = inv.invoiceNumber.match(/^0*(\d{1,4})$/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > maxNum) maxNum = n;
+    }
+  }
+  return String(maxNum + 1).padStart(4, "0");
 }
 
 export type InvoiceFormState = { error?: string };
@@ -59,7 +62,6 @@ export async function createInvoice(
     return { error: "Valid issue and due dates required." };
   }
 
-  const includeVat = formData.get("includeVat") === "on";
   const descriptions = formData.getAll("description") as string[];
   const quantities = formData.getAll("quantity") as string[];
   const unitPrices = formData.getAll("unitPrice") as string[];
@@ -96,9 +98,7 @@ export async function createInvoice(
     };
   });
 
-  const vatRate = includeVat ? 15 : 0;
-  const vatAmount = (subtotal * vatRate) / 100;
-  const totalAmount = subtotal + vatAmount;
+  const totalAmount = subtotal;
 
   await prisma.invoice.create({
     data: {
@@ -107,10 +107,10 @@ export async function createInvoice(
       issueDate,
       dueDate,
       status: "DRAFT",
-      includeVat,
-      vatRate,
+      includeVat: false,
+      vatRate: 0,
       subtotalAmount: String(subtotal),
-      vatAmount: String(vatAmount),
+      vatAmount: "0",
       totalAmount: String(totalAmount),
       currency: "ZAR",
       notes: (formData.get("notes") as string)?.trim() || null,
@@ -157,7 +157,6 @@ export async function updateInvoice(
     return { error: "Valid issue and due dates required." };
   }
 
-  const includeVat = formData.get("includeVat") === "on";
   const descriptions = formData.getAll("description") as string[];
   const quantities = formData.getAll("quantity") as string[];
   const unitPrices = formData.getAll("unitPrice") as string[];
@@ -187,9 +186,7 @@ export async function updateInvoice(
     };
   });
 
-  const vatRate = includeVat ? 15 : 0;
-  const vatAmount = (subtotal * vatRate) / 100;
-  const totalAmount = subtotal + vatAmount;
+  const totalAmount = subtotal;
 
   await prisma.$transaction([
     prisma.invoiceLineItem.deleteMany({ where: { invoiceId } }),
@@ -198,10 +195,10 @@ export async function updateInvoice(
       data: {
         issueDate,
         dueDate,
-        includeVat,
-        vatRate,
+        includeVat: false,
+        vatRate: 0,
         subtotalAmount: String(subtotal),
-        vatAmount: String(vatAmount),
+        vatAmount: "0",
         totalAmount: String(totalAmount),
         notes: (formData.get("notes") as string)?.trim() || null,
         lineItems: {

@@ -39,7 +39,7 @@ export default async function NewInvoicePage() {
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">New invoice</h1>
       <p className="mt-2 text-sm text-black/70">
-        Add line items; subtotal and VAT (15%) are calculated automatically.
+        Add line items; total is calculated automatically.
       </p>
       <div className="mt-6 rounded-xl border border-black/10 bg-white p-6">
         <InvoiceForm
@@ -48,7 +48,6 @@ export default async function NewInvoicePage() {
           defaultInvoiceNumber={nextNumber}
           defaultIssueDate={today}
           defaultDueDate={dueDefault}
-          defaultIncludeVat={true}
           submitLabel="Create invoice (draft)"
           backHref="/hub/invoices"
         />

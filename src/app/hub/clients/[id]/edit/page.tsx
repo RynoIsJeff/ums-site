@@ -6,7 +6,6 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ClientForm } from "../../_components/ClientForm";
 import { updateClient } from "../../actions";
-import type { ClientFormState } from "../../actions";
 
 export const metadata = {
   title: "Edit Client | UMS Hub",
@@ -35,8 +34,7 @@ export default async function EditClientPage({ params }: PageProps) {
   });
   if (!client) notFound();
 
-  const boundUpdateClient = (prev: ClientFormState, formData: FormData) =>
-    updateClient(clientId, prev, formData);
+  const boundUpdateClient = updateClient.bind(null, clientId);
 
   const defaultValues = {
     companyName: client.companyName,

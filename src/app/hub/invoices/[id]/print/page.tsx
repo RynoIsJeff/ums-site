@@ -28,48 +28,76 @@ export default async function InvoicePrintPage({ params }: PageProps) {
 
   if (!invoice || !canAccessClient(scope, invoice.clientId)) notFound();
 
+  const total = toNum(invoice.totalAmount);
+  const issueDateStr = invoice.issueDate.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <div className="min-h-screen bg-white p-8 print:p-6" style={{ fontFamily: "system-ui, sans-serif" }}>
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-8 flex justify-between border-b border-black/20 pb-6">
+    <div
+      className="min-h-screen bg-white p-8 print:p-6"
+      style={{ fontFamily: "system-ui, sans-serif" }}
+    >
+      <div className="mx-auto max-w-2xl">
+        {/* UMS branding - logo + company name */}
+        <div className="mb-6 flex items-start gap-4">
+          <img
+            src="/ums-logo.svg"
+            alt="UMS"
+            className="h-12 w-12 shrink-0 print:h-12 print:w-12"
+          />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">INVOICE</h1>
-            <p className="mt-1 text-lg font-semibold">{invoice.invoiceNumber}</p>
+            <div className="leading-tight">
+              <span className="block text-lg font-bold tracking-tight">
+                ULTIMATE MARKETING{" "}
+                <span style={{ color: "#0586AD" }}>SMASH</span>
+              </span>
+              <span className="block text-xs font-medium uppercase tracking-widest text-black/60">
+                (PTY) LTD.
+              </span>
+            </div>
+            <p className="mt-2 text-sm">+27 79 490 5070</p>
+            <p className="text-sm">Manager@ultimatemarketingsmash.com</p>
+            <p className="mt-1 text-sm">
+              447 Suikerbekkie Ave, Pongola,
+              <br />
+              3170, KZN, South Africa
+            </p>
           </div>
-          <div className="text-right text-sm text-black/70">
-            <p>Ultimate Marketing Smash</p>
-            <p>ultimatemarketingsmash.com</p>
+        </div>
+        <div
+          className="mb-6 h-0.5 w-full"
+          style={{
+            background: "linear-gradient(90deg, #0586AD, #02D6E4)",
+          }}
+        />
+
+        {/* Invoice title, date, number - right aligned */}
+        <div className="mb-8 flex justify-between border-b border-black/20 pb-4">
+          <span className="text-lg font-semibold">Invoice</span>
+          <div className="text-right text-sm">
+            <p>{issueDateStr}</p>
+            <p className="mt-1 font-medium">Invoice Number: {invoice.invoiceNumber}</p>
           </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-6 text-sm">
-          <div>
-            <p className="font-medium text-black/60">Bill to</p>
-            <p className="mt-1 font-medium">{invoice.client.companyName}</p>
-            {invoice.client.contactPerson && (
-              <p>{invoice.client.contactPerson}</p>
-            )}
-            {invoice.client.billingAddress && (
-              <pre className="mt-1 whitespace-pre-wrap font-sans text-black/80">
-                {invoice.client.billingAddress}
-              </pre>
-            )}
-            {invoice.client.email && <p>{invoice.client.email}</p>}
-          </div>
-          <div className="text-right">
-            <p><span className="text-black/60">Issue date:</span> {invoice.issueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}</p>
-            <p><span className="text-black/60">Due date:</span> {invoice.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}</p>
-            <p><span className="text-black/60">Status:</span> {invoice.status}</p>
-          </div>
+        {/* To: Client */}
+        <div className="mb-8">
+          <p className="text-sm font-medium">
+            To: {invoice.client.companyName}
+          </p>
         </div>
 
+        {/* Line items table: Description | Qty | Unit price | Price */}
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b-2 border-black/20">
               <th className="pb-2 text-left font-medium">Description</th>
               <th className="pb-2 text-right font-medium">Qty</th>
               <th className="pb-2 text-right font-medium">Unit price</th>
-              <th className="pb-2 text-right font-medium">Total</th>
+              <th className="pb-2 text-right font-medium">Price</th>
             </tr>
           </thead>
           <tbody>
@@ -77,30 +105,33 @@ export default async function InvoicePrintPage({ params }: PageProps) {
               <tr key={line.id} className="border-b border-black/10">
                 <td className="py-3">{line.description}</td>
                 <td className="py-3 text-right">{Number(line.quantity)}</td>
-                <td className="py-3 text-right">R {toNum(line.unitPrice).toLocaleString("en-ZA")}</td>
-                <td className="py-3 text-right">R {toNum(line.lineTotal).toLocaleString("en-ZA")}</td>
+                <td className="py-3 text-right">
+                  R {toNum(line.unitPrice).toLocaleString("en-ZA")}
+                </td>
+                <td className="py-3 text-right">
+                  R {toNum(line.lineTotal).toLocaleString("en-ZA")}
+                </td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-black/20 font-semibold">
+              <td className="py-3" colSpan={3}>TOTAL</td>
+              <td className="py-3 text-right">
+                R {total.toLocaleString("en-ZA")}
+              </td>
+            </tr>
+          </tfoot>
         </table>
 
-        <div className="mt-6 flex justify-end">
-          <div className="w-56 space-y-1 text-right text-sm">
-            <div className="flex justify-between">
-              <span className="text-black/60">Subtotal</span>
-              <span>R {toNum(invoice.subtotalAmount).toLocaleString("en-ZA")}</span>
-            </div>
-            {invoice.includeVat && (
-              <div className="flex justify-between">
-                <span className="text-black/60">VAT ({Number(invoice.vatRate)}%)</span>
-                <span>R {toNum(invoice.vatAmount).toLocaleString("en-ZA")}</span>
-              </div>
-            )}
-            <div className="flex justify-between border-t border-black/20 pt-2 font-semibold">
-              <span>Total</span>
-              <span>R {toNum(invoice.totalAmount).toLocaleString("en-ZA")}</span>
-            </div>
-          </div>
+        {/* Bank details */}
+        <div className="mt-10 space-y-1 text-sm">
+          <p>
+            Pay to: First National Bank (FNB)
+          </p>
+          <p>Account Number: 63067511387</p>
+          <p>Branch Code: 250655</p>
+          <p className="mt-4 font-medium">PAYMENT METHODS:</p>
         </div>
 
         {invoice.notes && (
@@ -109,10 +140,6 @@ export default async function InvoicePrintPage({ params }: PageProps) {
             <p className="mt-1 whitespace-pre-wrap">{invoice.notes}</p>
           </div>
         )}
-
-        <p className="mt-1 text-center text-xs text-black/50 print:mt-8">
-          Thank you for your business.
-        </p>
       </div>
     </div>
   );
