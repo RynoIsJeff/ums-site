@@ -11,6 +11,7 @@ import {
   FileText,
   Wallet,
   Share2,
+  Megaphone,
   CheckSquare,
   Settings,
   ArrowLeft,
@@ -31,6 +32,7 @@ const HUB_LINKS: {
   { href: "/hub/invoices", label: "Invoices", icon: FileText },
   { href: "/hub/payments", label: "Payments", icon: Wallet },
   { href: "/hub/social", label: "Social", icon: Share2 },
+  { href: "/hub/ads", label: "Ads", icon: Megaphone },
   { href: "/hub/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/hub/settings", label: "Settings", icon: Settings, adminOnly: true },
 ];

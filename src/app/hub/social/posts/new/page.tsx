@@ -36,17 +36,17 @@ export default async function NewPostPage() {
   }));
 
   return (
-    <section className="py-10">
+    <section className="py-6">
       <div className="mb-6">
-        <Link href="/hub/social" className="text-sm text-black/60 hover:text-black">
-          ← Social
+        <Link href="/hub/social" className="text-sm text-[#65676b] hover:text-[#050505]">
+          ← Content Planner
         </Link>
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight">New post</h1>
-      <p className="mt-2 text-sm text-black/70">
-        Choose a connected Facebook page and add caption. Set a date/time to schedule, or leave empty for draft.
+      <h1 className="text-2xl font-bold tracking-tight text-[#050505]">Create post</h1>
+      <p className="mt-1 text-sm text-[#65676b]">
+        Choose Facebook page(s), add your caption, and schedule.
       </p>
-      <div className="mt-6 rounded-xl border border-black/10 bg-white p-6">
+      <div className="mt-6 rounded-xl border border-[#e4e6eb] bg-white p-6 shadow-sm">
         <PostForm
           action={createPost}
           clients={clients}

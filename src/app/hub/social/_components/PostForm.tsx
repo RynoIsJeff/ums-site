@@ -77,7 +77,7 @@ export function PostForm({
             setSelectedClientId(e.target.value);
             setSelectedPageIds(new Set());
           }}
-          className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
         >
           <option value="">Select client</option>
           {clients.map((c) => (
@@ -111,7 +111,7 @@ export function PostForm({
                     Deselect all
                   </button>
                 </div>
-                <div className="max-h-40 space-y-1.5 overflow-y-auto rounded-md border border-black/15 p-2">
+                <div className="max-h-40 space-y-1.5 overflow-y-auto rounded-lg border border-[#e4e6eb] p-2">
                   {pagesForClient.map((p) => (
                     <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
                       <input
@@ -138,7 +138,7 @@ export function PostForm({
             name="socialPageId"
             required
             defaultValue={defaultPageId}
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
           >
             <option value="">Select page</option>
             {pagesForClient.map((p) => (
@@ -160,7 +160,7 @@ export function PostForm({
           rows={4}
           defaultValue={defaultCaption}
           placeholder="Post text..."
-          className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
         />
       </div>
 
@@ -171,7 +171,7 @@ export function PostForm({
           name="scheduledFor"
           type="datetime-local"
           defaultValue={defaultScheduledFor}
-          className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
         />
         <p className="mt-1 text-xs text-black/50">Leave empty for draft. Set a future time to schedule.</p>
       </div>
@@ -179,13 +179,13 @@ export function PostForm({
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+          className="rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#166fe5]"
         >
           {submitLabel}
         </button>
         <a
           href={backHref}
-          className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5"
+          className="rounded-lg border border-[#e4e6eb] px-4 py-2.5 text-sm font-medium hover:bg-[#f0f2f5]"
         >
           Cancel
         </a>

@@ -7,6 +7,7 @@ import {
   FileText,
   Wallet,
   Share2,
+  Megaphone,
   CheckSquare,
   Settings,
   ArrowRight,
@@ -24,6 +25,7 @@ const HUB_SECTIONS: {
   { href: "/hub/invoices", label: "Invoices", description: "Create and send invoices", icon: FileText },
   { href: "/hub/payments", label: "Payments", description: "Record and reconcile payments", icon: Wallet },
   { href: "/hub/social", label: "Social", description: "Schedule and publish social posts", icon: Share2 },
+  { href: "/hub/ads", label: "Ads", description: "Manage Meta ad campaigns and insights", icon: Megaphone },
   { href: "/hub/tasks", label: "Tasks", description: "Assign and track work items", icon: CheckSquare },
   { href: "/hub/settings", label: "Settings", description: "Users, permissions and config", icon: Settings, adminOnly: true },
 ];
@@ -64,10 +66,10 @@ export default async function HubHomePage() {
             <Link
               key={section.href}
               href={section.href}
-              className="group relative rounded-xl border border-black/[0.06] bg-white p-5 shadow-sm transition-all hover:border-black/[0.12] hover:shadow-md"
+              className="group relative rounded-xl border border-black/6 bg-white p-5 shadow-sm transition-all hover:border-black/12 hover:shadow-md"
             >
               <div className="flex items-start justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-(--primary)/10 to-(--accent)/10">
                   <Icon className="h-5 w-5" style={{ color: "var(--primary)" }} />
                 </div>
                 <ArrowRight className="h-4 w-4 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-black/40" />

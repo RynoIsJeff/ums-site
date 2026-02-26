@@ -1,12 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
-import { connectFacebookPage } from "../actions";
+import { connectAdAccount } from "../actions";
 
 type Props = { clients: { id: string; companyName: string }[] };
 
-export function ConnectFacebookForm({ clients }: Props) {
-  const [state, formAction] = useActionState(connectFacebookPage, {});
+export function ConnectAdAccountForm({ clients }: Props) {
+  const [state, formAction] = useActionState(connectAdAccount, {});
 
   return (
     <form action={formAction} className="space-y-4 rounded-xl border border-[#e4e6eb] bg-white p-6 shadow-sm">
@@ -17,19 +17,23 @@ export function ConnectFacebookForm({ clients }: Props) {
           </svg>
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-[#050505]">Connect Facebook Page</h2>
+          <h2 className="text-lg font-semibold text-[#050505]">Connect ad account</h2>
           <p className="text-sm text-[#65676b]">
-            Add a Page access token from Meta Business Suite or Graph API Explorer.
+            Add an ad account from Meta Business Manager.
           </p>
         </div>
       </div>
+
       {state?.error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {state.error}
         </div>
       )}
+
       <div>
-        <label htmlFor="clientId" className="block text-sm font-medium text-[#050505]">Client *</label>
+        <label htmlFor="clientId" className="block text-sm font-medium text-[#050505]">
+          Client *
+        </label>
         <select
           id="clientId"
           name="clientId"
@@ -42,44 +46,58 @@ export function ConnectFacebookForm({ clients }: Props) {
           ))}
         </select>
       </div>
+
       <div>
-        <label htmlFor="pageId" className="block text-sm font-medium text-[#050505]">Facebook Page ID *</label>
+        <label htmlFor="accountId" className="block text-sm font-medium text-[#050505]">
+          Ad account ID *
+        </label>
         <input
-          id="pageId"
-          name="pageId"
+          id="accountId"
+          name="accountId"
           type="text"
           required
-          placeholder="e.g. 123456789012345"
-          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
-        />
-      </div>
-      <div>
-        <label htmlFor="pageName" className="block text-sm font-medium text-[#050505]">Page name *</label>
-        <input
-          id="pageName"
-          name="pageName"
-          type="text"
-          required
-          placeholder="e.g. My Business Page"
-          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
-        />
-      </div>
-      <div>
-        <label htmlFor="pageAccessToken" className="block text-sm font-medium text-[#050505]">Page access token *</label>
-        <input
-          id="pageAccessToken"
-          name="pageAccessToken"
-          type="password"
-          required
-          placeholder="EAAxxxx..."
+          placeholder="act_123456789"
           className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm font-mono focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
         />
+        <p className="mt-1 text-xs text-[#65676b]">
+          Format: act_ followed by numbers. Find in Ads Manager → Settings.
+        </p>
       </div>
+
+      <div>
+        <label htmlFor="accountName" className="block text-sm font-medium text-[#050505]">
+          Account name (optional)
+        </label>
+        <input
+          id="accountName"
+          name="accountName"
+          type="text"
+          placeholder="e.g. Main ad account"
+          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="accessToken" className="block text-sm font-medium text-[#050505]">
+          Access token (optional)
+        </label>
+        <input
+          id="accessToken"
+          name="accessToken"
+          type="password"
+          placeholder="For API access — add later"
+          className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm font-mono focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
+        />
+        <p className="mt-1 text-xs text-[#65676b]">
+          User or System User token with ads_management, business_management.
+        </p>
+      </div>
+
       <button
         type="submit"
         className="rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#166fe5]"
       >
-        Connect page
+        Connect
       </button>
     </form>
   );

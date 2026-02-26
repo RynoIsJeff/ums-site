@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { getPageProfile } from "@/lib/facebook";
 
 const ConnectPageSchema = z.object({
   clientId: z.string().min(1),
@@ -61,15 +62,30 @@ export async function connectFacebookPage(
   if (existing && existing.socialAccount.clientId !== clientId) {
     return { error: "This Facebook page is already connected to another client." };
   }
+  let metadata: { profilePictureUrl?: string; coverPhotoUrl?: string } | undefined;
+  try {
+    const profileResult = await getPageProfile(pageId, pageAccessToken);
+    if (profileResult.ok) {
+      metadata = {
+        profilePictureUrl: profileResult.profile.pictureUrl,
+        coverPhotoUrl: profileResult.profile.coverUrl,
+      };
+    }
+  } catch {
+    // Ignore — page will connect without profile images; user can refresh later
+  }
+
   if (existing) {
     await prisma.socialPage.update({
       where: { id: existing.id },
       data: {
         pageName,
         pageAccessTokenEncrypted: pageAccessToken,
+        ...(metadata && { metadata }),
       },
     });
     revalidatePath("/hub/social");
+    revalidatePath("/hub/social/pages");
     revalidatePath("/hub/clients/[id]");
     redirect("/hub/social");
   }
@@ -101,14 +117,17 @@ export async function connectFacebookPage(
       pageName,
       pageExternalId: pageId,
       pageAccessTokenEncrypted: pageAccessToken,
+      ...(metadata && { metadata }),
     },
     update: {
       pageName,
       pageAccessTokenEncrypted: pageAccessToken,
+      ...(metadata && { metadata }),
     },
   });
 
   revalidatePath("/hub/social");
+  revalidatePath("/hub/social/pages");
   revalidatePath("/hub/clients/[id]");
   redirect("/hub/social");
 }
@@ -265,5 +284,93 @@ export async function cancelPost(postId: string): Promise<SocialFormState> {
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/calendar");
   revalidatePath(`/hub/social/posts/${postId}`);
+  return {};
+}
+
+export async function refreshPageProfile(socialPageId: string): Promise<SocialFormState> {
+  const { scope } = await requireHubAuth();
+
+  const page = await prisma.socialPage.findUnique({
+    where: { id: socialPageId },
+    include: { socialAccount: { select: { clientId: true } } },
+  });
+  if (!page || !canAccessClient(scope, page.socialAccount.clientId)) {
+    return { error: "Page not found or access denied." };
+  }
+  const token = page.pageAccessTokenEncrypted;
+  if (!token) return { error: "Page has no access token." };
+
+  const result = await getPageProfile(page.pageExternalId, token);
+  if (!result.ok) return { error: result.error };
+
+  const metadata = page.metadata && typeof page.metadata === "object" ? { ...page.metadata } : {};
+  Object.assign(metadata, {
+    profilePictureUrl: result.profile.pictureUrl,
+    coverPhotoUrl: result.profile.coverUrl,
+  });
+
+  await prisma.socialPage.update({
+    where: { id: socialPageId },
+    data: { pageName: result.profile.name || page.pageName, metadata },
+  });
+
+  revalidatePath("/hub/social");
+  revalidatePath("/hub/social/pages");
+  return {};
+}
+
+const UpdatePagePictureSchema = z.object({
+  socialPageId: z.string().min(1),
+  imageUrl: z.string().url("Enter a valid image URL"),
+  type: z.enum(["profile", "cover"]),
+});
+
+export async function updatePagePicture(
+  _prev: SocialFormState,
+  formData: FormData
+): Promise<SocialFormState> {
+  const { scope } = await requireHubAuth();
+
+  const raw = {
+    socialPageId: formData.get("socialPageId"),
+    imageUrl: (formData.get("imageUrl") as string)?.trim(),
+    type: formData.get("type"),
+  };
+  const parsed = UpdatePagePictureSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { socialPageId, imageUrl, type } = parsed.data;
+
+  const page = await prisma.socialPage.findUnique({
+    where: { id: socialPageId },
+    include: { socialAccount: { select: { clientId: true } } },
+  });
+  if (!page || !canAccessClient(scope, page.socialAccount.clientId)) {
+    return { error: "Page not found or access denied." };
+  }
+  const token = page.pageAccessTokenEncrypted;
+  if (!token) return { error: "Page has no access token." };
+
+  const { updatePageProfilePicture, updatePageCover } = await import("@/lib/facebook");
+  const result =
+    type === "profile"
+      ? await updatePageProfilePicture(page.pageExternalId, token, imageUrl)
+      : await updatePageCover(page.pageExternalId, token, imageUrl);
+
+  if (!result.ok) return { error: result.error };
+
+  const metadata = page.metadata && typeof page.metadata === "object" ? { ...page.metadata } : {};
+  if (type === "profile") (metadata as Record<string, string>).profilePictureUrl = imageUrl;
+  else (metadata as Record<string, string>).coverPhotoUrl = imageUrl;
+
+  await prisma.socialPage.update({
+    where: { id: socialPageId },
+    data: { metadata },
+  });
+
+  revalidatePath("/hub/social");
+  revalidatePath("/hub/social/pages");
   return {};
 }

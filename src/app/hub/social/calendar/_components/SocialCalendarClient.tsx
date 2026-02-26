@@ -134,17 +134,17 @@ export function SocialCalendarClient({
 
   return (
     <>
-      <div className="mb-6 rounded-xl border border-black/10 bg-white p-4">
-        <h3 className="mb-3 text-sm font-semibold">Filter by Facebook page</h3>
+      <div className="mb-6 rounded-xl border border-[#e4e6eb] bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-[#050505]">Filter by Facebook page</h3>
         {pages.length === 0 ? (
-          <p className="text-sm text-black/50">No Facebook pages connected. Connect one in Social.</p>
+          <p className="text-sm text-[#65676b]">No Facebook pages connected. Connect one in Pages.</p>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-2">
               {pages.map((p) => (
                 <label
                   key={p.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-black/10 px-3 py-2 text-sm hover:bg-black/2 has-[:checked]:border-black/20 has-[:checked]:bg-black/5"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e4e6eb] px-3 py-2 text-sm hover:bg-[#f0f2f5] has-[:checked]:border-[#1877F2] has-[:checked]:bg-[#1877F2]/5"
                 >
                   <input
                     type="checkbox"
@@ -177,12 +177,12 @@ export function SocialCalendarClient({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-black/10 bg-white">
-        <div className="grid grid-cols-7 border-b border-black/10">
-          {WEEKDAYS.map((day) => (
-            <div
-              key={day}
-              className="border-r border-black/5 bg-black/2 px-2 py-2 text-center text-xs font-semibold text-black/70 last:border-r-0"
+      <div className="overflow-hidden rounded-xl border border-[#e4e6eb] bg-white shadow-sm">
+      <div className="grid grid-cols-7 border-b border-[#e4e6eb]">
+        {WEEKDAYS.map((day) => (
+          <div
+            key={day}
+            className="border-r border-[#e4e6eb] bg-[#f7f8fa] px-2 py-2 text-center text-xs font-semibold text-[#65676b] last:border-r-0"
             >
               {day}
             </div>
@@ -196,9 +196,9 @@ export function SocialCalendarClient({
             return (
               <div
                 key={idx}
-                className={`group relative min-h-[7rem] border-b border-r border-black/5 p-1.5 last:border-r-0 ${
-                  !cell.isCurrentMonth ? "bg-black/2" : ""
-                } ${isToday ? "ring-1 ring-inset ring-black/10" : ""}`}
+                className={`group relative min-h-[7rem] border-b border-r border-[#e4e6eb] p-1.5 last:border-r-0 ${
+              !cell.isCurrentMonth ? "bg-[#f7f8fa]" : ""
+            } ${isToday ? "ring-1 ring-inset ring-[#1877F2]" : ""}`}
               >
                 <button
                   type="button"
@@ -218,7 +218,7 @@ export function SocialCalendarClient({
                     {cell.date}
                   </span>
                   {cell.isCurrentMonth && (
-                    <span className="mt-1 inline-flex w-6 items-center justify-center rounded bg-black/5 text-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="mt-1 inline-flex w-6 items-center justify-center rounded bg-[#1877F2]/20 text-[#1877F2] opacity-0 transition-opacity group-hover:opacity-100">
                       +
                     </span>
                   )}
@@ -228,15 +228,15 @@ export function SocialCalendarClient({
                         key={post.id}
                         href={`/hub/social/posts/${post.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className={`block rounded px-1.5 py-1 text-xs transition-colors hover:bg-black/5 ${
-                          post.status === "SCHEDULED" ? "bg-amber-50 text-amber-900" : "bg-black/5 text-black/70"
-                        }`}
+                    className={`block rounded px-1.5 py-1 text-xs transition-colors hover:bg-[#f0f2f5] ${
+                      post.status === "SCHEDULED" ? "bg-amber-50 text-amber-900" : "bg-[#f0f2f5] text-[#65676b]"
+                    }`}
                       >
                         <span className="line-clamp-2" title={post.caption}>
                           {post.caption.slice(0, 40)}
                           {post.caption.length > 40 ? "…" : ""}
                         </span>
-                        <span className="mt-0.5 block text-[10px] text-black/50">
+                        <span className="mt-0.5 block text-[10px] text-[#65676b]">
                           {new Date(post.scheduledFor).toLocaleTimeString("en-ZA", {
                             hour: "2-digit",
                             minute: "2-digit",

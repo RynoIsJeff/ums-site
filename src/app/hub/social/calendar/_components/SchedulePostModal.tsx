@@ -81,11 +81,11 @@ export function SchedulePostModal({
         aria-hidden="true"
       />
       <div
-        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-black/10 bg-white p-6 shadow-xl"
+        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-[#e4e6eb] bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Schedule post</h2>
+          <h2 className="text-lg font-semibold text-[#050505]">Schedule post</h2>
           <button
             type="button"
             onClick={onClose}
@@ -97,7 +97,7 @@ export function SchedulePostModal({
             </svg>
           </button>
         </div>
-        <p className="mb-4 text-sm text-black/60">
+        <p className="mb-4 text-sm text-[#65676b]">
           Schedule for <strong>{new Date(scheduledFor).toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short" })}</strong>
         </p>
 
@@ -123,7 +123,7 @@ export function SchedulePostModal({
                 setSelectedClientId(e.target.value);
                 setSelectedPageIds(new Set());
               }}
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
             >
               <option value="">Select client</option>
               {clients.map((c) => (
@@ -137,9 +137,9 @@ export function SchedulePostModal({
           <div>
             <label className="block text-sm font-medium">Facebook page(s) *</label>
             {pagesForClient.length === 0 ? (
-              <p className="mt-1 text-sm text-black/50">No connected pages — connect one in Social</p>
+              <p className="mt-1 text-sm text-[#65676b]">No connected pages — connect one in Pages</p>
             ) : (
-              <div className="mt-2 max-h-32 space-y-1.5 overflow-y-auto rounded-md border border-black/15 p-2">
+              <div className="mt-2 max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-[#e4e6eb] p-2">
                 {pagesForClient.map((p) => (
                   <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
                     <input
@@ -167,7 +167,7 @@ export function SchedulePostModal({
               required
               rows={3}
               placeholder="Post text..."
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
             />
           </div>
 
@@ -181,21 +181,21 @@ export function SchedulePostModal({
               type="datetime-local"
               required
               defaultValue={scheduledFor}
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-[#e4e6eb] px-3 py-2.5 text-sm focus:border-[#1877F2] focus:outline-none focus:ring-1 focus:ring-[#1877F2]"
             />
           </div>
 
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
+              className="rounded-lg bg-[#1877F2] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#166fe5]"
             >
               Schedule
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5"
+              className="rounded-lg border border-[#e4e6eb] px-4 py-2.5 text-sm font-medium hover:bg-[#f0f2f5]"
             >
               Cancel
             </button>

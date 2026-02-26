@@ -193,6 +193,7 @@ model Client {
   payments         Payment[]
   socialAccounts   SocialAccount[]
   socialPosts      SocialPost[]
+  adAccounts       AdAccount[]
   tasks            Task[]
   auditLogs        AuditLog[]
 
@@ -288,6 +289,23 @@ model Payment {
 
   @@index([clientId])
   @@index([invoiceId])
+}
+
+model AdAccount {
+  id                    String    @id @default(cuid())
+  clientId              String
+  accountId             String    // Meta ad account ID (e.g. act_123456789)
+  accountName           String?
+  accessTokenEncrypted  String?
+  currency              String?
+  timezoneName          String?
+  metadata              Json?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  client                Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId])
+  @@index([clientId])
 }
 
 model SocialAccount {
