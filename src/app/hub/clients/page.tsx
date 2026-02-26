@@ -116,7 +116,7 @@ export default async function HubClientsPage({
         </div>
       ) : (
       <ul className="mt-6 space-y-3">
-          clients.map((client) => (
+          {clients.map((client) => (
             <li key={client.id}>
               <Link
                 href={`/hub/clients/${client.id}`}
@@ -134,8 +134,7 @@ export default async function HubClientsPage({
                 </div>
               </Link>
             </li>
-          ))
-        }
+          ))}
       </ul>
       )}
 
