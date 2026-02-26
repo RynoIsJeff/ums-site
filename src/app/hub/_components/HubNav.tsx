@@ -39,6 +39,8 @@ type HubNavProps = {
   user: AppUser;
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 };
 
 function isActive(pathname: string, href: string) {
@@ -46,7 +48,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
+export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseMobile }: HubNavProps) {
   const pathname = usePathname();
   const scope = {
     role: user.role,
@@ -58,9 +60,21 @@ export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
   );
 
   return (
-    <aside
-      className={`hub-sidebar ${collapsed ? "hub-sidebar--collapsed" : ""}`}
-    >
+    <>
+      {/* Mobile overlay — closes sidebar when tapped */}
+      {onCloseMobile && (
+        <div
+          className={`hub-sidebar-overlay ${mobileOpen ? "hub-sidebar-overlay--open" : ""}`}
+          onClick={onCloseMobile}
+          onKeyDown={(e) => e.key === "Escape" && onCloseMobile()}
+          role="button"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`hub-sidebar ${collapsed ? "hub-sidebar--collapsed" : ""} ${mobileOpen ? "hub-sidebar--mobile-open" : ""}`}
+      >
       {/* Logo area */}
       <div className="hub-sidebar__header">
         <Link href="/hub" className="hub-sidebar__logo">
@@ -72,11 +86,15 @@ export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
           )}
         </Link>
         <button
-          onClick={onToggle}
-          className="hub-sidebar__toggle"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={() => (mobileOpen ? onCloseMobile?.() : onToggle())}
+          className="hub-sidebar__toggle hub-sidebar__toggle--mobile-close"
+          aria-label={mobileOpen ? "Close menu" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? (
+          {mobileOpen ? (
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : collapsed ? (
             <PanelLeft className="h-4 w-4" />
           ) : (
             <PanelLeftClose className="h-4 w-4" />
@@ -96,6 +114,7 @@ export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
               className={`hub-sidebar__link ${active ? "hub-sidebar__link--active" : ""}`}
               aria-current={active ? "page" : undefined}
               title={collapsed ? link.label : undefined}
+              onClick={onCloseMobile}
             >
               <Icon className="hub-sidebar__link-icon" />
               {!collapsed && <span>{link.label}</span>}
@@ -106,7 +125,7 @@ export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
 
       {/* Bottom section */}
       <div className="hub-sidebar__footer">
-        <Link href="/" className="hub-sidebar__link hub-sidebar__link--muted" title={collapsed ? "Back to site" : undefined}>
+        <Link href="/" className="hub-sidebar__link hub-sidebar__link--muted" title={collapsed ? "Back to site" : undefined} onClick={onCloseMobile}>
           <ArrowLeft className="hub-sidebar__link-icon" />
           {!collapsed && <span>Back to site</span>}
         </Link>
@@ -132,11 +151,13 @@ export function HubNav({ user, collapsed, onToggle }: HubNavProps) {
           href="/logout"
           className="hub-sidebar__link hub-sidebar__link--muted"
           title={collapsed ? "Log out" : undefined}
+          onClick={onCloseMobile}
         >
           <LogOut className="hub-sidebar__link-icon" />
           {!collapsed && <span>Log out</span>}
         </Link>
       </div>
     </aside>
+    </>
   );
 }

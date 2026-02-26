@@ -53,6 +53,7 @@ export default async function NewPostPage() {
           pages={pageOptions}
           submitLabel="Create post"
           backHref="/hub/social"
+          multiPage
         />
       </div>
     </section>

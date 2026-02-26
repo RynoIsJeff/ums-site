@@ -15,6 +15,8 @@ type PostFormProps = {
   defaultScheduledFor?: string;
   submitLabel: string;
   backHref: string;
+  /** When true, allow selecting multiple pages (creates one post per page). For edit mode, use false. */
+  multiPage?: boolean;
 };
 
 export function PostForm({
@@ -27,13 +29,34 @@ export function PostForm({
   defaultScheduledFor = "",
   submitLabel,
   backHref,
+  multiPage = false,
 }: PostFormProps) {
   const [state, formAction] = useActionState(action, {});
   const [selectedClientId, setSelectedClientId] = useState(defaultClientId);
+  const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(
+    defaultPageId ? new Set([defaultPageId]) : new Set()
+  );
 
   const pagesForClient = selectedClientId
     ? pages.filter((p) => p.clientId === selectedClientId)
     : [];
+
+  const togglePage = (pageId: string) => {
+    setSelectedPageIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(pageId)) next.delete(pageId);
+      else next.add(pageId);
+      return next;
+    });
+  };
+
+  const selectAllPages = () => {
+    setSelectedPageIds(new Set(pagesForClient.map((p) => p.id)));
+  };
+
+  const deselectAllPages = () => {
+    setSelectedPageIds(new Set());
+  };
 
   return (
     <form action={formAction} className="space-y-6">
@@ -50,7 +73,10 @@ export function PostForm({
           name="clientId"
           required
           value={selectedClientId}
-          onChange={(e) => setSelectedClientId(e.target.value)}
+          onChange={(e) => {
+            setSelectedClientId(e.target.value);
+            setSelectedPageIds(new Set());
+          }}
           className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
         >
           <option value="">Select client</option>
@@ -61,22 +87,68 @@ export function PostForm({
       </div>
 
       <div>
-        <label htmlFor="socialPageId" className="block text-sm font-medium">Facebook page *</label>
-        <select
-          id="socialPageId"
-          name="socialPageId"
-          required
-          defaultValue={defaultPageId}
-          className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-        >
-          <option value="">Select page</option>
-          {pagesForClient.map((p) => (
-            <option key={p.id} value={p.id}>{p.pageName}</option>
-          ))}
-          {selectedClientId && pagesForClient.length === 0 && (
-            <option value="" disabled>No connected pages — connect one first</option>
-          )}
-        </select>
+        <label className="block text-sm font-medium">Facebook page{multiPage ? "s" : ""} *</label>
+        {multiPage ? (
+          <div className="mt-2 space-y-2">
+            {selectedClientId && pagesForClient.length === 0 && (
+              <p className="text-sm text-black/50">No connected pages — connect one first</p>
+            )}
+            {pagesForClient.length > 0 && (
+              <>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAllPages}
+                    className="text-xs text-black/60 hover:text-black underline"
+                  >
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deselectAllPages}
+                    className="text-xs text-black/60 hover:text-black underline"
+                  >
+                    Deselect all
+                  </button>
+                </div>
+                <div className="max-h-40 space-y-1.5 overflow-y-auto rounded-md border border-black/15 p-2">
+                  {pagesForClient.map((p) => (
+                    <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        name="socialPageIds"
+                        value={p.id}
+                        checked={selectedPageIds.has(p.id)}
+                        onChange={() => togglePage(p.id)}
+                        className="rounded border-black/20"
+                      />
+                      <span>{p.pageName}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-1 text-xs text-black/50">
+                  {selectedPageIds.size} page{selectedPageIds.size !== 1 ? "s" : ""} selected — one post will be created per page
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <select
+            id="socialPageId"
+            name="socialPageId"
+            required
+            defaultValue={defaultPageId}
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          >
+            <option value="">Select page</option>
+            {pagesForClient.map((p) => (
+              <option key={p.id} value={p.id}>{p.pageName}</option>
+            ))}
+            {selectedClientId && pagesForClient.length === 0 && (
+              <option value="" disabled>No connected pages — connect one first</option>
+            )}
+          </select>
+        )}
       </div>
 
       <div>

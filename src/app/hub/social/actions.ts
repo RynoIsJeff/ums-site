@@ -14,7 +14,14 @@ const ConnectPageSchema = z.object({
   pageAccessToken: z.string().min(1, "Page access token is required"),
 });
 
-const PostSchema = z.object({
+const CreatePostSchema = z.object({
+  clientId: z.string().min(1),
+  socialPageIds: z.array(z.string().min(1)).min(1, "Please select at least one page"),
+  caption: z.string().min(1, "Caption is required").max(63206),
+  scheduledFor: z.string().optional(),
+});
+
+const UpdatePostSchema = z.object({
   clientId: z.string().min(1),
   socialPageId: z.string().min(1, "Please select a page"),
   caption: z.string().min(1, "Caption is required").max(63206),
@@ -112,37 +119,42 @@ export async function createPost(
 ): Promise<SocialFormState> {
   const { scope, user } = await requireHubAuth();
 
+  const pageIds = formData.getAll("socialPageIds");
   const raw = {
     clientId: formData.get("clientId"),
-    socialPageId: formData.get("socialPageId"),
+    socialPageIds: Array.isArray(pageIds) ? pageIds.filter((id): id is string => typeof id === "string") : [],
     caption: (formData.get("caption") as string)?.trim(),
     scheduledFor: formData.get("scheduledFor") || undefined,
   };
 
-  const parsed = PostSchema.safeParse(raw);
+  const parsed = CreatePostSchema.safeParse(raw);
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Invalid input";
     return { error: msg };
   }
 
-  const { clientId, socialPageId, caption, scheduledFor } = parsed.data;
+  const { clientId, socialPageIds, caption, scheduledFor } = parsed.data;
   if (!canAccessClient(scope, clientId)) {
     return { error: "Access denied to this client." };
   }
 
-  const page = await prisma.socialPage.findFirst({
-    where: { id: socialPageId },
+  const pages = await prisma.socialPage.findMany({
+    where: {
+      id: { in: socialPageIds },
+      socialAccount: { clientId },
+    },
     include: { socialAccount: { select: { clientId: true } } },
   });
-  if (!page || page.socialAccount.clientId !== clientId) {
-    return { error: "Invalid page for this client." };
+
+  if (pages.length !== socialPageIds.length) {
+    return { error: "One or more selected pages are invalid for this client." };
   }
 
   const scheduledAt = scheduledFor ? new Date(scheduledFor) : null;
   const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
-  await prisma.socialPost.create({
-    data: {
+  await prisma.socialPost.createMany({
+    data: pages.map((page) => ({
       clientId,
       socialPageId: page.id,
       provider: "META",
@@ -150,11 +162,16 @@ export async function createPost(
       caption,
       scheduledFor: scheduledAt,
       createdById: user.id,
-    },
+    })),
   });
 
   revalidatePath("/hub/social");
+  revalidatePath("/hub/social/calendar");
   revalidatePath("/hub/clients/[id]");
+
+  if (formData.get("noRedirect") === "true") {
+    return {};
+  }
   redirect("/hub/social");
 }
 
@@ -183,7 +200,7 @@ export async function updatePost(
     scheduledFor: formData.get("scheduledFor") || undefined,
   };
 
-  const parsed = PostSchema.safeParse(raw);
+  const parsed = UpdatePostSchema.safeParse(raw);
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Invalid input";
     return { error: msg };
@@ -220,6 +237,7 @@ export async function updatePost(
   });
 
   revalidatePath("/hub/social");
+  revalidatePath("/hub/social/calendar");
   revalidatePath(`/hub/social/posts/${postId}`);
   revalidatePath("/hub/clients/[id]");
   redirect("/hub/social");
@@ -245,6 +263,7 @@ export async function cancelPost(postId: string): Promise<SocialFormState> {
   });
 
   revalidatePath("/hub/social");
+  revalidatePath("/hub/social/calendar");
   revalidatePath(`/hub/social/posts/${postId}`);
   return {};
 }
