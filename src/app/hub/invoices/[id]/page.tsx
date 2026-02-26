@@ -129,7 +129,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </table>
           <div className="mt-4 flex justify-end gap-6 border-t border-black/10 pt-4 text-sm">
             <span>Subtotal: R {toNum(invoice.subtotalAmount).toLocaleString("en-ZA")}</span>
-            {invoice.includeVat && (
+            {invoice.includeVat && toNum(invoice.vatAmount) > 0 && (
               <span>VAT ({Number(invoice.vatRate)}%): R {toNum(invoice.vatAmount).toLocaleString("en-ZA")}</span>
             )}
             <span className="font-semibold">Total: R {totalAmount.toLocaleString("en-ZA")}</span>
