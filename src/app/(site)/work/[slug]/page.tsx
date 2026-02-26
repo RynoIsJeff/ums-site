@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "@/components/Section";
 import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
@@ -112,9 +113,11 @@ export default function CasePage({ params }: { params: { slug: string } }) {
 
           <div className="mt-8">
             {item.heroImage ? (
-              <img
+              <Image
                 src={item.heroImage}
                 alt={item.title}
+                width={1200}
+                height={675}
                 className="w-full rounded-xl border border-black/10"
               />
             ) : (

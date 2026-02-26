@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "@/components/Section";
 import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
@@ -28,9 +29,11 @@ export default function TugamCase() {
           </p>
 
           <div className="mt-8">
-            <img
+            <Image
               src="/work/tugam-hero.png"
               alt="Tugam Cattle & Game Farm website"
+              width={1200}
+              height={675}
               className="w-full rounded-xl border border-black/10"
             />
           </div>

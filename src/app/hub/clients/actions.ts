@@ -45,48 +45,53 @@ export async function createClient(
   _prev: ClientFormState,
   formData: FormData
 ): Promise<ClientFormState> {
-  const { scope } = await requireHubAuth();
+  try {
+    const { scope } = await requireHubAuth();
 
-  const raw = Object.fromEntries(formData.entries());
-  const parsed = ClientSchema.safeParse({
-    ...raw,
-    email: raw.email || undefined,
-    startDate: raw.startDate || undefined,
-    renewalDate: raw.renewalDate || undefined,
-    retainerAmount: raw.retainerAmount || undefined,
-  });
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = ClientSchema.safeParse({
+      ...raw,
+      email: raw.email || undefined,
+      startDate: raw.startDate || undefined,
+      renewalDate: raw.renewalDate || undefined,
+      retainerAmount: raw.retainerAmount || undefined,
+    });
 
-  if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { error: msg };
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Invalid input";
+      return { error: msg };
+    }
+
+    const data = parsed.data;
+    const startDate = parseOptionalDate(data.startDate);
+    const renewalDate = parseOptionalDate(data.renewalDate);
+    const retainerAmount = parseOptionalDecimal(data.retainerAmount);
+
+    await prisma.client.create({
+      data: {
+        companyName: data.companyName.trim(),
+        contactPerson: data.contactPerson.trim(),
+        email: data.email?.trim() || null,
+        phone: data.phone?.trim() || null,
+        vatNumber: data.vatNumber?.trim() || null,
+        billingAddress: data.billingAddress?.trim() || null,
+        planLabel: data.planLabel?.trim() || null,
+        startDate: startDate ?? null,
+        renewalDate: renewalDate ?? null,
+        billingFrequency: (data.billingFrequency as BillingFrequency) ?? null,
+        retainerAmount: retainerAmount != null ? retainerAmount : null,
+        notes: data.notes?.trim() || null,
+        status: (data.status as ClientStatus) ?? "LEAD",
+      },
+    });
+
+    revalidatePath("/hub/clients");
+    revalidatePath("/hub");
+  } catch (e) {
+    console.error("[createClient]", e);
+    return { error: "Something went wrong." };
   }
-
-  const data = parsed.data;
-  const startDate = parseOptionalDate(data.startDate);
-  const renewalDate = parseOptionalDate(data.renewalDate);
-  const retainerAmount = parseOptionalDecimal(data.retainerAmount);
-
-  await prisma.client.create({
-    data: {
-      companyName: data.companyName.trim(),
-      contactPerson: data.contactPerson.trim(),
-      email: data.email?.trim() || null,
-      phone: data.phone?.trim() || null,
-      vatNumber: data.vatNumber?.trim() || null,
-      billingAddress: data.billingAddress?.trim() || null,
-      planLabel: data.planLabel?.trim() || null,
-      startDate: startDate ?? null,
-      renewalDate: renewalDate ?? null,
-      billingFrequency: (data.billingFrequency as BillingFrequency) ?? null,
-      retainerAmount: retainerAmount != null ? retainerAmount : null,
-      notes: data.notes?.trim() || null,
-      status: (data.status as ClientStatus) ?? "LEAD",
-    },
-  });
-
-  revalidatePath("/hub/clients");
-  revalidatePath("/hub");
-  redirect("/hub/clients");
+  redirect("/hub/clients?success=1");
 }
 
 export async function updateClient(
@@ -94,64 +99,74 @@ export async function updateClient(
   _prev: ClientFormState,
   formData: FormData
 ): Promise<ClientFormState> {
-  const { scope } = await requireHubAuth();
-  if (!canAccessClient(scope, clientId)) {
-    return { error: "You do not have access to this client." };
+  try {
+    const { scope } = await requireHubAuth();
+    if (!canAccessClient(scope, clientId)) {
+      return { error: "You do not have access to this client." };
+    }
+
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = ClientSchema.safeParse({
+      ...raw,
+      email: raw.email || undefined,
+      startDate: raw.startDate || undefined,
+      renewalDate: raw.renewalDate || undefined,
+      retainerAmount: raw.retainerAmount || undefined,
+    });
+
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Invalid input";
+      return { error: msg };
+    }
+
+    const data = parsed.data;
+    const startDate = parseOptionalDate(data.startDate);
+    const renewalDate = parseOptionalDate(data.renewalDate);
+    const retainerAmount = parseOptionalDecimal(data.retainerAmount);
+
+    await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        companyName: data.companyName.trim(),
+        contactPerson: data.contactPerson.trim(),
+        email: data.email?.trim() || null,
+        phone: data.phone?.trim() || null,
+        vatNumber: data.vatNumber?.trim() || null,
+        billingAddress: data.billingAddress?.trim() || null,
+        planLabel: data.planLabel?.trim() || null,
+        startDate: startDate ?? null,
+        renewalDate: renewalDate ?? null,
+        billingFrequency: (data.billingFrequency as BillingFrequency) ?? null,
+        retainerAmount: retainerAmount != null ? retainerAmount : null,
+        notes: data.notes?.trim() || null,
+        status: (data.status as ClientStatus) ?? "LEAD",
+      },
+    });
+
+    revalidatePath("/hub/clients");
+    revalidatePath(`/hub/clients/${clientId}`);
+    revalidatePath("/hub");
+  } catch (e) {
+    console.error("[updateClient]", e);
+    return { error: "Something went wrong." };
   }
-
-  const raw = Object.fromEntries(formData.entries());
-  const parsed = ClientSchema.safeParse({
-    ...raw,
-    email: raw.email || undefined,
-    startDate: raw.startDate || undefined,
-    renewalDate: raw.renewalDate || undefined,
-    retainerAmount: raw.retainerAmount || undefined,
-  });
-
-  if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { error: msg };
-  }
-
-  const data = parsed.data;
-  const startDate = parseOptionalDate(data.startDate);
-  const renewalDate = parseOptionalDate(data.renewalDate);
-  const retainerAmount = parseOptionalDecimal(data.retainerAmount);
-
-  await prisma.client.update({
-    where: { id: clientId },
-    data: {
-      companyName: data.companyName.trim(),
-      contactPerson: data.contactPerson.trim(),
-      email: data.email?.trim() || null,
-      phone: data.phone?.trim() || null,
-      vatNumber: data.vatNumber?.trim() || null,
-      billingAddress: data.billingAddress?.trim() || null,
-      planLabel: data.planLabel?.trim() || null,
-      startDate: startDate ?? null,
-      renewalDate: renewalDate ?? null,
-      billingFrequency: (data.billingFrequency as BillingFrequency) ?? null,
-      retainerAmount: retainerAmount != null ? retainerAmount : null,
-      notes: data.notes?.trim() || null,
-      status: (data.status as ClientStatus) ?? "LEAD",
-    },
-  });
-
-  revalidatePath("/hub/clients");
-  revalidatePath(`/hub/clients/${clientId}`);
-  revalidatePath("/hub");
   redirect(`/hub/clients/${clientId}`);
 }
 
 export async function deleteClient(clientId: string): Promise<{ error?: string }> {
-  const { scope } = await requireHubAuth();
-  if (!canAccessClient(scope, clientId)) {
-    return { error: "You do not have access to this client." };
+  try {
+    const { scope } = await requireHubAuth();
+    if (!canAccessClient(scope, clientId)) {
+      return { error: "You do not have access to this client." };
+    }
+
+    await prisma.client.delete({ where: { id: clientId } });
+
+    revalidatePath("/hub/clients");
+    revalidatePath("/hub");
+  } catch (e) {
+    console.error("[deleteClient]", e);
+    return { error: "Something went wrong." };
   }
-
-  await prisma.client.delete({ where: { id: clientId } });
-
-  revalidatePath("/hub/clients");
-  revalidatePath("/hub");
   redirect("/hub/clients");
 }

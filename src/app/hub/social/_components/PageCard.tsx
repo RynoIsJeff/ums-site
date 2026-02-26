@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Camera, RefreshCw, ExternalLink } from "lucide-react";
@@ -72,9 +73,12 @@ export function PageCard({ page }: PageCardProps) {
       {/* Cover — Facebook-style */}
       <div className="relative h-24 bg-linear-to-br from-[#1877F2] to-[#42b72a] sm:h-32">
         {page.coverPhotoUrl ? (
-          <img
+          <Image
             src={page.coverPhotoUrl}
             alt=""
+            width={640}
+            height={128}
+            unoptimized
             className="h-full w-full object-cover"
           />
         ) : (
@@ -97,9 +101,12 @@ export function PageCard({ page }: PageCardProps) {
         <div className="relative inline-block">
           <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-[var(--hub-border-light)] shadow-md">
             {page.profilePictureUrl ? (
-              <img
+              <Image
                 src={page.profilePictureUrl}
                 alt={page.pageName}
+                width={80}
+                height={80}
+                unoptimized
                 className="h-full w-full object-cover"
               />
             ) : (

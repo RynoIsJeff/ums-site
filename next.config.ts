@@ -9,6 +9,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "platform-lookaside.fbsbx.com", pathname: "/**" },
+      { protocol: "https", hostname: "*.fbcdn.net", pathname: "/**" },
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

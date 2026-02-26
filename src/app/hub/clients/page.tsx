@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { Users, UserPlus } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { EmptyState } from "@/app/hub/_components/EmptyState";
+import { SuccessBanner } from "@/app/hub/_components/SuccessBanner";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
@@ -75,6 +79,9 @@ export default async function HubClientsPage({
         ]}
         className="mb-6"
       />
+      <Suspense fallback={null}>
+        <SuccessBanner message="Client created successfully." />
+      </Suspense>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
@@ -98,12 +105,17 @@ export default async function HubClientsPage({
         <ClientsListFilters params={params} basePath={BASE_PATH} />
       </div>
 
+      {clients.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={Users}
+            title="No clients found"
+            description="No clients match your filters. Try adjusting your search or filter criteria."
+            primaryAction={{ href: "/hub/clients/new", label: "Add client", icon: UserPlus }}
+          />
+        </div>
+      ) : (
       <ul className="mt-6 space-y-3">
-        {clients.length === 0 ? (
-          <li className="rounded-lg border border-[var(--hub-border-light)] bg-white p-4 text-sm text-[var(--hub-muted)]">
-            No clients match your filters.
-          </li>
-        ) : (
           clients.map((client) => (
             <li key={client.id}>
               <Link
@@ -123,8 +135,9 @@ export default async function HubClientsPage({
               </Link>
             </li>
           ))
-        )}
+        }
       </ul>
+      )}
 
       <Pagination
         totalItems={total}

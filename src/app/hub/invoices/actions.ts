@@ -40,163 +40,78 @@ export async function createInvoice(
   _prev: InvoiceFormState,
   formData: FormData
 ): Promise<InvoiceFormState> {
-  const { scope, user } = await requireHubAuth();
+  try {
+    const { scope, user } = await requireHubAuth();
 
-  const clientId = formData.get("clientId") as string;
-  if (!clientId || !canAccessClient(scope, clientId)) {
-    return { error: "Invalid or inaccessible client." };
-  }
-
-  const invoiceNumber = (formData.get("invoiceNumber") as string)?.trim();
-  if (!invoiceNumber) return { error: "Invoice number is required." };
-
-  const issueDateStr = formData.get("issueDate") as string;
-  const dueDateStr = formData.get("dueDate") as string;
-  const issueDate = issueDateStr ? new Date(issueDateStr) : new Date();
-  const dueDate = dueDateStr ? new Date(dueDateStr) : new Date();
-  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) {
-    return { error: "Valid issue and due dates required." };
-  }
-
-  const descriptions = formData.getAll("description") as string[];
-  const quantities = formData.getAll("quantity") as string[];
-  const unitPrices = formData.getAll("unitPrice") as string[];
-
-  const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
-  for (let i = 0; i < descriptions.length; i++) {
-    const desc = descriptions[i]?.trim();
-    if (!desc) continue;
-    const parsed = LineItemSchema.safeParse({
-      description: desc,
-      quantity: quantities[i] ?? "1",
-      unitPrice: unitPrices[i] ?? "0",
-    });
-    if (parsed.success) {
-      lineItems.push(parsed.data);
+    const clientId = formData.get("clientId") as string;
+    if (!clientId || !canAccessClient(scope, clientId)) {
+      return { error: "Invalid or inaccessible client." };
     }
-  }
-  if (lineItems.length === 0) return { error: "At least one line item is required." };
 
-  const existing = await prisma.invoice.findUnique({
-    where: { invoiceNumber },
-  });
-  if (existing) return { error: "Invoice number already in use." };
+    const invoiceNumber = (formData.get("invoiceNumber") as string)?.trim();
+    if (!invoiceNumber) return { error: "Invoice number is required." };
 
-  let subtotal = 0;
-  const items = lineItems.map((item) => {
-    const lineTotal = item.quantity * item.unitPrice;
-    subtotal += lineTotal;
-    return {
-      description: item.description,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      lineTotal,
-    };
-  });
+    const issueDateStr = formData.get("issueDate") as string;
+    const dueDateStr = formData.get("dueDate") as string;
+    const issueDate = issueDateStr ? new Date(issueDateStr) : new Date();
+    const dueDate = dueDateStr ? new Date(dueDateStr) : new Date();
+    if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) {
+      return { error: "Valid issue and due dates required." };
+    }
 
-  const totalAmount = subtotal;
+    const descriptions = formData.getAll("description") as string[];
+    const quantities = formData.getAll("quantity") as string[];
+    const unitPrices = formData.getAll("unitPrice") as string[];
 
-  await prisma.invoice.create({
-    data: {
-      clientId,
-      invoiceNumber,
-      issueDate,
-      dueDate,
-      status: "DRAFT",
-      includeVat: false,
-      vatRate: 0,
-      subtotalAmount: String(subtotal),
-      vatAmount: "0",
-      totalAmount: String(totalAmount),
-      currency: "ZAR",
-      notes: (formData.get("notes") as string)?.trim() || null,
-      createdById: user.id,
-      lineItems: {
-        create: items.map((i) => ({
-          description: i.description,
-          quantity: i.quantity,
-          unitPrice: i.unitPrice,
-          lineTotal: i.lineTotal,
-        })),
-      },
-    },
-  });
+    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
+    for (let i = 0; i < descriptions.length; i++) {
+      const desc = descriptions[i]?.trim();
+      if (!desc) continue;
+      const parsed = LineItemSchema.safeParse({
+        description: desc,
+        quantity: quantities[i] ?? "1",
+        unitPrice: unitPrices[i] ?? "0",
+      });
+      if (parsed.success) {
+        lineItems.push(parsed.data);
+      }
+    }
+    if (lineItems.length === 0) return { error: "At least one line item is required." };
 
-  revalidatePath("/hub/invoices");
-  revalidatePath("/hub/billing");
-  redirect("/hub/invoices");
-}
-
-export async function updateInvoice(
-  invoiceId: string,
-  _prev: InvoiceFormState,
-  formData: FormData
-): Promise<InvoiceFormState> {
-  const { scope, user } = await requireHubAuth();
-
-  const inv = await prisma.invoice.findUnique({
-    where: { id: invoiceId },
-    select: { clientId: true, status: true },
-  });
-  if (!inv || !canAccessClient(scope, inv.clientId)) {
-    return { error: "Invoice not found or access denied." };
-  }
-  if (inv.status !== "DRAFT") {
-    return { error: "Only draft invoices can be edited." };
-  }
-
-  const issueDateStr = formData.get("issueDate") as string;
-  const dueDateStr = formData.get("dueDate") as string;
-  const issueDate = issueDateStr ? new Date(issueDateStr) : new Date();
-  const dueDate = dueDateStr ? new Date(dueDateStr) : new Date();
-  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) {
-    return { error: "Valid issue and due dates required." };
-  }
-
-  const descriptions = formData.getAll("description") as string[];
-  const quantities = formData.getAll("quantity") as string[];
-  const unitPrices = formData.getAll("unitPrice") as string[];
-
-  const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
-  for (let i = 0; i < descriptions.length; i++) {
-    const desc = descriptions[i]?.trim();
-    if (!desc) continue;
-    const parsed = LineItemSchema.safeParse({
-      description: desc,
-      quantity: quantities[i] ?? "1",
-      unitPrice: unitPrices[i] ?? "0",
+    const existing = await prisma.invoice.findUnique({
+      where: { invoiceNumber },
     });
-    if (parsed.success) lineItems.push(parsed.data);
-  }
-  if (lineItems.length === 0) return { error: "At least one line item is required." };
+    if (existing) return { error: "Invoice number already in use." };
 
-  let subtotal = 0;
-  const items = lineItems.map((item) => {
-    const lineTotal = item.quantity * item.unitPrice;
-    subtotal += lineTotal;
-    return {
-      description: item.description,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      lineTotal,
-    };
-  });
+    let subtotal = 0;
+    const items = lineItems.map((item) => {
+      const lineTotal = item.quantity * item.unitPrice;
+      subtotal += lineTotal;
+      return {
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        lineTotal,
+      };
+    });
 
-  const totalAmount = subtotal;
+    const totalAmount = subtotal;
 
-  await prisma.$transaction([
-    prisma.invoiceLineItem.deleteMany({ where: { invoiceId } }),
-    prisma.invoice.update({
-      where: { id: invoiceId },
+    await prisma.invoice.create({
       data: {
+        clientId,
+        invoiceNumber,
         issueDate,
         dueDate,
+        status: "DRAFT",
         includeVat: false,
         vatRate: 0,
         subtotalAmount: String(subtotal),
         vatAmount: "0",
         totalAmount: String(totalAmount),
+        currency: "ZAR",
         notes: (formData.get("notes") as string)?.trim() || null,
+        createdById: user.id,
         lineItems: {
           create: items.map((i) => ({
             description: i.description,
@@ -206,12 +121,107 @@ export async function updateInvoice(
           })),
         },
       },
-    }),
-  ]);
+    });
 
-  revalidatePath("/hub/invoices");
-  revalidatePath(`/hub/invoices/${invoiceId}`);
-  revalidatePath("/hub/billing");
+    revalidatePath("/hub/invoices");
+    revalidatePath("/hub/billing");
+  } catch (e) {
+    console.error("[createInvoice]", e);
+    return { error: "Something went wrong." };
+  }
+  redirect("/hub/invoices?success=invoice");
+}
+
+export async function updateInvoice(
+  invoiceId: string,
+  _prev: InvoiceFormState,
+  formData: FormData
+): Promise<InvoiceFormState> {
+  try {
+    const { scope } = await requireHubAuth();
+
+    const inv = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      select: { clientId: true, status: true },
+    });
+    if (!inv || !canAccessClient(scope, inv.clientId)) {
+      return { error: "Invoice not found or access denied." };
+    }
+    if (inv.status !== "DRAFT") {
+      return { error: "Only draft invoices can be edited." };
+    }
+
+    const issueDateStr = formData.get("issueDate") as string;
+    const dueDateStr = formData.get("dueDate") as string;
+    const issueDate = issueDateStr ? new Date(issueDateStr) : new Date();
+    const dueDate = dueDateStr ? new Date(dueDateStr) : new Date();
+    if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) {
+      return { error: "Valid issue and due dates required." };
+    }
+
+    const descriptions = formData.getAll("description") as string[];
+    const quantities = formData.getAll("quantity") as string[];
+    const unitPrices = formData.getAll("unitPrice") as string[];
+
+    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
+    for (let i = 0; i < descriptions.length; i++) {
+      const desc = descriptions[i]?.trim();
+      if (!desc) continue;
+      const parsed = LineItemSchema.safeParse({
+        description: desc,
+        quantity: quantities[i] ?? "1",
+        unitPrice: unitPrices[i] ?? "0",
+      });
+      if (parsed.success) lineItems.push(parsed.data);
+    }
+    if (lineItems.length === 0) return { error: "At least one line item is required." };
+
+    let subtotal = 0;
+    const items = lineItems.map((item) => {
+      const lineTotal = item.quantity * item.unitPrice;
+      subtotal += lineTotal;
+      return {
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        lineTotal,
+      };
+    });
+
+    const totalAmount = subtotal;
+
+    await prisma.$transaction([
+      prisma.invoiceLineItem.deleteMany({ where: { invoiceId } }),
+      prisma.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          issueDate,
+          dueDate,
+          includeVat: false,
+          vatRate: 0,
+          subtotalAmount: String(subtotal),
+          vatAmount: "0",
+          totalAmount: String(totalAmount),
+          notes: (formData.get("notes") as string)?.trim() || null,
+          lineItems: {
+            create: items.map((i) => ({
+              description: i.description,
+              quantity: i.quantity,
+              unitPrice: i.unitPrice,
+              lineTotal: i.lineTotal,
+            })),
+          },
+        },
+      }),
+    ]);
+
+    revalidatePath("/hub/invoices");
+    revalidatePath(`/hub/invoices/${invoiceId}`);
+    revalidatePath("/hub/billing");
+  } catch (e) {
+    console.error("[updateInvoice]", e);
+    return { error: "Something went wrong." };
+  }
   redirect(`/hub/invoices/${invoiceId}`);
 }
 

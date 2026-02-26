@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { FileText, FilePlus } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { EmptyState } from "@/app/hub/_components/EmptyState";
+import { SuccessBanner } from "@/app/hub/_components/SuccessBanner";
 import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
@@ -100,6 +104,13 @@ export default async function HubInvoicesPage({
         </Link>
       </div>
 
+      <Suspense fallback={null}>
+        <SuccessBanner
+          paramKey="success"
+          paramValue="invoice"
+          message="Invoice created successfully."
+        />
+      </Suspense>
       <div className="mt-6">
         <InvoicesListFilters
           params={params}
@@ -108,6 +119,16 @@ export default async function HubInvoicesPage({
         />
       </div>
 
+      {invoices.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={FileText}
+            title="No invoices found"
+            description="No invoices match your filters. Try adjusting your search or filter criteria."
+            primaryAction={{ href: "/hub/invoices/new", label: "New invoice", icon: FilePlus }}
+          />
+        </div>
+      ) : (
       <div className="mt-6 overflow-x-auto">
         <table className="hub-table min-w-[600px]">
           <thead>
@@ -121,17 +142,7 @@ export default async function HubInvoicesPage({
             </tr>
           </thead>
           <tbody>
-            {invoices.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="p-6 text-center text-[var(--hub-muted)]"
-                >
-                  No invoices match your filters.
-                </td>
-              </tr>
-            ) : (
-              invoices.map((inv) => (
+              {invoices.map((inv) => (
                 <tr key={inv.id}>
                   <td>
                     <Link
@@ -171,11 +182,11 @@ export default async function HubInvoicesPage({
                     </Link>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
+      )}
 
       <Pagination
         totalItems={total}

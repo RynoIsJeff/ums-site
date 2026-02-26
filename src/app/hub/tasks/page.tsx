@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { CheckSquare, FilePlus } from "lucide-react";
 import { getSession } from "@/lib/auth";
+import { EmptyState } from "@/app/hub/_components/EmptyState";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere, taskWhere } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
@@ -105,6 +107,16 @@ export default async function HubTasksPage({
         />
       </div>
 
+      {tasks.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={CheckSquare}
+            title="No tasks found"
+            description="No tasks match your filters. Try adjusting your search or filter criteria."
+            primaryAction={{ href: "/hub/tasks/new", label: "New task", icon: FilePlus }}
+          />
+        </div>
+      ) : (
       <div className="mt-6 overflow-x-auto">
         <table className="hub-table min-w-[600px]">
           <thead>
@@ -118,17 +130,7 @@ export default async function HubTasksPage({
             </tr>
           </thead>
           <tbody>
-            {tasks.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="p-6 text-center text-[var(--hub-muted)]"
-                >
-                  No tasks match your filters.
-                </td>
-              </tr>
-            ) : (
-              tasks.map((task) => (
+              {tasks.map((task) => (
                 <tr key={task.id}>
                   <td>
                     <Link
@@ -193,11 +195,11 @@ export default async function HubTasksPage({
                     </Link>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
+      )}
 
       <Pagination
         totalItems={total}

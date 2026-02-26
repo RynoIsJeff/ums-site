@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "@/components/Section";
 import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
@@ -29,9 +30,11 @@ export default function CivilsAgriPlantCase() {
           </p>
 
           <div className="mt-8">
-            <img
+            <Image
               src="/work/caplant-hero.png"
               alt="Civils Agri Plant website designed and developed by UMS"
+              width={1200}
+              height={675}
               className="w-full rounded-xl border border-black/10"
             />
           </div>

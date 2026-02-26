@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "@/components/Section";
 import CtaBand from "@/components/CtaBand";
 import Card from "@/components/ui/Card";
@@ -65,11 +66,7 @@ export default function WorkPage() {
                 {/* logo block */}
                 <div className="flex h-60 items-center justify-center rounded-xl border border-black/10 bg-white mb-4">
                   {c.logo ? (
-                    <img
-                      src={c.logo}
-                      alt={c.title}
-                      className="max-h-42 w-auto object-contain"
-                    />
+                    <Image src={c.logo} alt={c.title} width={200} height={160} className="max-h-42 w-auto object-contain" />
                   ) : (
                     <span className="text-sm text-black/40">Client logo</span>
                   )}

@@ -1,4 +1,5 @@
 import type { ListParams } from "@/app/hub/_lib/listParams";
+import { FilterForm, Input, Select } from "@/app/hub/_components/form";
 import { InvoiceStatus } from "@prisma/client";
 
 type Client = { id: string; companyName: string };
@@ -10,106 +11,62 @@ type InvoicesListFiltersProps = {
 };
 
 export function InvoicesListFilters({ params, basePath, clients }: InvoicesListFiltersProps) {
+  const statusOptions = (Object.keys(InvoiceStatus) as Array<keyof typeof InvoiceStatus>).map((s) => ({
+    value: s,
+    label: s,
+  }));
+  const clientOptions = clients.map((c) => ({ value: c.id, label: c.companyName }));
+
   return (
-    <form
-      method="get"
-      action={basePath}
-      className="flex flex-wrap items-end gap-4 rounded-lg border border-[var(--hub-border-light)] bg-white p-4"
-    >
-      <input type="hidden" name="page" value="1" />
-      <div>
-        <label htmlFor="invoices-search" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          Search
-        </label>
-        <input
-          id="invoices-search"
-          type="search"
-          name="search"
-          placeholder="Invoice number..."
-          defaultValue={params.search}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        />
-      </div>
-      <div>
-        <label htmlFor="invoices-status" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          Status
-        </label>
-        <select
-          id="invoices-status"
-          name="status"
-          defaultValue={params.status ?? ""}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        >
-          <option value="">All</option>
-          {(Object.keys(InvoiceStatus) as Array<keyof typeof InvoiceStatus>).map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="invoices-clientId" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          Client
-        </label>
-        <select
-          id="invoices-clientId"
-          name="clientId"
-          defaultValue={params.clientId ?? ""}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        >
-          <option value="">All clients</option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.companyName}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="invoices-dateFrom" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          From date
-        </label>
-        <input
-          id="invoices-dateFrom"
-          type="date"
-          name="dateFrom"
-          defaultValue={params.dateFrom}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        />
-      </div>
-      <div>
-        <label htmlFor="invoices-dateTo" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          To date
-        </label>
-        <input
-          id="invoices-dateTo"
-          type="date"
-          name="dateTo"
-          defaultValue={params.dateTo}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        />
-      </div>
-      <div>
-        <label htmlFor="invoices-pageSize" className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
-          Per page
-        </label>
-        <select
-          id="invoices-pageSize"
-          name="pageSize"
-          defaultValue={params.pageSize}
-          className="rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-        >
-          <option value="25">25</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-      <button
-        type="submit"
-        className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-      >
-        Apply
-      </button>
-    </form>
+    <FilterForm basePath={basePath}>
+      <Input
+        id="invoices-search"
+        type="search"
+        name="search"
+        label="Search"
+        placeholder="Invoice number..."
+        defaultValue={params.search}
+      />
+      <Select
+        id="invoices-status"
+        name="status"
+        label="Status"
+        options={statusOptions}
+        placeholder="All"
+        defaultValue={params.status ?? ""}
+      />
+      <Select
+        id="invoices-clientId"
+        name="clientId"
+        label="Client"
+        options={clientOptions}
+        placeholder="All clients"
+        defaultValue={params.clientId ?? ""}
+      />
+      <Input
+        id="invoices-dateFrom"
+        type="date"
+        name="dateFrom"
+        label="From date"
+        defaultValue={params.dateFrom}
+      />
+      <Input
+        id="invoices-dateTo"
+        type="date"
+        name="dateTo"
+        label="To date"
+        defaultValue={params.dateTo}
+      />
+      <Select
+        id="invoices-pageSize"
+        name="pageSize"
+        label="Per page"
+        options={[
+          { value: "25", label: "25" },
+          { value: "50", label: "50" },
+        ]}
+        defaultValue={params.pageSize}
+      />
+    </FilterForm>
   );
 }

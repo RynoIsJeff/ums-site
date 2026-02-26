@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
@@ -38,11 +39,7 @@ export default async function InvoicePrintPage({ params }: PageProps) {
       <div className="mx-auto max-w-2xl">
         {/* UMS branding - logo + company name */}
         <div className="mb-6 flex items-start gap-4">
-          <img
-            src="/ums-logo.svg"
-            alt="UMS"
-            className="h-12 w-12 shrink-0 print:h-12 print:w-12"
-          />
+          <Image src="/ums-logo.svg" alt="UMS" width={48} height={48} className="h-12 w-12 shrink-0 print:h-12 print:w-12" />
           <div>
             <div className="leading-tight">
               <span className="block text-lg font-bold tracking-tight">

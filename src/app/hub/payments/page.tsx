@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { Wallet, FilePlus } from "lucide-react";
 import { getSession } from "@/lib/auth";
+import { EmptyState } from "@/app/hub/_components/EmptyState";
+import { SuccessBanner } from "@/app/hub/_components/SuccessBanner";
 import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
@@ -86,6 +90,9 @@ export default async function HubPaymentsPage({
         </div>
       </div>
 
+      <Suspense fallback={null}>
+        <SuccessBanner message="Payment recorded successfully." />
+      </Suspense>
       <div className="mt-6">
         <PaymentsListFilters
           params={params}
@@ -96,6 +103,14 @@ export default async function HubPaymentsPage({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
+          {payments.length === 0 ? (
+            <EmptyState
+              icon={Wallet}
+              title="No payments found"
+              description="No payments match your filters. Try adjusting your criteria or record a payment."
+              primaryAction={{ href: "/hub/invoices/new", label: "New invoice", icon: FilePlus }}
+            />
+          ) : (
           <div className="overflow-x-auto">
             <table className="hub-table min-w-[500px]">
               <thead>
@@ -108,17 +123,7 @@ export default async function HubPaymentsPage({
                 </tr>
               </thead>
               <tbody>
-                {payments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="p-6 text-center text-[var(--hub-muted)]"
-                    >
-                      No payments match your filters.
-                    </td>
-                  </tr>
-                ) : (
-                  payments.map((p) => (
+                  {payments.map((p) => (
                     <tr key={p.id}>
                       <td className="text-[var(--hub-text)]">
                         {p.paidAt.toLocaleDateString("en-ZA", {
@@ -150,11 +155,11 @@ export default async function HubPaymentsPage({
                         R {toNum(p.amount).toLocaleString("en-ZA")}
                       </td>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
+          )}
 
           <Pagination
             totalItems={total}

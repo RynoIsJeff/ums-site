@@ -40,19 +40,6 @@ export function clientIdWhere(
 }
 
 /**
- * Combine with existing where: merge clientId scope into your where object.
- * Example: prisma.invoice.findMany({ where: { ...clientIdWhere(scope), status: 'SENT' } })
- */
-export function mergeClientIdScope<T extends Record<string, unknown>>(
-  scope: AuthScope,
-  where: T
-): T & { clientId?: { in: string[] } } {
-  const scopeWhere = clientIdWhere(scope);
-  if (Object.keys(scopeWhere).length === 0) return where as T & { clientId?: { in: string[] } };
-  return { ...where, ...scopeWhere } as T & { clientId?: { in: string[] } };
-}
-
-/**
  * Whether the current scope can access settings (e.g. user management, global config).
  * Only ADMIN for now; STAFF cannot.
  */

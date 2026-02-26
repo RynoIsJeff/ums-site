@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import NavClient from "@/components/NavClient";
 import { SOCIALS } from "@/lib/site";
 
@@ -9,6 +10,12 @@ export default function SiteLayout({
 }) {
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[var(--primary)] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:outline-none"
+      >
+        Skip to content
+      </a>
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-black/6 bg-white/80 backdrop-blur">
         <div className="container max-w-6xl flex h-16 items-center justify-between">
@@ -17,7 +24,7 @@ export default function SiteLayout({
             className="flex items-center gap-3"
             aria-label="UMS home"
           >
-            <img src="/ums-logo.svg" alt="UMS" className="h-9 w-9" />
+            <Image src="/ums-logo.svg" alt="UMS" width={36} height={36} className="h-9 w-9" />
             <div className="leading-tight">
               <span className="block text-sm font-bold tracking-wide">
                 <span>Ultimate Marketing </span>
@@ -33,7 +40,7 @@ export default function SiteLayout({
         </div>
       </header>
 
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
 
       {/* Single blue divider before footer on every page */}
       <div className="ums-stripe" />
@@ -44,7 +51,7 @@ export default function SiteLayout({
           {/* Brand & socials */}
           <div className="space-y-3">
             <Link href="/" aria-label="UMS home">
-              <img src="/ums-logo.svg" alt="UMS" className="h-8 w-8" />
+              <Image src="/ums-logo.svg" alt="UMS" width={32} height={32} className="h-8 w-8" />
             </Link>
             <p className="text-sm text-black/70">
               Web, app &amp; digital marketing for brands that want results.

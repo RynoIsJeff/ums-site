@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AppUser } from "@/lib/auth";
@@ -81,7 +82,7 @@ export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseM
       <div className="hub-sidebar__header">
         <Link href="/hub" className="hub-sidebar__logo">
           <span className="hub-sidebar__logo-mark hub-sidebar__logo-mark--img">
-            <img src="/ums-logo.svg" alt="UMS" className="h-5 w-5 object-contain" />
+            <Image src="/ums-logo.svg" alt="UMS" width={20} height={20} className="h-5 w-5 object-contain" />
           </span>
           {!collapsed && (
             <span className="hub-sidebar__logo-text">

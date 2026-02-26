@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -31,7 +32,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <span
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-white shadow-sm border border-black/5 overflow-hidden"
             >
-              <img src="/ums-logo.svg" alt="UMS" className="h-7 w-7 object-contain" />
+              <Image src="/ums-logo.svg" alt="UMS" width={28} height={28} className="h-7 w-7 object-contain" />
             </span>
           </Link>
           <h1 className="text-xl font-bold tracking-tight text-black/90">

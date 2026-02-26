@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Section from "@/components/Section";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -84,41 +85,13 @@ export default function Home() {
               </p>
 
               <div className="mt-4 flex flex-wrap items-center justify-start md:justify-between gap-6 md:gap-10">
-                <img
-                  src="/client-logo/buildit.png"
-                  alt="Build It SupaTrade"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/engen.jpg"
-                  alt="Engen Mbazwana"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/steers.jpg"
-                  alt="Steers Mbazwana"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/debonairs.png"
-                  alt="Debonairs Pizza Mbazwana"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/supatrade.png"
-                  alt="SupaTrade Build It Group"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/caplant.png"
-                  alt="Civils Agri Plant"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
-                <img
-                  src="/client-logo/tugam.png"
-                  alt="Tugam Cattle & Game Farm"
-                  className="h-12 md:h-16 xl:h-20 w-auto object-contain"
-                />
+                <Image src="/client-logo/buildit.png" alt="Build It SupaTrade" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/engen.jpg" alt="Engen Mbazwana" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/steers.jpg" alt="Steers Mbazwana" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/debonairs.png" alt="Debonairs Pizza Mbazwana" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/supatrade.png" alt="SupaTrade Build It Group" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/caplant.png" alt="Civils Agri Plant" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
+                <Image src="/client-logo/tugam.png" alt="Tugam Cattle & Game Farm" width={80} height={80} className="h-12 md:h-16 xl:h-20 w-auto object-contain" />
               </div>
             </div>
 
@@ -254,11 +227,7 @@ export default function Home() {
             {HOME_CASES.map((c, i) => (
               <Card key={c.slug} index={i}>
                 <div className="flex h-16 items-center mb-3">
-                  <img
-                    src={c.logo}
-                    alt={c.title}
-                    className="max-h-12 w-auto object-contain"
-                  />
+                  <Image src={c.logo} alt={c.title} width={120} height={48} className="max-h-12 w-auto object-contain" />
                 </div>
 
                 <h3 className="font-semibold text-sm">{c.title}</h3>

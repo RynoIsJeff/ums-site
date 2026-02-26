@@ -32,78 +32,83 @@ export async function recordPayment(
   _prev: PaymentFormState,
   formData: FormData
 ): Promise<PaymentFormState> {
-  const { scope, user } = await requireHubAuth();
+  try {
+    const { scope, user } = await requireHubAuth();
 
-  const raw = {
-    clientId: formData.get("clientId"),
-    invoiceId: formData.get("invoiceId") || undefined,
-    amount: formData.get("amount"),
-    method: formData.get("method"),
-    paidAt: formData.get("paidAt"),
-    reference: formData.get("reference"),
-    notes: formData.get("notes"),
-  };
+    const raw = {
+      clientId: formData.get("clientId"),
+      invoiceId: formData.get("invoiceId") || undefined,
+      amount: formData.get("amount"),
+      method: formData.get("method"),
+      paidAt: formData.get("paidAt"),
+      reference: formData.get("reference"),
+      notes: formData.get("notes"),
+    };
 
-  const parsed = RecordPaymentSchema.safeParse(raw);
-  if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { error: msg };
-  }
-
-  const { clientId, invoiceId, amount, method, paidAt, reference, notes } = parsed.data;
-
-  if (!canAccessClient(scope, clientId)) {
-    return { error: "You do not have access to this client." };
-  }
-
-  const paidAtDate = new Date(paidAt);
-  if (Number.isNaN(paidAtDate.getTime())) return { error: "Invalid payment date." };
-
-  if (invoiceId) {
-    const inv = await prisma.invoice.findFirst({
-      where: { id: invoiceId, clientId },
-      select: { id: true, totalAmount: true, status: true },
-    });
-    if (!inv || !canAccessClient(scope, clientId)) {
-      return { error: "Invoice not found or access denied." };
+    const parsed = RecordPaymentSchema.safeParse(raw);
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Invalid input";
+      return { error: msg };
     }
-  }
 
-  await prisma.payment.create({
-    data: {
-      clientId,
-      invoiceId: invoiceId || null,
-      amount: String(amount),
-      method: method as PaymentMethod,
-      paidAt: paidAtDate,
-      reference: reference?.trim() || null,
-      notes: notes?.trim() || null,
-      recordedById: user.id,
-    },
-  });
+    const { clientId, invoiceId, amount, method, paidAt, reference, notes } = parsed.data;
 
-  if (invoiceId) {
-    const payments = await prisma.payment.findMany({
-      where: { invoiceId },
-      select: { amount: true },
-    });
-    const totalPaid = payments.reduce((s, p) => s + toNum(p.amount), 0);
-    const inv = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      select: { totalAmount: true },
-    });
-    if (inv && totalPaid >= toNum(inv.totalAmount)) {
-      await prisma.invoice.update({
-        where: { id: invoiceId },
-        data: { status: "PAID", paidAt: new Date() },
+    if (!canAccessClient(scope, clientId)) {
+      return { error: "You do not have access to this client." };
+    }
+
+    const paidAtDate = new Date(paidAt);
+    if (Number.isNaN(paidAtDate.getTime())) return { error: "Invalid payment date." };
+
+    if (invoiceId) {
+      const inv = await prisma.invoice.findFirst({
+        where: { id: invoiceId, clientId },
+        select: { id: true, totalAmount: true, status: true },
       });
+      if (!inv || !canAccessClient(scope, clientId)) {
+        return { error: "Invoice not found or access denied." };
+      }
     }
-  }
 
-  revalidatePath("/hub/payments");
-  revalidatePath("/hub/billing");
-  if (invoiceId) {
-    revalidatePath(`/hub/invoices/${invoiceId}`);
+    await prisma.payment.create({
+      data: {
+        clientId,
+        invoiceId: invoiceId || null,
+        amount: String(amount),
+        method: method as PaymentMethod,
+        paidAt: paidAtDate,
+        reference: reference?.trim() || null,
+        notes: notes?.trim() || null,
+        recordedById: user.id,
+      },
+    });
+
+    if (invoiceId) {
+      const payments = await prisma.payment.findMany({
+        where: { invoiceId },
+        select: { amount: true },
+      });
+      const totalPaid = payments.reduce((s, p) => s + toNum(p.amount), 0);
+      const inv = await prisma.invoice.findUnique({
+        where: { id: invoiceId },
+        select: { totalAmount: true },
+      });
+      if (inv && totalPaid >= toNum(inv.totalAmount)) {
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { status: "PAID", paidAt: new Date() },
+        });
+      }
+    }
+
+    revalidatePath("/hub/payments");
+    revalidatePath("/hub/billing");
+    if (invoiceId) {
+      revalidatePath(`/hub/invoices/${invoiceId}`);
+    }
+  } catch (e) {
+    console.error("[recordPayment]", e);
+    return { error: "Something went wrong." };
   }
-  redirect("/hub/payments");
+  redirect("/hub/payments?success=1");
 }
