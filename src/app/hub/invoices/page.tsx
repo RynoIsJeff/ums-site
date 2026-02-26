@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/app/hub/_components/Pagination";
 import { InvoicesListFilters } from "./_components/InvoicesListFilters";
@@ -36,7 +38,7 @@ export default async function HubInvoicesPage({
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
 
-  const where: Parameters<typeof prisma.invoice.findMany>[0]["where"] = {
+  const where: Prisma.InvoiceWhereInput = {
     ...scopeWhere,
   };
 
@@ -53,13 +55,10 @@ export default async function HubInvoicesPage({
   }
 
   if (params.dateFrom || params.dateTo) {
-    where.dueDate = {};
-    if (params.dateFrom) {
-      where.dueDate.gte = new Date(params.dateFrom);
-    }
-    if (params.dateTo) {
-      where.dueDate.lte = new Date(params.dateTo);
-    }
+    where.dueDate = {
+      ...(params.dateFrom && { gte: new Date(params.dateFrom) }),
+      ...(params.dateTo && { lte: new Date(params.dateTo) }),
+    };
   }
 
   const [invoices, total, clients] = await Promise.all([
@@ -80,6 +79,13 @@ export default async function HubInvoicesPage({
 
   return (
     <section className="py-10">
+      <Breadcrumbs
+        items={[
+          { label: "Hub", href: "/hub" },
+          { label: "Invoices" },
+        ]}
+        className="mb-6"
+      />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/app/hub/_components/Pagination";
 import { ClientsListFilters } from "./_components/ClientsListFilters";
@@ -30,7 +32,7 @@ export default async function HubClientsPage({
   const scope = toAuthScope(user);
   const scopeWhere = clientWhere(scope);
 
-  const where: Parameters<typeof prisma.client.findMany>[0]["where"] = {
+  const where: Prisma.ClientWhereInput = {
     ...scopeWhere,
   };
 
@@ -65,6 +67,13 @@ export default async function HubClientsPage({
 
   return (
     <section className="py-10">
+      <Breadcrumbs
+        items={[
+          { label: "Hub", href: "/hub" },
+          { label: "Clients" },
+        ]}
+        className="mb-6"
+      />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">

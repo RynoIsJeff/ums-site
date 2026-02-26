@@ -6,12 +6,19 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ClientForm } from "../../_components/ClientForm";
 import { updateClient } from "../../actions";
-
-export const metadata = {
-  title: "Edit Client | UMS Hub",
-};
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 
 type PageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params;
+  const client = await prisma.client.findUnique({
+    where: { id },
+    select: { companyName: true },
+  });
+  if (!client) return { title: "Edit Client | UMS Hub" };
+  return { title: `Edit ${client.companyName} | UMS Hub` };
+}
 
 function formatDate(d: Date | null): string {
   if (!d) return "";
@@ -54,13 +61,15 @@ export default async function EditClientPage({ params }: PageProps) {
 
   return (
     <section className="py-10">
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          href={`/hub/clients/${client.id}`}
-          className="text-sm text-black/60 hover:text-black"
-        >
-          ← {client.companyName}
-        </Link>
+      <div className="mb-6">
+        <Breadcrumbs
+          items={[
+            { label: "Hub", href: "/hub" },
+            { label: "Clients", href: "/hub/clients" },
+            { label: client.companyName, href: `/hub/clients/${client.id}` },
+            { label: "Edit" },
+          ]}
+        />
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">Edit client</h1>
       <p className="mt-1 text-sm text-black/70">

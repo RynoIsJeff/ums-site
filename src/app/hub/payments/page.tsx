@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { RecordPaymentFormStandalone } from "./_components/RecordPaymentFormStandalone";
 import { Pagination } from "@/app/hub/_components/Pagination";
@@ -37,7 +38,7 @@ export default async function HubPaymentsPage({
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
 
-  const where: Parameters<typeof prisma.payment.findMany>[0]["where"] = {
+  const where: Prisma.PaymentWhereInput = {
     ...scopeWhere,
   };
 
@@ -46,13 +47,10 @@ export default async function HubPaymentsPage({
   }
 
   if (params.dateFrom || params.dateTo) {
-    where.paidAt = {};
-    if (params.dateFrom) {
-      (where.paidAt as { gte?: Date }).gte = new Date(params.dateFrom);
-    }
-    if (params.dateTo) {
-      (where.paidAt as { lte?: Date }).lte = new Date(params.dateTo);
-    }
+    where.paidAt = {
+      ...(params.dateFrom && { gte: new Date(params.dateFrom) }),
+      ...(params.dateTo && { lte: new Date(params.dateTo) }),
+    };
   }
 
   const [payments, total, clients, unpaidInvoices] = await Promise.all([

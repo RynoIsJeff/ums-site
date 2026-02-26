@@ -6,15 +6,22 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ClientTabs } from "./_components/ClientTabs";
 import { DeleteClientButton } from "./_components/DeleteClientButton";
-
-export const metadata = {
-  title: "Client | UMS Hub",
-};
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 
 type PageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string }>;
 };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params;
+  const client = await prisma.client.findUnique({
+    where: { id },
+    select: { companyName: true },
+  });
+  if (!client) return { title: "Client | UMS Hub" };
+  return { title: `${client.companyName} | UMS Hub` };
+}
 
 function formatDate(d: Date | null): string {
   if (!d) return "—";
@@ -66,15 +73,29 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
     return Number(d) || 0;
   }
 
+  const outstandingTotal = clientInvoices
+    .filter((inv) => inv.status === "SENT" || inv.status === "OVERDUE")
+    .reduce((sum, inv) => sum + toNum(inv.totalAmount), 0);
+  const counts = {
+    draft: clientInvoices.filter((i) => i.status === "DRAFT").length,
+    sent: clientInvoices.filter((i) => i.status === "SENT").length,
+    paid: clientInvoices.filter((i) => i.status === "PAID").length,
+    overdue: clientInvoices.filter((i) => i.status === "OVERDUE").length,
+  };
+  const outstandingInvoices = clientInvoices.filter(
+    (i) => i.status === "SENT" || i.status === "OVERDUE"
+  );
+
   return (
     <section className="py-10">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <Link
-          href="/hub/clients"
-          className="text-sm text-black/60 hover:text-black"
-        >
-          ← Clients
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Hub", href: "/hub" },
+            { label: "Clients", href: "/hub/clients" },
+            { label: client.companyName },
+          ]}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/hub/clients/${client.id}/edit`}
@@ -175,22 +196,100 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
             </div>
           )}
           {tab === "billing" && (
-            <div className="space-y-4">
-              <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h3 className="text-sm font-medium text-[var(--hub-text)]">Billing summary</h3>
+                <div className="flex gap-2">
+                  <Link
+                    href="/hub/billing"
+                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                  >
+                    Billing dashboard
+                  </Link>
+                  <span className="text-[var(--hub-muted)]">·</span>
+                  <Link
+                    href="/hub/invoices/new"
+                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                  >
+                    New invoice
+                  </Link>
+                  <span className="text-[var(--hub-muted)]">·</span>
+                  <Link
+                    href={`/hub/clients/${clientId}?tab=invoices`}
+                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                  >
+                    All invoices
+                  </Link>
+                </div>
+              </div>
+              <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
                 <div>
-                  <dt className="font-medium text-black/60">Renewal date</dt>
-                  <dd>{formatDate(client.renewalDate)}</dd>
+                  <dt className="font-medium text-[var(--hub-muted)]">Renewal date</dt>
+                  <dd className="text-[var(--hub-text)]">{formatDate(client.renewalDate)}</dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-black/60">Retainer</dt>
-                  <dd>{client.retainerAmount != null ? `R ${Number(client.retainerAmount).toLocaleString()}` : "—"}</dd>
+                  <dt className="font-medium text-[var(--hub-muted)]">Retainer</dt>
+                  <dd className="text-[var(--hub-text)]">
+                    {client.retainerAmount != null
+                      ? `R ${Number(client.retainerAmount).toLocaleString("en-ZA")}`
+                      : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-[var(--hub-muted)]">Outstanding</dt>
+                  <dd className="font-medium text-[var(--hub-text)]">
+                    R {outstandingTotal.toLocaleString("en-ZA")}
+                    {outstandingInvoices.length > 0 && (
+                      <span className="ml-1 text-[var(--hub-muted)] font-normal">
+                        ({outstandingInvoices.length} invoice
+                        {outstandingInvoices.length !== 1 ? "s" : ""})
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-[var(--hub-muted)]">Invoices</dt>
+                  <dd className="text-[var(--hub-text)]">
+                    {counts.draft > 0 && <span>Draft {counts.draft} · </span>}
+                    {counts.sent > 0 && <span>Sent {counts.sent} · </span>}
+                    {counts.overdue > 0 && (
+                      <span className="text-red-600">Overdue {counts.overdue} · </span>
+                    )}
+                    {counts.paid > 0 && <span>Paid {counts.paid}</span>}
+                    {clientInvoices.length === 0 && "None"}
+                  </dd>
                 </div>
               </dl>
-              <p className="text-sm text-black/60">
-                <Link href="/hub/billing" className="text-black font-medium hover:underline">View billing dashboard</Link>
-                {" · "}
-                <Link href="/hub/invoices/new" className="text-black font-medium hover:underline">New invoice</Link>
-              </p>
+              {outstandingInvoices.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-[var(--hub-muted)] mb-2">
+                    Outstanding invoices
+                  </h4>
+                  <ul className="divide-y divide-black/5 rounded-lg border border-[var(--hub-border-light)] bg-white">
+                    {outstandingInvoices.map((inv) => (
+                      <li key={inv.id} className="flex items-center justify-between px-4 py-3">
+                        <Link
+                          href={`/hub/invoices/${inv.id}`}
+                          className="font-medium text-[var(--hub-text)] hover:underline"
+                        >
+                          {inv.invoiceNumber}
+                        </Link>
+                        <span className="text-sm text-[var(--hub-muted)]">
+                          due {formatDate(inv.dueDate)} · R{" "}
+                          {toNum(inv.totalAmount).toLocaleString("en-ZA")} ·{" "}
+                          <span
+                            className={
+                              inv.status === "OVERDUE" ? "text-red-600" : "text-amber-600"
+                            }
+                          >
+                            {inv.status}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
           {tab === "invoices" && (

@@ -6,12 +6,19 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { InvoiceForm } from "../../_components/InvoiceForm";
 import { updateInvoice } from "../../actions";
-
-export const metadata = {
-  title: "Edit Invoice | UMS Hub",
-};
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 
 type PageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params;
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    select: { invoiceNumber: true },
+  });
+  if (!invoice) return { title: "Edit Invoice | UMS Hub" };
+  return { title: `Edit Invoice ${invoice.invoiceNumber} | UMS Hub` };
+}
 
 function toNum(d: unknown): number {
   if (d == null) return 0;
@@ -51,9 +58,14 @@ export default async function EditInvoicePage({ params }: PageProps) {
   return (
     <section className="py-10">
       <div className="mb-6">
-        <Link href={`/hub/invoices/${id}`} className="text-sm text-black/60 hover:text-black">
-          ← {invoice.invoiceNumber}
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Hub", href: "/hub" },
+            { label: "Invoices", href: "/hub/invoices" },
+            { label: invoice.invoiceNumber, href: `/hub/invoices/${id}` },
+            { label: "Edit" },
+          ]}
+        />
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">Edit invoice</h1>
       <p className="mt-2 text-sm text-black/70">

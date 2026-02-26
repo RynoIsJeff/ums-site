@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere, taskWhere } from "@/lib/rbac";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/app/hub/_components/Pagination";
 import { TasksListFilters } from "./_components/TasksListFilters";
@@ -28,9 +29,9 @@ export default async function HubTasksPage({
   const params = parseListParams(raw as Record<string, string | undefined>);
 
   const scope = toAuthScope(user);
-  const scopeWhere = taskWhere(scope) as Record<string, unknown>;
+  const scopeWhere = taskWhere(scope) as Prisma.TaskWhereInput;
 
-  const where: Parameters<typeof prisma.task.findMany>[0]["where"] = {
+  const where: Prisma.TaskWhereInput = {
     ...scopeWhere,
   };
 
@@ -43,13 +44,10 @@ export default async function HubTasksPage({
   }
 
   if (params.dateFrom || params.dateTo) {
-    where.dueDate = {};
-    if (params.dateFrom) {
-      (where.dueDate as { gte?: Date }).gte = new Date(params.dateFrom);
-    }
-    if (params.dateTo) {
-      (where.dueDate as { lte?: Date }).lte = new Date(params.dateTo);
-    }
+    where.dueDate = {
+      ...(params.dateFrom && { gte: new Date(params.dateFrom) }),
+      ...(params.dateTo && { lte: new Date(params.dateTo) }),
+    };
   }
 
   const [tasks, total, clients] = await Promise.all([

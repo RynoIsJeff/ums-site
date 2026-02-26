@@ -6,12 +6,19 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { SetInvoiceStatusButton } from "../_components/SetInvoiceStatusButton";
 import { RecordPaymentForm } from "@/app/hub/payments/_components/RecordPaymentForm";
-
-export const metadata = {
-  title: "Invoice | UMS Hub",
-};
+import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 
 type PageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params;
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    select: { invoiceNumber: true },
+  });
+  if (!invoice) return { title: "Invoice | UMS Hub" };
+  return { title: `Invoice ${invoice.invoiceNumber} | UMS Hub` };
+}
 
 function toNum(d: unknown): number {
   if (d == null) return 0;
@@ -43,9 +50,13 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   return (
     <section className="py-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/hub/invoices" className="text-sm text-black/60 hover:text-black">
-          ← Invoices
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Hub", href: "/hub" },
+            { label: "Invoices", href: "/hub/invoices" },
+            { label: invoice.invoiceNumber },
+          ]}
+        />
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/hub/invoices/${id}/print`}
