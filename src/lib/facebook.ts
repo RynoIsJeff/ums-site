@@ -128,6 +128,54 @@ export async function updatePageProfilePicture(
 }
 
 /**
+ * Send a Messenger message (reply to user). Requires pages_messaging.
+ */
+export async function sendMessengerMessage(
+  pageAccessToken: string,
+  recipientPsid: string,
+  message: string
+): Promise<{ ok: true; messageId: string } | { ok: false; error: string }> {
+  const url = `${GRAPH_BASE}/me/messages`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipient: { id: recipientPsid },
+        message: { text: message },
+        messaging_type: "RESPONSE",
+        access_token: pageAccessToken,
+      }),
+    });
+    const data = (await res.json()) as { message_id?: string; error?: { message: string } };
+    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    return { ok: true, messageId: data.message_id ?? "" };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
+ * Get Instagram Business account ID linked to a Facebook Page.
+ */
+export async function getPageInstagramAccountId(
+  pageId: string,
+  pageAccessToken: string
+): Promise<{ ok: true; igUserId: string } | { ok: false; error: string }> {
+  const url = `${GRAPH_BASE}/${pageId}?fields=instagram_business_account&access_token=${encodeURIComponent(pageAccessToken)}`;
+  try {
+    const res = await fetch(url);
+    const data = (await res.json()) as { instagram_business_account?: { id: string }; error?: { message: string } };
+    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    const igUserId = data.instagram_business_account?.id;
+    if (!igUserId) return { ok: false, error: "No Instagram Business account linked" };
+    return { ok: true, igUserId };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
  * Update page cover photo. Requires pages_manage_metadata.
  * @param imageUrl - Public URL of the new cover photo (recommended 820x312)
  */

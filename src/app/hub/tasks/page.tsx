@@ -84,16 +84,16 @@ export default async function HubTasksPage({
     <section className="py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
+          <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">
             Tasks
           </h1>
-          <p className="mt-2 text-sm text-[var(--hub-muted)]">
+          <p className="mt-2 text-sm text-(--hub-muted)">
             Create and manage tasks. Use recurrence for repeating tasks.
           </p>
         </div>
         <Link
           href="/hub/tasks/new"
-          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           New task
         </Link>
@@ -135,7 +135,7 @@ export default async function HubTasksPage({
                   <td>
                     <Link
                       href={`/hub/tasks/${task.id}`}
-                      className="font-medium text-[var(--hub-text)] hover:underline"
+                      className="font-medium text-(--hub-text) hover:underline"
                     >
                       {task.title}
                     </Link>
@@ -144,15 +144,15 @@ export default async function HubTasksPage({
                     {task.client ? (
                       <Link
                         href={`/hub/clients/${task.client.id}`}
-                        className="text-[var(--hub-muted)] hover:underline"
+                        className="text-(--hub-muted) hover:underline"
                       >
                         {task.client.companyName}
                       </Link>
                     ) : (
-                      <span className="text-[var(--hub-muted)]">—</span>
+                      <span className="text-(--hub-muted)">—</span>
                     )}
                   </td>
-                  <td className="p-3 text-[var(--hub-text)]">
+                  <td className="p-3 text-(--hub-text)">
                     {task.dueDate
                       ? task.dueDate.toLocaleDateString("en-ZA", {
                           dateStyle: "medium",
@@ -171,7 +171,7 @@ export default async function HubTasksPage({
                           ? "text-green-600"
                           : task.status === "IN_PROGRESS"
                             ? "text-amber-600"
-                            : "text-[var(--hub-muted)]"
+                            : "text-(--hub-muted)"
                       }
                     >
                       {task.status.replace("_", " ")}
@@ -179,9 +179,9 @@ export default async function HubTasksPage({
                   </td>
                   <td className="p-3">
                     {task.recurrencePattern === "NONE" ? (
-                      <span className="text-[var(--hub-muted)]">—</span>
+                      <span className="text-(--hub-muted)">—</span>
                     ) : (
-                      <span className="text-[var(--hub-muted)]">
+                      <span className="text-(--hub-muted)">
                         {task.recurrencePattern} every {task.recurrenceInterval}
                       </span>
                     )}
@@ -189,7 +189,7 @@ export default async function HubTasksPage({
                   <td>
                     <Link
                       href={`/hub/tasks/${task.id}/edit`}
-                      className="text-[var(--hub-muted)] hover:underline"
+                      className="text-(--hub-muted) hover:underline"
                     >
                       Edit
                     </Link>

@@ -16,7 +16,7 @@ export function RecordPaymentForm({ clientId, invoiceId, invoiceNumber, remainin
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <form action={formAction} className="mt-4 space-y-3 rounded-lg border border-black/10 bg-black/[0.02] p-4">
+    <form action={formAction} className="mt-4 space-y-3 rounded-lg border border-black/10 bg-black/2 p-4">
       <input type="hidden" name="clientId" value={clientId} />
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <p className="text-sm font-medium">Record payment for {invoiceNumber}</p>

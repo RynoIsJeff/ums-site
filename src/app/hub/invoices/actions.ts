@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { sendInvoiceEmail } from "@/lib/email";
 import type { InvoiceStatus } from "@prisma/client";
 
 const statuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"] as const;
@@ -34,7 +35,7 @@ export async function getNextInvoiceNumber(): Promise<string> {
   return String(maxNum + 1).padStart(4, "0");
 }
 
-export type InvoiceFormState = { error?: string };
+export type InvoiceFormState = { error?: string; emailError?: string };
 
 export async function createInvoice(
   _prev: InvoiceFormState,
@@ -239,8 +240,20 @@ export async function setInvoiceStatus(
     return { error: "Invoice not found or access denied." };
   }
 
-  const updates: { status: InvoiceStatus; sentAt?: Date; voidedAt?: Date } = { status };
-  if (status === "SENT") updates.sentAt = new Date();
+  const crypto = await import("crypto");
+  const portalToken =
+    status === "SENT" ? crypto.randomBytes(24).toString("base64url") : undefined;
+
+  const updates: {
+    status: InvoiceStatus;
+    sentAt?: Date;
+    voidedAt?: Date;
+    portalToken?: string;
+  } = { status };
+  if (status === "SENT") {
+    updates.sentAt = new Date();
+    updates.portalToken = portalToken ?? undefined;
+  }
   if (status === "VOID") updates.voidedAt = new Date();
 
   await prisma.invoice.update({
@@ -248,10 +261,43 @@ export async function setInvoiceStatus(
     data: updates,
   });
 
+  let emailError: string | undefined;
+  if (status === "SENT") {
+    const [fullInvoice, companyConfig] = await Promise.all([
+      prisma.invoice.findUnique({
+        where: { id: invoiceId },
+        include: {
+          client: true,
+          lineItems: { orderBy: { createdAt: "asc" } },
+        },
+      }),
+      prisma.companyConfig.findFirst(),
+    ]);
+    if (fullInvoice) {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000";
+      const portalUrl = portalToken
+        ? `${baseUrl}/portal/invoice/${portalToken}`
+        : null;
+      const result = await sendInvoiceEmail(
+        fullInvoice,
+        companyConfig?.companyName ?? null,
+        companyConfig?.supportEmail ?? null,
+        portalUrl
+      );
+      if (!result.success && result.error) {
+        emailError = result.error;
+      }
+    }
+  }
+
   revalidatePath("/hub/invoices");
   revalidatePath(`/hub/invoices/${invoiceId}`);
   revalidatePath("/hub/billing");
-  return {};
+  return { emailError };
 }
 
 /** Form action: pass invoiceId via bind, formData must include status. */

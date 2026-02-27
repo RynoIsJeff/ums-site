@@ -78,7 +78,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
       </p>
 
       {task.description && (
-        <div className="mt-4 whitespace-pre-wrap rounded-lg border border-black/10 bg-black/[0.02] p-4 text-sm">
+        <div className="mt-4 whitespace-pre-wrap rounded-lg border border-black/10 bg-black/2 p-4 text-sm">
           {task.description}
         </div>
       )}

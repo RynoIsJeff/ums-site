@@ -134,17 +134,17 @@ export function SocialCalendarClient({
 
   return (
     <>
-      <div className="mb-6 rounded-xl border border-[var(--hub-border-light)] bg-white p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold text-[var(--hub-text)]">Filter by Facebook page</h3>
+      <div className="mb-6 rounded-xl border border-(--hub-border-light) bg-white p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-(--hub-text)">Filter by Facebook page</h3>
         {pages.length === 0 ? (
-          <p className="text-sm text-[var(--hub-muted)]">No Facebook pages connected. Connect one in Pages.</p>
+          <p className="text-sm text-(--hub-muted)">No Facebook pages connected. Connect one in Pages.</p>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-2">
               {pages.map((p) => (
                 <label
                   key={p.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--hub-border-light)] px-3 py-2 text-sm hover:bg-black/5 has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[var(--primary)]/5"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-(--hub-border-light) px-3 py-2 text-sm hover:bg-black/5 has-[:checked]:border-(--primary) has-[:checked]:bg-(--primary)/5"
                 >
                   <input
                     type="checkbox"
@@ -177,12 +177,12 @@ export function SocialCalendarClient({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[var(--hub-border-light)] bg-white shadow-sm">
-      <div className="grid grid-cols-7 border-b border-[var(--hub-border-light)]">
+      <div className="overflow-hidden rounded-xl border border-(--hub-border-light) bg-white shadow-sm">
+      <div className="grid grid-cols-7 border-b border-(--hub-border-light)">
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="border-r border-[var(--hub-border-light)] bg-black/[0.02] px-2 py-2 text-center text-xs font-semibold text-[var(--hub-muted)] last:border-r-0"
+            className="border-r border-(--hub-border-light) bg-black/2 px-2 py-2 text-center text-xs font-semibold text-(--hub-muted) last:border-r-0"
           >
               {day}
             </div>
@@ -196,9 +196,9 @@ export function SocialCalendarClient({
             return (
               <div
                 key={idx}
-                className={`group relative min-h-[7rem] border-b border-r border-[var(--hub-border-light)] p-1.5 last:border-r-0 ${
-              !cell.isCurrentMonth ? "bg-black/[0.02]" : ""
-            } ${isToday ? "ring-1 ring-inset ring-[var(--primary)]" : ""}`}
+                className={`group relative min-h-[7rem] border-b border-r border-(--hub-border-light) p-1.5 last:border-r-0 ${
+              !cell.isCurrentMonth ? "bg-black/2" : ""
+            } ${isToday ? "ring-1 ring-inset ring-(--primary)" : ""}`}
               >
                 <button
                   type="button"
@@ -218,7 +218,7 @@ export function SocialCalendarClient({
                     {cell.date}
                   </span>
                   {cell.isCurrentMonth && (
-                    <span className="mt-1 inline-flex w-6 items-center justify-center rounded bg-[var(--primary)]/20 text-[var(--primary)] opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="mt-1 inline-flex w-6 items-center justify-center rounded bg-(--primary)/20 text-(--primary) opacity-0 transition-opacity group-hover:opacity-100">
                       +
                     </span>
                   )}
@@ -229,14 +229,14 @@ export function SocialCalendarClient({
                         href={`/hub/social/posts/${post.id}`}
                         onClick={(e) => e.stopPropagation()}
                     className={`block rounded px-1.5 py-1 text-xs transition-colors hover:bg-black/5 ${
-                      post.status === "SCHEDULED" ? "bg-amber-50 text-amber-900" : "bg-black/5 text-[var(--hub-muted)]"
+                      post.status === "SCHEDULED" ? "bg-amber-50 text-amber-900" : "bg-black/5 text-(--hub-muted)"
                     }`}
                       >
                         <span className="line-clamp-2" title={post.caption}>
                           {post.caption.slice(0, 40)}
                           {post.caption.length > 40 ? "…" : ""}
                         </span>
-                        <span className="mt-0.5 block text-[10px] text-[var(--hub-muted)]">
+                        <span className="mt-0.5 block text-[10px] text-(--hub-muted)">
                           {new Date(post.scheduledFor).toLocaleTimeString("en-ZA", {
                             hour: "2-digit",
                             minute: "2-digit",

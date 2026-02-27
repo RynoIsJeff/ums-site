@@ -73,6 +73,19 @@ See **[SECURITY.md](./SECURITY.md)** for:
 - Least privilege guidance (DB, Supabase, Hub RBAC)
 - Security headers
 
+## Client portal
+
+When an invoice is marked **Sent**, a secure link is generated and included in the invoice email. Clients can view their invoice at `/portal/invoice/[token]` and optionally pay online via PayFast (when configured).
+
+- **PayFast:** Set `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY`, and optionally `PAYFAST_PASSPHRASE` and `PAYFAST_MODE` (sandbox/live). See `.env.example`.
+
+## Recurring invoices & payment reminders
+
+- **Recurring invoices:** `GET /api/cron/recurring-invoices` creates draft invoices for clients with retainer + billing frequency (MONTHLY/QUARTERLY/ANNUAL). Cron: daily at 08:00.
+- **Payment reminders:** `GET /api/cron/payment-reminders` sends reminder emails for SENT/OVERDUE invoices (due soon or overdue). Cron: daily at 09:00.
+
+Both require `Authorization: Bearer <CRON_SECRET>` when `CRON_SECRET` is set.
+
 ## Deploy on Vercel
 
-Set the same env vars in the Vercel project (Supabase URL, anon key, `DATABASE_URL` with the **Session pooler** URL). Add `CRON_SECRET` if you use the social publish cron. In your build command or a postinstall script, run `prisma generate` and `prisma migrate deploy` so the schema is applied using the pooler (no direct connection required).
+Set the same env vars in the Vercel project (Supabase URL, anon key, `DATABASE_URL` with the **Session pooler** URL). Add `CRON_SECRET` if you use crons. Add `RESEND_API_KEY` for invoice emails and reminders. Add `NEXT_PUBLIC_APP_URL` for correct portal links in emails. In your build command or a postinstall script, run `prisma generate` and `prisma migrate deploy` so the schema is applied using the pooler (no direct connection required).

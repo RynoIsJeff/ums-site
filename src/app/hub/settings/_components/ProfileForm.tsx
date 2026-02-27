@@ -24,7 +24,7 @@ export function ProfileForm({ action, defaultName }: ProfileFormProps) {
         </div>
       )}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-[var(--hub-text)]">
+        <label htmlFor="name" className="block text-sm font-medium text-(--hub-text)">
           Display name
         </label>
         <input
@@ -33,12 +33,12 @@ export function ProfileForm({ action, defaultName }: ProfileFormProps) {
           type="text"
           defaultValue={defaultName ?? ""}
           placeholder="Your name"
-          className="mt-1 w-full max-w-sm rounded-lg border border-[var(--hub-border-light)] px-3 py-2.5 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+          className="mt-1 w-full max-w-sm rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
         />
       </div>
       <button
         type="submit"
-        className="rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+        className="rounded-lg bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
       >
         Save changes
       </button>

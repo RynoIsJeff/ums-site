@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getPageProfile } from "@/lib/facebook";
+import { getPageProfile, getPageInstagramAccountId } from "@/lib/facebook";
 
 const ConnectPageSchema = z.object({
   clientId: z.string().min(1),
@@ -63,16 +63,21 @@ export async function connectFacebookPage(
     return { error: "This Facebook page is already connected to another client." };
   }
   let metadata: { profilePictureUrl?: string; coverPhotoUrl?: string } | undefined;
+  let instagramBusinessAccountId: string | null = null;
   try {
-    const profileResult = await getPageProfile(pageId, pageAccessToken);
+    const [profileResult, igResult] = await Promise.all([
+      getPageProfile(pageId, pageAccessToken),
+      getPageInstagramAccountId(pageId, pageAccessToken),
+    ]);
     if (profileResult.ok) {
       metadata = {
         profilePictureUrl: profileResult.profile.pictureUrl,
         coverPhotoUrl: profileResult.profile.coverUrl,
       };
     }
+    if (igResult.ok) instagramBusinessAccountId = igResult.igUserId;
   } catch {
-    // Ignore — page will connect without profile images; user can refresh later
+    // Ignore
   }
 
   if (existing) {
@@ -81,6 +86,7 @@ export async function connectFacebookPage(
       data: {
         pageName,
         pageAccessTokenEncrypted: pageAccessToken,
+        instagramBusinessAccountId,
         ...(metadata && { metadata }),
       },
     });
@@ -117,11 +123,13 @@ export async function connectFacebookPage(
       pageName,
       pageExternalId: pageId,
       pageAccessTokenEncrypted: pageAccessToken,
+      instagramBusinessAccountId,
       ...(metadata && { metadata }),
     },
     update: {
       pageName,
       pageAccessTokenEncrypted: pageAccessToken,
+      instagramBusinessAccountId,
       ...(metadata && { metadata }),
     },
   });

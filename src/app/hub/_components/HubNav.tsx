@@ -14,6 +14,8 @@ import {
   Share2,
   Megaphone,
   CheckSquare,
+  Clock,
+  FileSignature,
   Settings,
   ArrowLeft,
   LogOut,
@@ -35,6 +37,8 @@ const HUB_LINKS: {
   { href: "/hub/social", label: "Social", icon: Share2 },
   { href: "/hub/ads", label: "Ads", icon: Megaphone },
   { href: "/hub/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/hub/time", label: "Time", icon: Clock },
+  { href: "/hub/proposals", label: "Proposals", icon: FileSignature },
   { href: "/hub/settings", label: "Settings", icon: Settings, adminOnly: true },
 ];
 

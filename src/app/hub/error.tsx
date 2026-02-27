@@ -22,10 +22,10 @@ export default function HubError({
           <AlertCircle className="h-6 w-6" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-[var(--ink)]">
+          <h2 className="text-lg font-semibold text-(--ink)">
             Something went wrong
           </h2>
-          <p className="mt-1 text-sm text-[var(--ink)]/70">
+          <p className="mt-1 text-sm text-(--ink)/70">
             An error occurred. Please try again or return to the hub.
           </p>
         </div>

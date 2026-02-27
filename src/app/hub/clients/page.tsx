@@ -84,10 +84,10 @@ export default async function HubClientsPage({
       </Suspense>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
+          <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">
             Clients
           </h1>
-          <p className="mt-2 text-sm text-[var(--hub-muted)]">
+          <p className="mt-2 text-sm text-(--hub-muted)">
             {user.role === "ADMIN"
               ? "All clients (admin view)."
               : `You have access to ${total} client(s).`}
@@ -95,7 +95,7 @@ export default async function HubClientsPage({
         </div>
         <Link
           href="/hub/clients/new"
-          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           New client
         </Link>
@@ -120,12 +120,12 @@ export default async function HubClientsPage({
             <li key={client.id}>
               <Link
                 href={`/hub/clients/${client.id}`}
-                className="block rounded-lg border border-[var(--hub-border-light)] bg-white p-4 transition hover:border-black/25 hover:bg-black/2"
+                className="block rounded-lg border border-(--hub-border-light) bg-white p-4 transition hover:border-black/25 hover:bg-black/2"
               >
-                <div className="font-medium text-[var(--hub-text)]">
+                <div className="font-medium text-(--hub-text)">
                   {client.companyName}
                 </div>
-                <div className="mt-1 text-sm text-[var(--hub-muted)]">
+                <div className="mt-1 text-sm text-(--hub-muted)">
                   {client.contactPerson}
                   {client.email ? ` · ${client.email}` : ""}
                 </div>

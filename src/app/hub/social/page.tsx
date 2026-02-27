@@ -61,24 +61,24 @@ export default async function HubSocialPage() {
     <section className="py-6">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">
+          <h1 className="text-2xl font-bold tracking-tight text-(--hub-text)">
             Content Planner
           </h1>
-          <p className="mt-1 text-sm text-[var(--hub-muted)]">
+          <p className="mt-1 text-sm text-(--hub-muted)">
             Schedule and manage your Facebook posts. Connected to Meta.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/hub/social/calendar"
-            className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--hub-text)] shadow-sm transition-colors hover:bg-black/5"
+            className="inline-flex items-center gap-2 rounded-lg border border-(--hub-border-light) bg-white px-4 py-2.5 text-sm font-medium text-(--hub-text) shadow-sm transition-colors hover:bg-black/5"
           >
             <Calendar className="h-4 w-4" />
             Calendar
           </Link>
           <Link
             href="/hub/social/posts/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-lg bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
             Create post
@@ -88,47 +88,47 @@ export default async function HubSocialPage() {
 
       {/* Stats cards */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50">
               <Clock className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">{scheduledCount}</p>
-              <p className="text-sm text-[var(--hub-muted)]">Scheduled</p>
+              <p className="text-2xl font-bold text-(--hub-text)">{scheduledCount}</p>
+              <p className="text-sm text-(--hub-muted)">Scheduled</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50">
               <FileText className="h-5 w-5 text-slate-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">{draftCount}</p>
-              <p className="text-sm text-[var(--hub-muted)]">Drafts</p>
+              <p className="text-2xl font-bold text-(--hub-text)">{draftCount}</p>
+              <p className="text-sm text-(--hub-muted)">Drafts</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
               <CheckCircle2 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">{publishedToday}</p>
-              <p className="text-sm text-[var(--hub-muted)]">Published today</p>
+              <p className="text-2xl font-bold text-(--hub-text)">{publishedToday}</p>
+              <p className="text-sm text-(--hub-muted)">Published today</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--meta-blue)]/10">
-              <Share2 className="h-5 w-5 text-[var(--meta-blue)]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--meta-blue)/10">
+              <Share2 className="h-5 w-5 text-(--meta-blue)" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[var(--hub-text)]">{pages.length}</p>
-              <p className="text-sm text-[var(--hub-muted)]">Connected pages</p>
+              <p className="text-2xl font-bold text-(--hub-text)">{pages.length}</p>
+              <p className="text-sm text-(--hub-muted)">Connected pages</p>
             </div>
           </div>
         </div>
@@ -137,22 +137,22 @@ export default async function HubSocialPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Recent posts — Facebook-style cards */}
-          <div className="rounded-xl border border-[var(--hub-border-light)] bg-white shadow-sm overflow-hidden">
-            <div className="border-b border-[var(--hub-border-light)] bg-black/[0.02] px-5 py-4">
-              <h2 className="text-base font-semibold text-[var(--hub-text)]">Recent posts</h2>
-              <p className="text-sm text-[var(--hub-muted)]">Scheduled, published, and drafts</p>
+          <div className="rounded-xl border border-(--hub-border-light) bg-white shadow-sm overflow-hidden">
+            <div className="border-b border-(--hub-border-light) bg-black/2 px-5 py-4">
+              <h2 className="text-base font-semibold text-(--hub-text)">Recent posts</h2>
+              <p className="text-sm text-(--hub-muted)">Scheduled, published, and drafts</p>
             </div>
-            <div className="divide-y divide-[var(--hub-border-light)]">
+            <div className="divide-y divide-(--hub-border-light)">
               {posts.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Share2 className="mx-auto h-12 w-12 text-[var(--hub-muted)]" />
-                  <p className="mt-3 text-sm font-medium text-[var(--hub-text)]">No posts yet</p>
-                  <p className="mt-1 text-sm text-[var(--hub-muted)]">
+                  <Share2 className="mx-auto h-12 w-12 text-(--hub-muted)" />
+                  <p className="mt-3 text-sm font-medium text-(--hub-text)">No posts yet</p>
+                  <p className="mt-1 text-sm text-(--hub-muted)">
                     Connect a Facebook page and create your first post.
                   </p>
                   <Link
                     href="/hub/social/posts/new"
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                   >
                     <Plus className="h-4 w-4" />
                     Create post
@@ -163,20 +163,20 @@ export default async function HubSocialPage() {
                   <Link
                     key={post.id}
                     href={`/hub/social/posts/${post.id}`}
-                    className="block px-5 py-4 transition-colors hover:bg-black/[0.02]"
+                    className="block px-5 py-4 transition-colors hover:bg-black/2"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <p className="flex-1 text-sm text-[var(--hub-text)] line-clamp-2">
+                      <p className="flex-1 text-sm text-(--hub-text) line-clamp-2">
                         {post.caption}
                       </p>
                       <div className="flex shrink-0 items-center gap-2">
                         <StatusBadge status={post.status} />
                         {post.socialPage && (
-                          <span className="text-xs text-[var(--hub-muted)]">{post.socialPage.pageName}</span>
+                          <span className="text-xs text-(--hub-muted)">{post.socialPage.pageName}</span>
                         )}
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-[var(--hub-muted)]">
+                    <div className="mt-2 flex items-center gap-3 text-xs text-(--hub-muted)">
                       {post.scheduledFor && (
                         <span>
                           {post.scheduledFor.toLocaleString("en-ZA", {
@@ -188,7 +188,7 @@ export default async function HubSocialPage() {
                       {post.client && (
                         <Link
                           href={`/hub/clients/${post.client.id}`}
-                          className="hover:text-[var(--primary)] hover:underline"
+                          className="hover:text-(--primary) hover:underline"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {post.client.companyName}
@@ -206,14 +206,14 @@ export default async function HubSocialPage() {
 
         {/* Sidebar — Connected pages */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-[var(--hub-border-light)] bg-white shadow-sm overflow-hidden">
-            <div className="border-b border-[var(--hub-border-light)] bg-black/[0.02] px-5 py-4">
-              <h2 className="text-base font-semibold text-[var(--hub-text)]">Facebook pages</h2>
-              <p className="text-sm text-[var(--hub-muted)]">Manage in Pages</p>
+          <div className="rounded-xl border border-(--hub-border-light) bg-white shadow-sm overflow-hidden">
+            <div className="border-b border-(--hub-border-light) bg-black/2 px-5 py-4">
+              <h2 className="text-base font-semibold text-(--hub-text)">Facebook pages</h2>
+              <p className="text-sm text-(--hub-muted)">Manage in Pages</p>
             </div>
             <div className="p-4">
               {pages.length === 0 ? (
-                <p className="text-sm text-[var(--hub-muted)]">
+                <p className="text-sm text-(--hub-muted)">
                   No pages connected. Connect one below to start scheduling.
                 </p>
               ) : (
@@ -224,10 +224,10 @@ export default async function HubSocialPage() {
                         href={`/hub/clients/${p.socialAccount.clientId}`}
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-black/5"
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--meta-blue)]/15 text-[var(--meta-blue)] font-semibold">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--meta-blue)/15 text-(--meta-blue) font-semibold">
                           {p.pageName[0]}
                         </div>
-                        <span className="font-medium text-[var(--hub-text)]">{p.pageName}</span>
+                        <span className="font-medium text-(--hub-text)">{p.pageName}</span>
                       </Link>
                     </li>
                   ))}
@@ -236,7 +236,7 @@ export default async function HubSocialPage() {
               {pages.length > 0 && (
                 <Link
                   href="/hub/social/pages"
-                  className="mt-3 block text-center text-sm font-medium text-[var(--primary)] hover:underline"
+                  className="mt-3 block text-center text-sm font-medium text-(--primary) hover:underline"
                 >
                   View all pages →
                 </Link>

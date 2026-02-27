@@ -17,6 +17,8 @@ Use this as a deployment checklist. Never commit `.env` or `.env.local`.
 | `HUB_BOOTSTRAP_ROLE` | Yes (Hub) | Secret | `ADMIN` or `STAFF`. |
 | `FORMSPREE_FORM_ID` | Yes (contact) | Public | Formspree form ID. Safe to expose. |
 | `CRON_SECRET` | Optional | Secret | For `/api/cron/social-publish`. Use a long random value (e.g. `openssl rand -hex 32`). |
+| `RESEND_API_KEY` | Optional | Secret | Resend.com API key. Enables invoice emails when marking as Sent. |
+| `EMAIL_FROM` | Optional | — | From address for invoice emails. Defaults to company support email. Must be verified in Resend. |
 | `SEED_SAMPLE_DATA` | Optional | — | `true` to seed demo data. Use `false` in production. |
 | `NODE_ENV` | Auto | — | Set by Next.js/Vercel. |
 

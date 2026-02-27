@@ -30,33 +30,33 @@ export default async function AdAccountsPage() {
   return (
     <section className="py-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">
+        <h1 className="text-2xl font-bold tracking-tight text-(--hub-text)">
           Ad accounts
         </h1>
-        <p className="mt-1 text-sm text-[var(--hub-muted)]">
+        <p className="mt-1 text-sm text-(--hub-muted)">
           Link Meta ad accounts to clients for campaign and insights access.
         </p>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-[var(--hub-border-light)] bg-white shadow-sm overflow-hidden">
-            <div className="border-b border-[var(--hub-border-light)] bg-black/[0.02] px-5 py-4">
-              <h2 className="text-base font-semibold text-[var(--hub-text)]">Connected accounts</h2>
+          <div className="rounded-xl border border-(--hub-border-light) bg-white shadow-sm overflow-hidden">
+            <div className="border-b border-(--hub-border-light) bg-black/2 px-5 py-4">
+              <h2 className="text-base font-semibold text-(--hub-text)">Connected accounts</h2>
             </div>
             {adAccounts.length === 0 ? (
-              <div className="p-8 text-center text-sm text-[var(--hub-muted)]">
+              <div className="p-8 text-center text-sm text-(--hub-muted)">
                 No ad accounts connected. Connect one below.
               </div>
             ) : (
-              <ul className="divide-y divide-[var(--hub-border-light)]">
+              <ul className="divide-y divide-(--hub-border-light)">
                 {adAccounts.map((acc) => (
                   <li key={acc.id} className="flex items-center justify-between px-5 py-4">
                     <div>
-                      <p className="font-medium text-[var(--hub-text)]">
+                      <p className="font-medium text-(--hub-text)">
                         {acc.accountName || acc.accountId}
                       </p>
-                      <p className="text-sm text-[var(--hub-muted)]">
+                      <p className="text-sm text-(--hub-muted)">
                         {acc.client.companyName} · {acc.accountId}
                         {acc.currency && ` · ${acc.currency}`}
                       </p>

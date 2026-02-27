@@ -194,25 +194,25 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
           {tab === "billing" && (
             <div className="space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <h3 className="text-sm font-medium text-[var(--hub-text)]">Billing summary</h3>
+                <h3 className="text-sm font-medium text-(--hub-text)">Billing summary</h3>
                 <div className="flex gap-2">
                   <Link
                     href="/hub/billing"
-                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                    className="text-sm font-medium text-(--primary) hover:underline"
                   >
                     Billing dashboard
                   </Link>
-                  <span className="text-[var(--hub-muted)]">·</span>
+                  <span className="text-(--hub-muted)">·</span>
                   <Link
                     href="/hub/invoices/new"
-                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                    className="text-sm font-medium text-(--primary) hover:underline"
                   >
                     New invoice
                   </Link>
-                  <span className="text-[var(--hub-muted)]">·</span>
+                  <span className="text-(--hub-muted)">·</span>
                   <Link
                     href={`/hub/clients/${clientId}?tab=invoices`}
-                    className="text-sm font-medium text-[var(--primary)] hover:underline"
+                    className="text-sm font-medium text-(--primary) hover:underline"
                   >
                     All invoices
                   </Link>
@@ -220,23 +220,23 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
               </div>
               <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
                 <div>
-                  <dt className="font-medium text-[var(--hub-muted)]">Renewal date</dt>
-                  <dd className="text-[var(--hub-text)]">{formatDate(client.renewalDate)}</dd>
+                  <dt className="font-medium text-(--hub-muted)">Renewal date</dt>
+                  <dd className="text-(--hub-text)">{formatDate(client.renewalDate)}</dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-[var(--hub-muted)]">Retainer</dt>
-                  <dd className="text-[var(--hub-text)]">
+                  <dt className="font-medium text-(--hub-muted)">Retainer</dt>
+                  <dd className="text-(--hub-text)">
                     {client.retainerAmount != null
                       ? `R ${Number(client.retainerAmount).toLocaleString("en-ZA")}`
                       : "—"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-[var(--hub-muted)]">Outstanding</dt>
-                  <dd className="font-medium text-[var(--hub-text)]">
+                  <dt className="font-medium text-(--hub-muted)">Outstanding</dt>
+                  <dd className="font-medium text-(--hub-text)">
                     R {outstandingTotal.toLocaleString("en-ZA")}
                     {outstandingInvoices.length > 0 && (
-                      <span className="ml-1 text-[var(--hub-muted)] font-normal">
+                      <span className="ml-1 text-(--hub-muted) font-normal">
                         ({outstandingInvoices.length} invoice
                         {outstandingInvoices.length !== 1 ? "s" : ""})
                       </span>
@@ -244,8 +244,8 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-[var(--hub-muted)]">Invoices</dt>
-                  <dd className="text-[var(--hub-text)]">
+                  <dt className="font-medium text-(--hub-muted)">Invoices</dt>
+                  <dd className="text-(--hub-text)">
                     {counts.draft > 0 && <span>Draft {counts.draft} · </span>}
                     {counts.sent > 0 && <span>Sent {counts.sent} · </span>}
                     {counts.overdue > 0 && (
@@ -258,19 +258,19 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
               </dl>
               {outstandingInvoices.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--hub-muted)] mb-2">
+                  <h4 className="text-sm font-medium text-(--hub-muted) mb-2">
                     Outstanding invoices
                   </h4>
-                  <ul className="divide-y divide-black/5 rounded-lg border border-[var(--hub-border-light)] bg-white">
+                  <ul className="divide-y divide-black/5 rounded-lg border border-(--hub-border-light) bg-white">
                     {outstandingInvoices.map((inv) => (
                       <li key={inv.id} className="flex items-center justify-between px-4 py-3">
                         <Link
                           href={`/hub/invoices/${inv.id}`}
-                          className="font-medium text-[var(--hub-text)] hover:underline"
+                          className="font-medium text-(--hub-text) hover:underline"
                         >
                           {inv.invoiceNumber}
                         </Link>
-                        <span className="flex items-center gap-2 text-sm text-[var(--hub-muted)]">
+                        <span className="flex items-center gap-2 text-sm text-(--hub-muted)">
                           due {formatDate(inv.dueDate)} · R{" "}
                           {toNum(inv.totalAmount).toLocaleString("en-ZA")}{" "}
                           <StatusBadge status={inv.status} />
@@ -297,7 +297,7 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                       <Link href={`/hub/invoices/${inv.id}`} className="font-medium hover:underline">
                         {inv.invoiceNumber}
                       </Link>
-                      <span className="ml-2 flex items-center gap-2 text-[var(--hub-muted)]">
+                      <span className="ml-2 flex items-center gap-2 text-(--hub-muted)">
                         due {formatDate(inv.dueDate)} · R {toNum(inv.totalAmount).toLocaleString("en-ZA")}{" "}
                         <StatusBadge status={inv.status} />
                       </span>
@@ -360,7 +360,7 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                       <Link href={`/hub/tasks/${task.id}`} className="font-medium hover:underline">
                         {task.title}
                       </Link>
-                      <span className="ml-2 flex items-center gap-2 text-[var(--hub-muted)]">
+                      <span className="ml-2 flex items-center gap-2 text-(--hub-muted)">
                         <StatusBadge status={task.status} />
                         {task.dueDate && `· due ${formatDate(task.dueDate)}`}
                         {task.recurrencePattern !== "NONE" && `· ${task.recurrencePattern}`}

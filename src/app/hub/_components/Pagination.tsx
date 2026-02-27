@@ -46,37 +46,37 @@ export function Pagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--hub-border-light)] pt-4"
+      className="flex flex-wrap items-center justify-between gap-4 border-t border-(--hub-border-light) pt-4"
       aria-label="Pagination"
     >
-      <p className="text-sm text-[var(--hub-muted)]">
+      <p className="text-sm text-(--hub-muted)">
         Showing {start}–{end} of {totalItems}
       </p>
       <div className="flex items-center gap-2">
         {hasPrev ? (
           <Link
             href={buildUrl(currentPage - 1)}
-            className="rounded-md border border-[var(--hub-border-light)] bg-white px-3 py-2 text-sm font-medium text-[var(--hub-text)] hover:bg-black/5"
+            className="rounded-md border border-(--hub-border-light) bg-white px-3 py-2 text-sm font-medium text-(--hub-text) hover:bg-black/5"
           >
             Previous
           </Link>
         ) : (
-          <span className="rounded-md border border-[var(--hub-border-light)] bg-black/5 px-3 py-2 text-sm text-[var(--hub-muted)]">
+          <span className="rounded-md border border-(--hub-border-light) bg-black/5 px-3 py-2 text-sm text-(--hub-muted)">
             Previous
           </span>
         )}
-        <span className="text-sm text-[var(--hub-muted)]">
+        <span className="text-sm text-(--hub-muted)">
           Page {currentPage} of {totalPages}
         </span>
         {hasNext ? (
           <Link
             href={buildUrl(currentPage + 1)}
-            className="rounded-md border border-[var(--hub-border-light)] bg-white px-3 py-2 text-sm font-medium text-[var(--hub-text)] hover:bg-black/5"
+            className="rounded-md border border-(--hub-border-light) bg-white px-3 py-2 text-sm font-medium text-(--hub-text) hover:bg-black/5"
           >
             Next
           </Link>
         ) : (
-          <span className="rounded-md border border-[var(--hub-border-light)] bg-black/5 px-3 py-2 text-sm text-[var(--hub-muted)]">
+          <span className="rounded-md border border-(--hub-border-light) bg-black/5 px-3 py-2 text-sm text-(--hub-muted)">
             Next
           </span>
         )}

@@ -1,29 +1,29 @@
 const VARIANT_STYLES: Record<string, { bg: string; text: string }> = {
   // Invoice
-  DRAFT: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  DRAFT: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   SENT: { bg: "bg-amber-50", text: "text-amber-700" },
   PAID: { bg: "bg-green-50", text: "text-green-700" },
   OVERDUE: { bg: "bg-red-50", text: "text-red-700" },
-  VOID: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  VOID: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   // Task
-  TODO: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  TODO: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   IN_PROGRESS: { bg: "bg-amber-50", text: "text-amber-700" },
   DONE: { bg: "bg-green-50", text: "text-green-700" },
-  CANCELLED: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  CANCELLED: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   // TaskOccurrence
-  PENDING: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  PENDING: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   COMPLETED: { bg: "bg-green-50", text: "text-green-700" },
-  SKIPPED: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  SKIPPED: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   // SocialPost
   PROCESSING: { bg: "bg-amber-50", text: "text-amber-700" },
   SCHEDULED: { bg: "bg-amber-50", text: "text-amber-700" },
   PUBLISHED: { bg: "bg-green-50", text: "text-green-700" },
   FAILED: { bg: "bg-red-50", text: "text-red-700" },
   // Client
-  LEAD: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  LEAD: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   ACTIVE: { bg: "bg-green-50", text: "text-green-700" },
   PAUSED: { bg: "bg-amber-50", text: "text-amber-700" },
-  CHURNED: { bg: "bg-black/5", text: "text-[var(--hub-muted)]" },
+  CHURNED: { bg: "bg-black/5", text: "text-(--hub-muted)" },
 };
 
 function formatLabel(status: string): string {
@@ -48,7 +48,7 @@ export function StatusBadge({
 }: StatusBadgeProps) {
   const style = VARIANT_STYLES[status] ?? {
     bg: "bg-black/5",
-    text: "text-[var(--hub-muted)]",
+    text: "text-(--hub-muted)",
   };
 
   return (

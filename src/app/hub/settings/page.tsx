@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { canAccessSettings } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { ProfileForm } from "./_components/ProfileForm";
-import { updateProfile } from "./actions";
+import { CompanyConfigForm } from "./_components/CompanyConfigForm";
+import { StaffAssignmentsForm } from "./_components/StaffAssignmentsForm";
+import { updateProfile, updateCompanyConfig } from "./actions";
+import { TwoFactorForm } from "./_components/TwoFactorForm";
 import { UserPlus, Building2, Users } from "lucide-react";
 
 export const metadata = {
@@ -19,29 +22,38 @@ export default async function HubSettingsPage() {
     redirect("/hub");
   }
 
-  const hubUsers = await prisma.user.findMany({
-    orderBy: { email: "asc" },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      isActive: true,
-      createdAt: true,
-      assignedClients: { include: { client: { select: { companyName: true } } } },
-    },
-  });
+  const [hubUsers, companyConfig, allClients] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { email: "asc" },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        assignedClients: { include: { client: { select: { companyName: true, id: true } } } },
+      },
+    }),
+    prisma.companyConfig.findFirst(),
+    prisma.client.findMany({
+      orderBy: { companyName: "asc" },
+      select: { id: true, companyName: true },
+    }),
+  ]);
+
+  const staffUsers = hubUsers.filter((u) => u.role === "STAFF");
 
   return (
     <section className="py-10">
-      <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">Settings</h1>
-      <p className="mt-2 text-sm text-[var(--hub-muted)]">
+      <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">Settings</h1>
+      <p className="mt-2 text-sm text-(--hub-muted)">
         Manage your profile, users, and app configuration.
       </p>
 
       <div className="mt-8 space-y-8">
         {/* Profile */}
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <div
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
@@ -50,8 +62,8 @@ export default async function HubSettingsPage() {
               {(user.name?.[0] ?? user.email[0]).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--hub-text)]">Profile</h2>
-              <p className="text-sm text-[var(--hub-muted)]">
+              <h2 className="text-lg font-semibold text-(--hub-text)">Profile</h2>
+              <p className="text-sm text-(--hub-muted)">
                 Update your display name. Avatar uses your initial.
               </p>
             </div>
@@ -61,16 +73,19 @@ export default async function HubSettingsPage() {
           </div>
         </div>
 
+        {/* 2FA */}
+        <TwoFactorForm twoFactorEnabled={user.twoFactorEnabled} />
+
         {/* Users (admin only) */}
-        <div className="rounded-xl border border-[var(--hub-border-light)] bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary)]/10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
                 <Users className="h-5 w-5" style={{ color: "var(--primary)" }} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--hub-text)]">Users</h2>
-                <p className="text-sm text-[var(--hub-muted)]">
+                <h2 className="text-lg font-semibold text-(--hub-text)">Users</h2>
+                <p className="text-sm text-(--hub-muted)">
                   Hub users and their roles. Invite new users via Supabase Dashboard.
                 </p>
               </div>
@@ -79,7 +94,7 @@ export default async function HubSettingsPage() {
               href="https://supabase.com/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2 text-sm font-medium text-[var(--hub-text)] hover:bg-black/5"
+              className="inline-flex items-center gap-2 rounded-lg border border-(--hub-border-light) bg-white px-4 py-2 text-sm font-medium text-(--hub-text) hover:bg-black/5"
             >
               <UserPlus className="h-4 w-4" />
               Add user (Supabase)
@@ -89,25 +104,25 @@ export default async function HubSettingsPage() {
             <table className="hub-table min-w-[500px]">
               <thead>
                 <tr>
-                  <th className="text-[var(--hub-muted)]">Email</th>
-                  <th className="text-[var(--hub-muted)]">Name</th>
-                  <th className="text-[var(--hub-muted)]">Role</th>
-                  <th className="text-[var(--hub-muted)]">Status</th>
-                  <th className="text-[var(--hub-muted)]">Clients</th>
+                  <th className="text-(--hub-muted)">Email</th>
+                  <th className="text-(--hub-muted)">Name</th>
+                  <th className="text-(--hub-muted)">Role</th>
+                  <th className="text-(--hub-muted)">Status</th>
+                  <th className="text-(--hub-muted)">Clients</th>
                 </tr>
               </thead>
               <tbody>
                 {hubUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-sm text-[var(--hub-muted)]">
+                    <td colSpan={5} className="py-8 text-center text-sm text-(--hub-muted)">
                       No users found.
                     </td>
                   </tr>
                 ) : (
                   hubUsers.map((u) => (
                     <tr key={u.id}>
-                      <td className="font-medium text-[var(--hub-text)]">{u.email}</td>
-                      <td className="text-[var(--hub-muted)]">{u.name ?? "—"}</td>
+                      <td className="font-medium text-(--hub-text)">{u.email}</td>
+                      <td className="text-(--hub-muted)">{u.name ?? "—"}</td>
                       <td>
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -122,13 +137,13 @@ export default async function HubSettingsPage() {
                       <td>
                         <span
                           className={
-                            u.isActive ? "text-green-600" : "text-[var(--hub-muted)]"
+                            u.isActive ? "text-green-600" : "text-(--hub-muted)"
                           }
                         >
                           {u.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="text-[var(--hub-muted)]">
+                      <td className="text-(--hub-muted)">
                         {u.role === "ADMIN"
                           ? "All"
                           : u.assignedClients.length > 0
@@ -146,22 +161,50 @@ export default async function HubSettingsPage() {
         </div>
 
         {/* Company / App configuration */}
-        <div className="rounded-xl border border-dashed border-[var(--hub-border-light)] bg-black/[0.01] p-6">
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--hub-muted)]/20">
-              <Building2 className="h-5 w-5 text-[var(--hub-muted)]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+              <Building2 className="h-5 w-5" style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--hub-text)]">Company & defaults</h2>
-              <p className="text-sm text-[var(--hub-muted)]">
-                Company name, support email, default currency, and invoice settings. Not yet configured.
+              <h2 className="text-lg font-semibold text-(--hub-text)">
+                Company & defaults
+              </h2>
+              <p className="text-sm text-(--hub-muted)">
+                Company name, support email, default currency, and invoice
+                settings. Used for branding and invoice emails.
               </p>
             </div>
           </div>
-          <div className="mt-4 rounded-lg border border-[var(--hub-border-light)] bg-white p-4">
-            <p className="text-sm text-[var(--hub-muted)]">
-              App configuration will be available in a future release. For now, defaults are set via environment variables and service plans.
-            </p>
+          <div className="mt-6">
+            <CompanyConfigForm
+              action={updateCompanyConfig}
+              config={companyConfig}
+            />
+          </div>
+        </div>
+
+        {/* Staff client assignments */}
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+              <UserPlus className="h-5 w-5" style={{ color: "var(--primary)" }} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-(--hub-text)">
+                Staff client assignments
+              </h2>
+              <p className="text-sm text-(--hub-muted)">
+                Assign clients to staff members. Staff only see their assigned
+                clients in the Hub.
+              </p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <StaffAssignmentsForm
+              staffUsers={staffUsers}
+              allClients={allClients}
+            />
           </div>
         </div>
       </div>

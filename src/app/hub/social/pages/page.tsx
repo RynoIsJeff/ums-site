@@ -36,10 +36,10 @@ export default async function SocialPagesPage() {
     <section className="py-6">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">
+          <h1 className="text-2xl font-bold tracking-tight text-(--hub-text)">
             Facebook pages
           </h1>
-          <p className="mt-1 text-sm text-[var(--hub-muted)]">
+          <p className="mt-1 text-sm text-(--hub-muted)">
             Manage profile and cover photos for your connected pages.
           </p>
         </div>
@@ -66,17 +66,17 @@ export default async function SocialPagesPage() {
       </div>
 
       {pages.length === 0 && (
-        <div className="mt-12 rounded-xl border-2 border-dashed border-[var(--hub-border-light)] bg-black/[0.02] p-12 text-center">
-          <p className="text-base font-medium text-[var(--hub-text)]">No Facebook pages connected</p>
-          <p className="mt-2 text-sm text-[var(--hub-muted)]">
+        <div className="mt-12 rounded-xl border-2 border-dashed border-(--hub-border-light) bg-black/2 p-12 text-center">
+          <p className="text-base font-medium text-(--hub-text)">No Facebook pages connected</p>
+          <p className="mt-2 text-sm text-(--hub-muted)">
             Connect your first page below to manage profile and cover photos.
           </p>
         </div>
       )}
 
       <div className="mt-12 max-w-xl">
-        <h2 className="text-lg font-semibold text-[var(--hub-text)]">Connect new page</h2>
-        <p className="mt-1 text-sm text-[var(--hub-muted)] mb-4">
+        <h2 className="text-lg font-semibold text-(--hub-text)">Connect new page</h2>
+        <p className="mt-1 text-sm text-(--hub-muted) mb-4">
           Add a Facebook page to manage its profile, cover, and schedule posts.
         </p>
         <ConnectFacebookForm clients={clients} />

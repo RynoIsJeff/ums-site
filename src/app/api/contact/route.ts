@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export const runtime = "edge";
-
 const Schema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email().max(200),

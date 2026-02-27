@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { FileText, FilePlus } from "lucide-react";
+import { FileText, FilePlus, Download } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { EmptyState } from "@/app/hub/_components/EmptyState";
@@ -88,20 +88,38 @@ export default async function HubInvoicesPage({
       />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--hub-text)]">
+          <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">
             Invoices
           </h1>
-          <p className="mt-2 text-sm text-[var(--hub-muted)]">
+          <p className="mt-2 text-sm text-(--hub-muted)">
             Create and manage invoices. Drafts can be edited; mark as Sent when
             ready.
           </p>
         </div>
-        <Link
-          href="/hub/invoices/new"
-          className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-        >
-          New invoice
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={(() => {
+              const p: Record<string, string> = {};
+              if (params.search) p.search = params.search;
+              if (params.status) p.status = params.status;
+              if (params.clientId) p.clientId = params.clientId;
+              if (params.dateFrom) p.dateFrom = params.dateFrom;
+              if (params.dateTo) p.dateTo = params.dateTo;
+              const qs = new URLSearchParams(p).toString();
+              return `/api/hub/export/invoices${qs ? `?${qs}` : ""}`;
+            })()}
+            className="inline-flex items-center gap-2 rounded-md border border-(--hub-border-light) px-4 py-2 text-sm font-medium text-(--hub-text) hover:bg-black/5"
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </a>
+          <Link
+            href="/hub/invoices/new"
+            className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+          >
+            New invoice
+          </Link>
+        </div>
       </div>
 
       <Suspense fallback={null}>
@@ -147,7 +165,7 @@ export default async function HubInvoicesPage({
                   <td>
                     <Link
                       href={`/hub/invoices/${inv.id}`}
-                      className="font-medium text-[var(--hub-text)] hover:underline"
+                      className="font-medium text-(--hub-text) hover:underline"
                     >
                       {inv.invoiceNumber}
                     </Link>
@@ -155,17 +173,17 @@ export default async function HubInvoicesPage({
                   <td>
                     <Link
                       href={`/hub/clients/${inv.client.id}`}
-                      className="text-[var(--hub-muted)] hover:underline"
+                      className="text-(--hub-muted) hover:underline"
                     >
                       {inv.client.companyName}
                     </Link>
                   </td>
-                  <td className="text-[var(--hub-text)]">
+                  <td className="text-(--hub-text)">
                     {inv.dueDate.toLocaleDateString("en-ZA", {
                       dateStyle: "medium",
                     })}
                   </td>
-                  <td className="text-[var(--hub-text)]">
+                  <td className="text-(--hub-text)">
                     R {toNum(inv.totalAmount).toLocaleString("en-ZA")}
                   </td>
                   <td>
@@ -176,7 +194,7 @@ export default async function HubInvoicesPage({
                       href={`/hub/invoices/${inv.id}/print`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[var(--hub-muted)] hover:underline"
+                      className="text-(--hub-muted) hover:underline"
                     >
                       Print
                     </Link>

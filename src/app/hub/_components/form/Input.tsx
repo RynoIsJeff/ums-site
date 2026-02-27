@@ -1,5 +1,5 @@
 const inputBase =
-  "rounded-md border border-[var(--hub-border-light)] px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]";
+  "rounded-md border border-(--hub-border-light) px-3 py-2 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)";
 
 type InputProps = React.ComponentPropsWithoutRef<"input"> & {
   id: string;
@@ -10,7 +10,7 @@ type InputProps = React.ComponentPropsWithoutRef<"input"> & {
 export function Input({ id, label, error, className = "", ...props }: InputProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-xs font-medium text-[var(--hub-muted)]">
+      <label htmlFor={id} className="mb-1 block text-xs font-medium text-(--hub-muted)">
         {label}
       </label>
       <input

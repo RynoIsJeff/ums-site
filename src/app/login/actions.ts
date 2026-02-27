@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { prisma } from "@/lib/prisma";
 
 const LoginSchema = z.object({
   email: z.string().email().max(200),
@@ -29,7 +30,13 @@ export async function signIn(formData: FormData, callbackUrl: string) {
     return { error: "Login failed. Check your credentials and try again." };
   }
 
-  const nextUrl =
-    callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/hub";
+  const nextUrl = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/hub";
+  const appUser = await prisma.user.findUnique({
+    where: { email: parsed.data.email.trim().toLowerCase() },
+    select: { twoFactorEnabled: true, isActive: true },
+  });
+  if (appUser?.twoFactorEnabled && appUser?.isActive) {
+    redirect(`/login/verify-2fa?callbackUrl=${encodeURIComponent(nextUrl)}`);
+  }
   redirect(nextUrl);
 }

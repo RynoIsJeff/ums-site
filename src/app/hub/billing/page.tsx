@@ -87,7 +87,7 @@ export default async function HubBillingPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/hub/payments"
-          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/2"
         >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Revenue this month
@@ -99,7 +99,7 @@ export default async function HubBillingPage() {
         </Link>
         <Link
           href="/hub/invoices"
-          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/2"
         >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Outstanding total
@@ -111,7 +111,7 @@ export default async function HubBillingPage() {
         </Link>
         <Link
           href="/hub/invoices"
-          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/2"
         >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Invoices created this month
@@ -121,7 +121,7 @@ export default async function HubBillingPage() {
         </Link>
         <Link
           href="#renewals"
-          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/[0.02]"
+          className="block rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-black/20 hover:bg-black/2"
         >
           <p className="text-xs font-medium uppercase tracking-wide text-black/50">
             Renewals due (30 days)

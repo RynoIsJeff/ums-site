@@ -38,15 +38,15 @@ export default async function NewPostPage() {
   return (
     <section className="py-6">
       <div className="mb-6">
-        <Link href="/hub/social" className="text-sm text-[var(--hub-muted)] hover:text-[var(--hub-text)]">
+        <Link href="/hub/social" className="text-sm text-(--hub-muted) hover:text-(--hub-text)">
           ← Content Planner
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight text-[var(--hub-text)]">Create post</h1>
-      <p className="mt-1 text-sm text-[var(--hub-muted)]">
+      <h1 className="text-2xl font-bold tracking-tight text-(--hub-text)">Create post</h1>
+      <p className="mt-1 text-sm text-(--hub-muted)">
         Choose Facebook page(s), add your caption, and schedule.
       </p>
-      <div className="mt-6 rounded-xl border border-[var(--hub-border-light)] bg-white p-6 shadow-sm">
+      <div className="mt-6 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
         <PostForm
           action={createPost}
           clients={clients}

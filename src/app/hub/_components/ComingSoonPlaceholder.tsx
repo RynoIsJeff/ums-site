@@ -23,7 +23,7 @@ export function ComingSoonPlaceholder({
   feature,
   description,
   icon: Icon = Clock,
-  iconClassName = "text-[var(--hub-muted)]",
+  iconClassName = "text-(--hub-muted)",
   supplemental,
   footer,
   primaryAction,

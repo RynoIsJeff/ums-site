@@ -33,7 +33,7 @@ type EmptyStateProps = {
 
 export function EmptyState({
   icon: Icon,
-  iconClassName = "text-[var(--hub-muted)]",
+  iconClassName = "text-(--hub-muted)",
   title,
   description,
   supplemental,
@@ -44,17 +44,17 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`rounded-xl border border-[var(--hub-border-light)] bg-white p-12 text-center shadow-sm ${className}`}
+      className={`rounded-xl border border-(--hub-border-light) bg-white p-12 text-center shadow-sm ${className}`}
     >
       <div
         className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/5`}
       >
         <Icon className={`h-8 w-8 ${iconClassName}`} />
       </div>
-      <h2 className="mt-6 text-lg font-semibold text-[var(--hub-text)]">{title}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm text-[var(--hub-muted)]">{description}</p>
+      <h2 className="mt-6 text-lg font-semibold text-(--hub-text)">{title}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-(--hub-muted)">{description}</p>
       {supplemental && (
-        <p className="mx-auto mt-2 max-w-md text-sm text-[var(--hub-muted)]">{supplemental}</p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-(--hub-muted)">{supplemental}</p>
       )}
       {(primaryAction || secondaryActions.length > 0) && (
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
@@ -64,10 +64,10 @@ export function EmptyState({
                 href={primaryAction.href}
                 className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
                   primaryAction.variant === "secondary"
-                    ? "border border-[var(--hub-border-light)] bg-white text-[var(--hub-text)] hover:bg-black/5"
+                    ? "border border-(--hub-border-light) bg-white text-(--hub-text) hover:bg-black/5"
                     : primaryAction.meta
-                      ? "bg-[var(--meta-blue)] text-white hover:bg-[var(--meta-blue-hover)]"
-                      : "bg-[var(--primary)] text-white hover:opacity-90"
+                      ? "bg-(--meta-blue) text-white hover:bg-(--meta-blue-hover)"
+                      : "bg-(--primary) text-white hover:opacity-90"
                 }`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -80,10 +80,10 @@ export function EmptyState({
                 href={primaryAction.href}
                 className={`inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
                   primaryAction.variant === "secondary"
-                    ? "border border-[var(--hub-border-light)] bg-white hover:bg-black/5"
+                    ? "border border-(--hub-border-light) bg-white hover:bg-black/5"
                     : primaryAction.meta
-                      ? "bg-[var(--meta-blue)] text-white hover:bg-[var(--meta-blue-hover)]"
-                      : "bg-[var(--primary)] text-white hover:opacity-90"
+                      ? "bg-(--meta-blue) text-white hover:bg-(--meta-blue-hover)"
+                      : "bg-(--primary) text-white hover:opacity-90"
                 }`}
               >
                 <ActionIcon icon={primaryAction.icon} />
@@ -95,7 +95,7 @@ export function EmptyState({
               <a
                 key={action.href}
                 href={action.href}
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--hub-text)] hover:bg-black/5"
+                className="inline-flex items-center gap-2 rounded-lg border border-(--hub-border-light) bg-white px-4 py-2.5 text-sm font-medium text-(--hub-text) hover:bg-black/5"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -106,7 +106,7 @@ export function EmptyState({
               <Link
                 key={action.href}
                 href={action.href}
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--hub-border-light)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--hub-text)] hover:bg-black/5"
+                className="inline-flex items-center gap-2 rounded-lg border border-(--hub-border-light) bg-white px-4 py-2.5 text-sm font-medium text-(--hub-text) hover:bg-black/5"
               >
                 <ActionIcon icon={action.icon} />
                 {action.label}
@@ -116,7 +116,7 @@ export function EmptyState({
         </div>
       )}
       {footer && (
-        <div className="mt-6 text-xs text-[var(--hub-muted)]">{footer}</div>
+        <div className="mt-6 text-xs text-(--hub-muted)">{footer}</div>
       )}
     </div>
   );
