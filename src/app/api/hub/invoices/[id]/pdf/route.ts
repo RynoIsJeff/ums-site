@@ -41,7 +41,39 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   const margin = 50;
-  let y = height - margin;
+
+  // Simple brand "logo" block to match site branding
+  const logoSize = 40;
+  const logoX = margin;
+  const logoY = height - margin - logoSize;
+
+  page.drawRectangle({
+    x: logoX,
+    y: logoY,
+    width: logoSize,
+    height: logoSize,
+    color: rgb(5 / 255, 134 / 255, 173 / 255),
+  });
+
+  page.drawText("UMS", {
+    x: logoX + 9,
+    y: logoY + logoSize / 2 - 7,
+    size: 14,
+    font: fontBold,
+    color: rgb(1, 1, 1),
+  });
+
+  // "Invoice" title in top-right
+  page.drawText("Invoice", {
+    x: width - margin - 80,
+    y: height - margin - 18,
+    size: 20,
+    font: fontBold,
+    color: rgb(0, 0, 0),
+  });
+
+  // Start content just below logo block
+  let y = logoY + logoSize - 4;
 
   const drawText = (text: string, options?: { x?: number; y?: number; size?: number; bold?: boolean }) => {
     const size = options?.size ?? 11;
@@ -69,15 +101,15 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     year: "numeric",
   });
 
-  // Header
-  drawText("Invoice", { x: width - margin - 80, size: 20, bold: true });
-  y -= 10;
-
   // Company info
-  drawText("ULTIMATE MARKETING SMASH (PTY) LTD.", { bold: true });
-  drawText("Phone: +27 79 490 5070", { size: 10 });
-  drawText("Email: Manager@ultimatemarketingsmash.com", { size: 10 });
-  drawText("447 Suikerbekkie Ave, Pongola, 3170, KZN, South Africa", { size: 10 });
+  const infoX = logoX + logoSize + 12;
+  drawText("ULTIMATE MARKETING SMASH (PTY) LTD.", { x: infoX, bold: true });
+  drawText("Phone: +27 79 490 5070", { x: infoX, size: 10 });
+  drawText("Email: Manager@ultimatemarketingsmash.com", { x: infoX, size: 10 });
+  drawText("447 Suikerbekkie Ave, Pongola, 3170, KZN, South Africa", {
+    x: infoX,
+    size: 10,
+  });
   y -= 6;
 
   // Invoice meta
