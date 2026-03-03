@@ -167,7 +167,9 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   const pdfBuffer = await pdfBufferPromise;
   const filename = `invoice-${invoice.invoiceNumber}.pdf`;
 
-  return new NextResponse(pdfBuffer, {
+  const pdfArray = new Uint8Array(pdfBuffer);
+
+  return new NextResponse(pdfArray, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
