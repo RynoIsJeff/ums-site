@@ -163,9 +163,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   const pdfBytes = await pdfDoc.save();
   const filename = `invoice-${invoice.invoiceNumber}.pdf`;
 
-  const blob = new Blob([pdfBytes], { type: "application/pdf" });
-
-  return new NextResponse(blob, {
+  return new NextResponse(pdfBytes as any, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
