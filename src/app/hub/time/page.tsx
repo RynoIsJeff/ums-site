@@ -50,7 +50,7 @@ export default async function HubTimePage({
     };
   }
 
-  const [entries, total, clients, tasks] = await Promise.all([
+  const [entries, total, clients] = await Promise.all([
     prisma.timeEntry.findMany({
       where,
       orderBy: { date: "desc" },
@@ -68,15 +68,16 @@ export default async function HubTimePage({
       orderBy: { companyName: "asc" },
       select: { id: true, companyName: true },
     }),
-    prisma.task.findMany({
-      where: {
-        clientId: { in: clients.map((c) => c.id) },
-      } as Prisma.TaskWhereInput,
-      orderBy: { title: "asc" },
-      select: { id: true, title: true, clientId: true },
-      take: 200,
-    }),
   ]);
+
+  const tasks = await prisma.task.findMany({
+    where: {
+      clientId: { in: clients.map((c) => c.id) },
+    } as Prisma.TaskWhereInput,
+    orderBy: { title: "asc" },
+    select: { id: true, title: true, clientId: true },
+    take: 200,
+  });
 
   return (
     <section className="py-10">
