@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
 import type { TimeEntryFormState } from "../actions";
 import { Input, Select } from "@/app/hub/_components/form";
 
@@ -10,7 +10,10 @@ type Task = { id: string; title: string; clientId: string | null };
 type LogTimeFormProps = {
   clients: Client[];
   tasks: Task[];
-  action: (prev: TimeEntryFormState, formData: FormData) => Promise<TimeEntryFormState>;
+  action: (
+    prev: TimeEntryFormState,
+    formData: FormData
+  ) => Promise<TimeEntryFormState>;
   initialState?: TimeEntryFormState;
 };
 
@@ -20,6 +23,11 @@ export function LogTimeForm({
   action,
   initialState,
 }: LogTimeFormProps) {
+  const [state, formAction] = useFormState<TimeEntryFormState, FormData>(
+    action,
+    initialState ?? {}
+  );
+
   const clientOptions = clients.map((c) => ({ value: c.id, label: c.companyName }));
   const taskOptions = tasks
     .filter((t) => t.clientId)
@@ -28,9 +36,12 @@ export function LogTimeForm({
   const defaultDate = new Date().toISOString().slice(0, 10);
 
   return (
-    <form action={action} className="rounded-lg border border-(--hub-border) bg-(--hub-card) p-4 space-y-4">
-      {initialState?.error && (
-        <p className="text-sm text-red-600">{initialState.error}</p>
+    <form
+      action={formAction}
+      className="rounded-lg border border-(--hub-border) bg-(--hub-card) p-4 space-y-4"
+    >
+      {state?.error && (
+        <p className="text-sm text-red-600">{state.error}</p>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Select
