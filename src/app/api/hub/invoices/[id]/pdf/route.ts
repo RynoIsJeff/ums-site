@@ -8,10 +8,12 @@ import { toNum } from "@/lib/utils";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: NextRequest,
-  context: { params: { id: string } },
-) {
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function GET(_req: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
   const { user } = await getSession();
   if (!user) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -20,7 +22,7 @@ export async function GET(
   const scope = toAuthScope(user);
 
   const invoice = await prisma.invoice.findUnique({
-    where: { id: context.params.id },
+    where: { id },
     include: {
       client: true,
       lineItems: { orderBy: { createdAt: "asc" } },
