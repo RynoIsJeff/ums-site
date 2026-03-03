@@ -54,14 +54,12 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           ]}
         />
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/hub/invoices/${id}/print`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <a
+            href={`/api/hub/invoices/${id}/pdf`}
             className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5"
           >
-            Print / PDF
-          </Link>
+            Download PDF
+          </a>
           {invoice.status === "DRAFT" && (
             <Link
               href={`/hub/invoices/${id}/edit`}

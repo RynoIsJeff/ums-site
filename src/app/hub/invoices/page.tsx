@@ -190,14 +190,12 @@ export default async function HubInvoicesPage({
                     <StatusBadge status={inv.status} />
                   </td>
                   <td>
-                    <Link
-                      href={`/hub/invoices/${inv.id}/print`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <a
+                      href={`/api/hub/invoices/${inv.id}/pdf`}
                       className="text-(--hub-muted) hover:underline"
                     >
-                      Print
-                    </Link>
+                      Download PDF
+                    </a>
                   </td>
                 </tr>
               ))}
