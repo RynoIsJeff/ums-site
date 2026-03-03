@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import type { TimeEntryFormState } from "../actions";
 import { Input, Select } from "@/app/hub/_components/form";
 
@@ -23,10 +24,10 @@ export function LogTimeForm({
   action,
   initialState,
 }: LogTimeFormProps) {
-  const [state, formAction] = useFormState<TimeEntryFormState, FormData>(
-    action,
-    initialState ?? {}
-  );
+  const [state, formAction] = useActionState<
+    TimeEntryFormState,
+    FormData
+  >(action, initialState ?? {});
 
   const clientOptions = clients.map((c) => ({ value: c.id, label: c.companyName }));
   const taskOptions = tasks
