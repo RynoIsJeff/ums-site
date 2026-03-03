@@ -18,24 +18,17 @@ export type AuthScope = {
   assignedClientIds: string[] | null;
 };
 
-export async function getSupabaseSession() {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session;
-}
-
-/** Use getClaims() in proxy/middleware; use this in Server Components / Actions to get session + app user with RBAC scope. */
+/** Use getClaims() in proxy/middleware; use this in Server Components / Actions to get authenticated app user with RBAC scope. */
 export async function getSession() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user?.email) return { session: null, user: null };
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) return { user: null as AppUser | null };
 
   const appUser = await prisma.user.findUnique({
-    where: { email: session.user.email.trim().toLowerCase() },
+    where: { email: user.email.trim().toLowerCase() },
     select: {
       id: true,
       email: true,
@@ -48,7 +41,7 @@ export async function getSession() {
   });
 
   if (!appUser || !appUser.isActive)
-    return { session, user: null as AppUser | null };
+    return { user: null as AppUser | null };
 
   const assignedClientIds =
     appUser.role === "ADMIN"
@@ -56,7 +49,6 @@ export async function getSession() {
       : appUser.assignedClients.map((a) => a.clientId);
 
   return {
-    session,
     user: {
       id: appUser.id,
       email: appUser.email,

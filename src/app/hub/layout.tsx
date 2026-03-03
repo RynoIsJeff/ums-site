@@ -8,11 +8,7 @@ export default async function HubLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { session, user } = await getSession();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fhub");
-  }
+  const { user } = await getSession();
 
   if (!user) {
     redirect(

@@ -10,11 +10,7 @@ type PageProps = {
 
 export default async function Verify2FAPage({ searchParams }: PageProps) {
   const { callbackUrl = "/hub" } = await searchParams;
-  const { session, user } = await getSession();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=" + encodeURIComponent(callbackUrl));
-  }
+  const { user } = await getSession();
 
   if (!user) {
     redirect("/login?error=unauthorized");

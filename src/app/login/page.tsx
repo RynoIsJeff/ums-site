@@ -16,11 +16,11 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { callbackUrl } = await searchParams;
-  const { session } = await getSession();
+  const { user } = await getSession();
   const nextUrl =
     callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/hub";
 
-  if (session?.user) {
+  if (user) {
     redirect("/hub");
   }
 
