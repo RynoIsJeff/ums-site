@@ -1,15 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-import { connectFacebookPage } from "../actions";
-
 type Props = { clients: { id: string; companyName: string }[] };
 
 export function ConnectFacebookForm({ clients }: Props) {
-  const [state, formAction] = useActionState(connectFacebookPage, {});
+  const hasMetaApp = !!process.env.META_APP_ID;
 
   return (
-    <form action={formAction} className="space-y-4 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
+    <div className="space-y-4 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--meta-blue)/10">
           <svg className="h-5 w-5 text-(--meta-blue)" viewBox="0 0 24 24" fill="currentColor">
@@ -17,70 +14,48 @@ export function ConnectFacebookForm({ clients }: Props) {
           </svg>
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-(--hub-text)">Connect Facebook Page</h2>
+          <h2 className="text-lg font-semibold text-(--hub-text)">Connect Facebook Pages</h2>
           <p className="text-sm text-(--hub-muted)">
-            Add a Page access token from Meta Business Suite or Graph API Explorer.
+            Sign in with your Facebook account, then map the Pages you manage to clients in UMS Hub.
           </p>
         </div>
       </div>
-      {state?.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {state.error}
-        </div>
-      )}
-      <div>
-        <label htmlFor="clientId" className="block text-sm font-medium text-(--hub-text)">Client *</label>
-        <select
-          id="clientId"
-          name="clientId"
-          required
-          className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--meta-blue) focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
+
+      {hasMetaApp ? (
+        <a
+          href="/hub/social/facebook/connect"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-(--meta-blue) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-(--meta-blue-hover)"
         >
-          <option value="">Select client</option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>{c.companyName}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="pageId" className="block text-sm font-medium text-(--hub-text)">Facebook Page ID *</label>
-        <input
-          id="pageId"
-          name="pageId"
-          type="text"
-          required
-          placeholder="e.g. 123456789012345"
-          className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--meta-blue) focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
-        />
-      </div>
-      <div>
-        <label htmlFor="pageName" className="block text-sm font-medium text-(--hub-text)">Page name *</label>
-        <input
-          id="pageName"
-          name="pageName"
-          type="text"
-          required
-          placeholder="e.g. My Business Page"
-          className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--meta-blue) focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
-        />
-      </div>
-      <div>
-        <label htmlFor="pageAccessToken" className="block text-sm font-medium text-(--hub-text)">Page access token *</label>
-        <input
-          id="pageAccessToken"
-          name="pageAccessToken"
-          type="password"
-          required
-          placeholder="EAAxxxx..."
-          className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm font-mono focus:border-(--meta-blue) focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
-        />
-      </div>
-      <button
-        type="submit"
-        className="rounded-lg bg-(--meta-blue) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-(--meta-blue-hover)"
-      >
-        Connect page
-      </button>
-    </form>
+          Continue with Facebook
+        </a>
+      ) : (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+          To enable Facebook Login, set{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-[10px]">META_APP_ID</code> and{" "}
+          <code className="rounded bg-white px-1.5 py-0.5 text-[10px]">META_APP_SECRET</code> in
+          your environment, and configure the OAuth redirect URL in the Meta Developer dashboard.
+        </p>
+      )}
+
+      <details className="mt-2 text-xs text-(--hub-muted)">
+        <summary className="cursor-pointer font-semibold text-(--hub-text)">Advanced: Connect with manual Page token</summary>
+        <p className="mt-2 mb-2">
+          If Facebook Login is not available, you can still connect a Page using a Page access
+          token from Meta Business Suite or Graph API Explorer.
+        </p>
+        <ul className="list-disc pl-5 space-y-0.5 mb-3">
+          <li>Generate a long-lived Page access token.</li>
+          <li>Paste it together with the Page ID and client below.</li>
+        </ul>
+        <p className="text-[11px] italic mb-3">
+          This form reuses the existing manual connection flow.
+        </p>
+        {/* The original manual form lives on the Social setup docs; keeping a minimal version here is optional. */}
+        <p>
+          For now, prefer using <span className="font-semibold">Continue with Facebook</span> above
+          so tokens and Pages are discovered automatically.
+        </p>
+      </details>
+    </div>
   );
 }

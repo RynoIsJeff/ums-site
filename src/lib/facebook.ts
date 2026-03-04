@@ -175,6 +175,106 @@ export async function getPageInstagramAccountId(
   }
 }
 
+// --- OAuth helpers for connecting via Facebook Login ---
+
+export type FacebookPageSummary = {
+  id: string;
+  name: string;
+  accessToken: string;
+  pictureUrl?: string;
+};
+
+/**
+ * Exchange an OAuth code for a short-lived user access token.
+ * See: https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/#exchangecode
+ */
+export async function exchangeCodeForUserToken(code: string, redirectUri: string) {
+  const clientId = process.env.META_APP_ID;
+  const clientSecret = process.env.META_APP_SECRET;
+  if (!clientId || !clientSecret) {
+    return { ok: false, error: "META_APP_ID or META_APP_SECRET is not configured." } as const;
+  }
+
+  const url = `${GRAPH_BASE}/oauth/access_token?` +
+    `client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&client_secret=${encodeURIComponent(clientSecret)}` +
+    `&code=${encodeURIComponent(code)}`;
+
+  try {
+    const res = await fetch(url, { method: "GET" });
+    const data = (await res.json()) as {
+      access_token?: string;
+      token_type?: string;
+      expires_in?: number;
+      error?: { message: string };
+    };
+
+    if (!res.ok || !data.access_token) {
+      return {
+        ok: false,
+        error: data?.error?.message ?? `Facebook OAuth error (HTTP ${res.status})`,
+      } as const;
+    }
+
+    return {
+      ok: true,
+      accessToken: data.access_token,
+      expiresIn: data.expires_in ?? null,
+    } as const;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: message } as const;
+  }
+}
+
+/**
+ * List Facebook Pages the user can manage, including page access tokens.
+ * Uses /me/accounts. Requires: pages_show_list, pages_read_engagement.
+ */
+export async function listManagedPages(
+  userAccessToken: string
+): Promise<{ ok: true; pages: FacebookPageSummary[] } | { ok: false; error: string }> {
+  const fields = ["id", "name", "access_token", "picture{url}"];
+  const url =
+    `${GRAPH_BASE}/me/accounts?fields=${fields.join(",")}` +
+    `&access_token=${encodeURIComponent(userAccessToken)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = (await res.json()) as {
+      data?: {
+        id: string;
+        name: string;
+        access_token?: string;
+        picture?: { data?: { url?: string } };
+      }[];
+      error?: { message: string };
+    };
+
+    if (!res.ok || !data.data) {
+      return {
+        ok: false,
+        error: data?.error?.message ?? `HTTP ${res.status}`,
+      };
+    }
+
+    const pages: FacebookPageSummary[] = data.data
+      .filter((p) => !!p.access_token)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        accessToken: p.access_token!,
+        pictureUrl: p.picture?.data?.url,
+      }));
+
+    return { ok: true, pages };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: message };
+  }
+}
+
 /**
  * Update page cover photo. Requires pages_manage_metadata.
  * @param imageUrl - Public URL of the new cover photo (recommended 820x312)
