@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { Prisma, type BillingFrequency } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import type { BillingFrequency } from "@prisma/client";
+import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
 
 async function getNextInvoiceNumber(): Promise<string> {
   const config = await prisma.companyConfig.findFirst();
@@ -50,13 +51,17 @@ export async function GET(req: Request) {
   const clients = await prisma.client.findMany({
     where: {
       status: "ACTIVE",
-      retainerAmount: { not: null },
       billingFrequency: { in: ["MONTHLY", "QUARTERLY", "ANNUAL"] },
+      OR: [
+        { retainerAmount: { not: null } },
+        { retainerLineItems: { not: Prisma.DbNull } },
+      ],
     },
     select: {
       id: true,
       companyName: true,
       retainerAmount: true,
+      retainerLineItems: true,
       billingFrequency: true,
       renewalDate: true,
     },
@@ -64,8 +69,11 @@ export async function GET(req: Request) {
 
   for (const client of clients) {
     const freq = client.billingFrequency as BillingFrequency;
-    const amount = Number(client.retainerAmount);
-    if (!freq || amount <= 0) continue;
+    if (!freq) continue;
+
+    const templates = normalizeRetainerLineItemsJson(client.retainerLineItems);
+    const amount = client.retainerAmount != null ? Number(client.retainerAmount) : 0;
+    if (templates.length === 0 && amount <= 0) continue;
 
     const monthsPerInvoice =
       freq === "MONTHLY" ? 1 : freq === "QUARTERLY" ? 3 : 12;
@@ -87,6 +95,29 @@ export async function GET(req: Request) {
       const dueDate = addMonths(nextIssue, 1);
       const invoiceNumber = await getNextInvoiceNumber();
 
+      const lineCreates =
+        templates.length > 0
+          ? templates.map((t) => {
+              const lineTotal = t.quantity * t.unitPrice;
+              return {
+                description: t.description,
+                quantity: t.quantity,
+                unitPrice: t.unitPrice,
+                lineTotal,
+              };
+            })
+          : [
+              {
+                description: `Retainer - ${client.companyName} (${freq})`,
+                quantity: 1,
+                unitPrice: amount,
+                lineTotal: amount,
+              },
+            ];
+
+      const subtotal = lineCreates.reduce((s, l) => s + l.lineTotal, 0);
+      if (subtotal <= 0) continue;
+
       await prisma.invoice.create({
         data: {
           clientId: client.id,
@@ -96,17 +127,12 @@ export async function GET(req: Request) {
           status: "DRAFT",
           includeVat: false,
           vatRate: 0,
-          subtotalAmount: String(amount),
+          subtotalAmount: String(subtotal),
           vatAmount: "0",
-          totalAmount: String(amount),
+          totalAmount: String(subtotal),
           currency: "ZAR",
           lineItems: {
-            create: {
-              description: `Retainer - ${client.companyName} (${freq})`,
-              quantity: 1,
-              unitPrice: amount,
-              lineTotal: amount,
-            },
+            create: lineCreates,
           },
         },
       });

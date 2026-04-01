@@ -25,6 +25,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     include: {
       client: { select: { id: true, companyName: true } },
       socialPage: { select: { id: true, pageName: true } },
+      media: true,
     },
   });
 
@@ -98,6 +99,8 @@ export default async function PostDetailPage({ params }: PageProps) {
             defaultScheduledFor={
               post.scheduledFor ? post.scheduledFor.toISOString().slice(0, 16) : ""
             }
+            defaultMediaUrl={post.media[0]?.mediaUrl ?? ""}
+            defaultMediaType={(post.media[0]?.mediaType as "IMAGE" | "VIDEO" | undefined) ?? ""}
             submitLabel="Save changes"
             backHref="/hub/social"
           />

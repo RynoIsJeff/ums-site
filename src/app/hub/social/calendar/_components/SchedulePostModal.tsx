@@ -171,6 +171,39 @@ export function SchedulePostModal({
             />
           </div>
 
+          <div className="grid gap-3 sm:grid-cols-[2fr,1fr]">
+            <div>
+              <label htmlFor="modal-mediaUrl" className="block text-sm font-medium">
+                Media URL (optional)
+              </label>
+              <input
+                id="modal-mediaUrl"
+                name="mediaUrl"
+                type="url"
+                placeholder="https://… image, video or reel URL"
+                className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
+              />
+              <p className="mt-1 text-xs text-(--hub-muted)">
+                Stored with the post so you can track what image / video / reel to use.
+              </p>
+            </div>
+            <div>
+              <label htmlFor="modal-mediaType" className="block text-sm font-medium">
+                Media type
+              </label>
+              <select
+                id="modal-mediaType"
+                name="mediaType"
+                defaultValue=""
+                className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
+              >
+                <option value="">None</option>
+                <option value="IMAGE">Image</option>
+                <option value="VIDEO">Video / Reel</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <label htmlFor="modal-scheduledFor" className="block text-sm font-medium">
               Date & time

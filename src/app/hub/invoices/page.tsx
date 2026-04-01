@@ -17,6 +17,8 @@ import {
 } from "@/app/hub/_lib/listParams";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toNum } from "@/lib/utils";
+import { DeleteInvoiceButton } from "./_components/DeleteInvoiceButton";
+import { DuplicateInvoiceButton } from "./_components/DuplicateInvoiceButton";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -65,7 +67,10 @@ export default async function HubInvoicesPage({
     prisma.invoice.findMany({
       where,
       orderBy: [{ status: "asc" }, { dueDate: "desc" }],
-      include: { client: { select: { id: true, companyName: true } } },
+      include: {
+        client: { select: { id: true, companyName: true } },
+        _count: { select: { payments: true } },
+      },
       skip: (params.page - 1) * params.pageSize,
       take: params.pageSize,
     }),
@@ -189,22 +194,40 @@ export default async function HubInvoicesPage({
                   <td>
                     <StatusBadge status={inv.status} />
                   </td>
-                  <td className="whitespace-nowrap text-right space-x-3">
-                    <Link
-                      href={`/api/hub/invoices/${inv.id}/pdf`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-(--hub-muted) hover:underline"
-                    >
-                      View
-                    </Link>
-                    <a
-                      href={`/api/hub/invoices/${inv.id}/pdf?download=1`}
-                      download
-                      className="text-(--hub-muted) hover:underline"
-                    >
-                      Download
-                    </a>
+                  <td className="whitespace-nowrap text-right">
+                    <span className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                      <Link
+                        href={`/api/hub/invoices/${inv.id}/pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-(--hub-muted) hover:underline"
+                      >
+                        View
+                      </Link>
+                      <a
+                        href={`/api/hub/invoices/${inv.id}/pdf?download=1`}
+                        download
+                        className="text-(--hub-muted) hover:underline"
+                      >
+                        Download
+                      </a>
+                      {inv.status === "DRAFT" && (
+                        <Link
+                          href={`/hub/invoices/${inv.id}/edit`}
+                          className="text-(--hub-muted) hover:underline"
+                        >
+                          Edit
+                        </Link>
+                      )}
+                      <DuplicateInvoiceButton invoiceId={inv.id} compact />
+                      {inv.status === "DRAFT" && inv._count.payments === 0 && (
+                        <DeleteInvoiceButton
+                          invoiceId={inv.id}
+                          invoiceNumber={inv.invoiceNumber}
+                          compact
+                        />
+                      )}
+                    </span>
                   </td>
                 </tr>
               ))}

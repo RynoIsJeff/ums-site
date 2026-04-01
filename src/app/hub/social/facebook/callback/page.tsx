@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeForUserToken, listManagedPages } from "@/lib/facebook";
-import { connectFacebookPage } from "../../actions";
+import { connectFacebookPageForm } from "../../actions";
 
 type CallbackPageProps = {
   searchParams: Promise<{ code?: string; error?: string }>;
@@ -103,7 +103,7 @@ export default async function FacebookCallbackPage({
           {pagesResult.pages.map((page) => (
             <form
               key={page.id}
-              action={connectFacebookPage}
+              action={connectFacebookPageForm}
               className="space-y-3 rounded-xl border border-(--hub-border-light) bg-white p-4 shadow-sm"
             >
               <div>

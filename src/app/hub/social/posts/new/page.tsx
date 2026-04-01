@@ -44,13 +44,14 @@ export default async function NewPostPage() {
       </div>
       <h1 className="text-2xl font-bold tracking-tight text-(--hub-text)">Create post</h1>
       <p className="mt-1 text-sm text-(--hub-muted)">
-        Choose Facebook page(s), add your caption, and schedule.
+        Choose Facebook page(s), add your caption, optional media (image / video / reel URL), and schedule.
       </p>
       <div className="mt-6 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
         <PostForm
           action={createPost}
           clients={clients}
           pages={pageOptions}
+          defaultMediaType=""
           submitLabel="Create post"
           backHref="/hub/social"
           multiPage

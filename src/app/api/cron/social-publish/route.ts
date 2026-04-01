@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { publishPageFeedPost } from "@/lib/facebook";
+import { publishPageFeedPost, publishPagePhotoPost, publishPageVideoPost } from "@/lib/facebook";
 
 /**
  * Worker: publish scheduled social posts (Facebook/META).
@@ -47,6 +47,7 @@ async function runWorker(req: Request) {
     },
     include: {
       socialPage: true,
+      media: true,
     },
   });
 
@@ -67,12 +68,39 @@ async function runWorker(req: Request) {
       where: { id: post.id },
       data: { status: "PROCESSING" },
     });
+    const firstMedia = (post.media ?? [])[0];
 
-    const result = await publishPageFeedPost(
-      page.pageExternalId,
-      page.pageAccessTokenEncrypted,
-      post.caption
-    );
+    let result;
+    if (firstMedia && firstMedia.mediaUrl) {
+      if (firstMedia.mediaType === "IMAGE") {
+        result = await publishPagePhotoPost(
+          page.pageExternalId,
+          page.pageAccessTokenEncrypted,
+          firstMedia.mediaUrl,
+          post.caption
+        );
+      } else if (firstMedia.mediaType === "VIDEO") {
+        result = await publishPageVideoPost(
+          page.pageExternalId,
+          page.pageAccessTokenEncrypted,
+          firstMedia.mediaUrl,
+          post.caption
+        );
+      } else {
+        // Fallback for unsupported media types (e.g. DOCUMENT).
+        result = await publishPageFeedPost(
+          page.pageExternalId,
+          page.pageAccessTokenEncrypted,
+          post.caption
+        );
+      }
+    } else {
+      result = await publishPageFeedPost(
+        page.pageExternalId,
+        page.pageAccessTokenEncrypted,
+        post.caption
+      );
+    }
 
     if (result.ok) {
       await prisma.socialPost.update({

@@ -13,6 +13,8 @@ type PostFormProps = {
   defaultPageId?: string;
   defaultCaption?: string;
   defaultScheduledFor?: string;
+  defaultMediaUrl?: string;
+  defaultMediaType?: "IMAGE" | "VIDEO" | "";
   submitLabel: string;
   backHref: string;
   /** When true, allow selecting multiple pages (creates one post per page). For edit mode, use false. */
@@ -27,6 +29,8 @@ export function PostForm({
   defaultPageId = "",
   defaultCaption = "",
   defaultScheduledFor = "",
+  defaultMediaUrl = "",
+  defaultMediaType = "",
   submitLabel,
   backHref,
   multiPage = false,
@@ -162,6 +166,40 @@ export function PostForm({
           placeholder="Post text..."
           className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
         />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-[2fr,1fr]">
+        <div>
+          <label htmlFor="mediaUrl" className="block text-sm font-medium">
+            Media URL (optional)
+          </label>
+          <input
+            id="mediaUrl"
+            name="mediaUrl"
+            type="url"
+            defaultValue={defaultMediaUrl}
+            placeholder="https://… image, video or reel URL"
+            className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
+          />
+          <p className="mt-1 text-xs text-black/50">
+            For now this is stored for planning and reference alongside the caption.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="mediaType" className="block text-sm font-medium">
+            Media type
+          </label>
+          <select
+            id="mediaType"
+            name="mediaType"
+            defaultValue={defaultMediaType}
+            className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
+          >
+            <option value="">None</option>
+            <option value="IMAGE">Image</option>
+            <option value="VIDEO">Video / Reel</option>
+          </select>
+        </div>
       </div>
 
       <div>

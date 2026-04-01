@@ -15,26 +15,53 @@ const ConnectPageSchema = z.object({
   pageAccessToken: z.string().min(1, "Page access token is required"),
 });
 
-const CreatePostSchema = z.object({
-  clientId: z.string().min(1),
-  socialPageIds: z.array(z.string().min(1)).min(1, "Please select at least one page"),
-  caption: z.string().min(1, "Caption is required").max(63206),
-  scheduledFor: z.string().optional(),
-});
+const CreatePostSchema = z
+  .object({
+    clientId: z.string().min(1),
+    socialPageIds: z.array(z.string().min(1)).min(1, "Please select at least one page"),
+    caption: z.string().min(1, "Caption is required").max(63206),
+    scheduledFor: z.string().optional(),
+    mediaUrl: z
+      .string()
+      .url("Enter a valid media URL")
+      .optional()
+      .or(z.literal("")),
+    mediaType: z.enum(["IMAGE", "VIDEO"]).optional(),
+  })
+  .refine(
+    (data) => !data.mediaUrl || data.mediaType,
+    {
+      message: "Select a media type for the media URL.",
+      path: ["mediaType"],
+    }
+  );
 
-const UpdatePostSchema = z.object({
-  clientId: z.string().min(1),
-  socialPageId: z.string().min(1, "Please select a page"),
-  caption: z.string().min(1, "Caption is required").max(63206),
-  scheduledFor: z.string().optional(),
-});
+const UpdatePostSchema = z
+  .object({
+    clientId: z.string().min(1),
+    socialPageId: z.string().min(1, "Please select a page"),
+    caption: z.string().min(1, "Caption is required").max(63206),
+    scheduledFor: z.string().optional(),
+    mediaUrl: z
+      .string()
+      .url("Enter a valid media URL")
+      .optional()
+      .or(z.literal("")),
+    mediaType: z.enum(["IMAGE", "VIDEO"]).optional(),
+  })
+  .refine(
+    (data) => !data.mediaUrl || data.mediaType,
+    {
+      message: "Select a media type for the media URL.",
+      path: ["mediaType"],
+    }
+  );
 
 export type SocialFormState = { error?: string };
 
-export async function connectFacebookPage(
-  _prev: SocialFormState,
-  formData: FormData
-): Promise<SocialFormState> {
+// Used from forms via connectFacebookPageForm (void return for Next.js form types).
+// so the framework passes a single FormData argument.
+export async function connectFacebookPage(formData: FormData): Promise<SocialFormState> {
   const { scope, user } = await requireHubAuth();
 
   const raw = {
@@ -140,6 +167,11 @@ export async function connectFacebookPage(
   redirect("/hub/social");
 }
 
+/** Form action wrapper: Next.js 16 form `action` type expects `Promise<void>`. */
+export async function connectFacebookPageForm(formData: FormData): Promise<void> {
+  await connectFacebookPage(formData);
+}
+
 export async function createPost(
   _prev: SocialFormState,
   formData: FormData
@@ -160,7 +192,7 @@ export async function createPost(
     return { error: msg };
   }
 
-  const { clientId, socialPageIds, caption, scheduledFor } = parsed.data;
+  const { clientId, socialPageIds, caption, scheduledFor, mediaUrl, mediaType } = parsed.data;
   if (!canAccessClient(scope, clientId)) {
     return { error: "Access denied to this client." };
   }
@@ -180,17 +212,31 @@ export async function createPost(
   const scheduledAt = scheduledFor ? new Date(scheduledFor) : null;
   const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
-  await prisma.socialPost.createMany({
-    data: pages.map((page) => ({
-      clientId,
-      socialPageId: page.id,
-      provider: "META",
-      status,
-      caption,
-      scheduledFor: scheduledAt,
-      createdById: user.id,
-    })),
-  });
+  const shouldCreateMedia = !!mediaUrl && !!mediaType;
+
+  for (const page of pages) {
+    const post = await prisma.socialPost.create({
+      data: {
+        clientId,
+        socialPageId: page.id,
+        provider: "META",
+        status,
+        caption,
+        scheduledFor: scheduledAt,
+        createdById: user.id,
+      },
+    });
+
+    if (shouldCreateMedia) {
+      await prisma.socialPostMedia.create({
+        data: {
+          socialPostId: post.id,
+          mediaType: mediaType as "IMAGE" | "VIDEO",
+          mediaUrl,
+        },
+      });
+    }
+  }
 
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/calendar");
@@ -211,7 +257,7 @@ export async function updatePost(
 
   const post = await prisma.socialPost.findUnique({
     where: { id: postId },
-    include: { socialPage: { include: { socialAccount: true } } },
+    include: { socialPage: { include: { socialAccount: true } } , media: true },
   });
   if (!post || !canAccessClient(scope, post.clientId)) {
     return { error: "Post not found or access denied." };
@@ -225,6 +271,8 @@ export async function updatePost(
     socialPageId: formData.get("socialPageId") ?? post.socialPageId,
     caption: (formData.get("caption") as string)?.trim(),
     scheduledFor: formData.get("scheduledFor") || undefined,
+    mediaUrl: (formData.get("mediaUrl") as string | null)?.trim() || "",
+    mediaType: formData.get("mediaType") || undefined,
   };
 
   const parsed = UpdatePostSchema.safeParse(raw);
@@ -233,7 +281,7 @@ export async function updatePost(
     return { error: msg };
   }
 
-  const { socialPageId, caption, scheduledFor } = parsed.data;
+  const { socialPageId, caption, scheduledFor, mediaUrl, mediaType } = parsed.data;
 
   const page = socialPageId
     ? await prisma.socialPage.findFirst({
@@ -262,6 +310,38 @@ export async function updatePost(
       status,
     },
   });
+
+  const existingMedia = post.media ?? [];
+  const shouldHaveMedia = !!mediaUrl && !!mediaType;
+
+  if (shouldHaveMedia) {
+    if (existingMedia.length > 0) {
+      await prisma.socialPostMedia.update({
+        where: { id: existingMedia[0].id },
+        data: {
+          mediaUrl,
+          mediaType: mediaType as "IMAGE" | "VIDEO",
+        },
+      });
+      if (existingMedia.length > 1) {
+        await prisma.socialPostMedia.deleteMany({
+          where: { socialPostId: postId, id: { not: existingMedia[0].id } },
+        });
+      }
+    } else {
+      await prisma.socialPostMedia.create({
+        data: {
+          socialPostId: postId,
+          mediaUrl,
+          mediaType: mediaType as "IMAGE" | "VIDEO",
+        },
+      });
+    }
+  } else if (existingMedia.length > 0) {
+    await prisma.socialPostMedia.deleteMany({
+      where: { socialPostId: postId },
+    });
+  }
 
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/calendar");

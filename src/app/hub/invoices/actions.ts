@@ -312,3 +312,96 @@ export async function setInvoiceStatusForm(
   }
   return setInvoiceStatus(invoiceId, status as InvoiceStatus);
 }
+
+/** Draft invoices only, with no payments linked. */
+export async function deleteInvoice(invoiceId: string): Promise<{ error?: string }> {
+  try {
+    const { scope } = await requireHubAuth();
+
+    const inv = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      select: {
+        clientId: true,
+        status: true,
+        _count: { select: { payments: true } },
+      },
+    });
+    if (!inv || !canAccessClient(scope, inv.clientId)) {
+      return { error: "Invoice not found or access denied." };
+    }
+    if (inv.status !== "DRAFT") {
+      return { error: "Only draft invoices can be deleted." };
+    }
+    if (inv._count.payments > 0) {
+      return { error: "Cannot delete an invoice that has payments recorded." };
+    }
+
+    await prisma.invoice.delete({ where: { id: invoiceId } });
+
+    revalidatePath("/hub/invoices");
+    revalidatePath("/hub/billing");
+    revalidatePath(`/hub/clients/${inv.clientId}`);
+  } catch (e) {
+    console.error("[deleteInvoice]", e);
+    return { error: "Something went wrong." };
+  }
+  return {};
+}
+
+/** New draft invoice with the same client, lines, amounts, VAT, and notes; new number from `getNextInvoiceNumber`; dates reset to today keeping the original issue→due offset. */
+export async function duplicateInvoice(invoiceId: string): Promise<void> {
+  const { scope, user } = await requireHubAuth();
+
+  const src = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { lineItems: { orderBy: { createdAt: "asc" } } },
+  });
+  if (!src || !canAccessClient(scope, src.clientId)) {
+    redirect("/hub/invoices");
+  }
+  if (src.lineItems.length === 0) {
+    redirect(`/hub/invoices/${invoiceId}`);
+  }
+
+  const invoiceNumber = await getNextInvoiceNumber();
+  const offsetMs = src.dueDate.getTime() - src.issueDate.getTime();
+  const issueDate = new Date();
+  issueDate.setHours(0, 0, 0, 0);
+  const dueDate = new Date(issueDate.getTime() + offsetMs);
+
+  try {
+    const newInv = await prisma.invoice.create({
+      data: {
+        clientId: src.clientId,
+        invoiceNumber,
+        issueDate,
+        dueDate,
+        status: "DRAFT",
+        includeVat: src.includeVat,
+        vatRate: src.vatRate,
+        subtotalAmount: src.subtotalAmount,
+        vatAmount: src.vatAmount,
+        totalAmount: src.totalAmount,
+        currency: src.currency,
+        notes: src.notes,
+        createdById: user.id,
+        lineItems: {
+          create: src.lineItems.map((li) => ({
+            description: li.description,
+            quantity: li.quantity,
+            unitPrice: li.unitPrice,
+            lineTotal: li.lineTotal,
+          })),
+        },
+      },
+    });
+
+    revalidatePath("/hub/invoices");
+    revalidatePath("/hub/billing");
+    revalidatePath(`/hub/clients/${src.clientId}`);
+    redirect(`/hub/invoices/${newInv.id}`);
+  } catch (e) {
+    console.error("[duplicateInvoice]", e);
+    redirect(`/hub/invoices/${invoiceId}`);
+  }
+}

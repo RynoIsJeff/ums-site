@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import type { ClientStatus, BillingFrequency } from "@prisma/client";
 
 const clientStatusValues = ["LEAD", "ACTIVE", "PAUSED", "CHURNED"] as const;
@@ -151,6 +152,66 @@ export async function updateClient(
     return { error: "Something went wrong." };
   }
   redirect(`/hub/clients/${clientId}`);
+}
+
+const RetainerLineItemSchema = z.object({
+  description: z.string().min(1).max(500),
+  quantity: z.string().transform((s) => ((Number(s) || 0) <= 0 ? 1 : Number(s))),
+  unitPrice: z.string().transform((s) => Number(s) || 0),
+});
+
+export type RetainerLineItemsFormState = { error?: string; ok?: boolean };
+
+/** Line items copied onto each recurring retainer invoice when the cron runs (optional). */
+export async function updateClientRetainerLineItems(
+  clientId: string,
+  _prev: RetainerLineItemsFormState,
+  formData: FormData
+): Promise<RetainerLineItemsFormState> {
+  try {
+    const { scope } = await requireHubAuth();
+    if (!canAccessClient(scope, clientId)) {
+      return { error: "You do not have access to this client." };
+    }
+
+    const descriptions = formData.getAll("retainerDescription") as string[];
+    const quantities = formData.getAll("retainerQuantity") as string[];
+    const unitPrices = formData.getAll("retainerUnitPrice") as string[];
+
+    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
+    for (let i = 0; i < descriptions.length; i++) {
+      const desc = descriptions[i]?.trim();
+      if (!desc) continue;
+      const parsed = RetainerLineItemSchema.safeParse({
+        description: desc,
+        quantity: quantities[i] ?? "1",
+        unitPrice: unitPrices[i] ?? "0",
+      });
+      if (parsed.success) lineItems.push(parsed.data);
+    }
+
+    await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        retainerLineItems:
+          lineItems.length > 0
+            ? lineItems.map((r) => ({
+                description: r.description,
+                quantity: r.quantity,
+                unitPrice: r.unitPrice,
+              }))
+            : Prisma.DbNull,
+      },
+    });
+
+    revalidatePath("/hub/clients");
+    revalidatePath(`/hub/clients/${clientId}`);
+    revalidatePath("/hub/billing");
+  } catch (e) {
+    console.error("[updateClientRetainerLineItems]", e);
+    return { error: "Something went wrong." };
+  }
+  return { ok: true };
 }
 
 export async function deleteClient(clientId: string): Promise<{ error?: string }> {

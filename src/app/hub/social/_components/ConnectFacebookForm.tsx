@@ -1,9 +1,12 @@
-"use client";
+import { connectFacebookPageForm } from "../actions";
 
-type Props = { clients: { id: string; companyName: string }[] };
+type Props = {
+  clients: { id: string; companyName: string }[];
+};
 
 export function ConnectFacebookForm({ clients }: Props) {
-  const hasMetaApp = !!process.env.META_APP_ID;
+
+  const hasMetaApp = !!process.env.META_APP_ID && !!process.env.META_APP_SECRET;
 
   return (
     <div className="space-y-4 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
@@ -48,13 +51,83 @@ export function ConnectFacebookForm({ clients }: Props) {
           <li>Paste it together with the Page ID and client below.</li>
         </ul>
         <p className="text-[11px] italic mb-3">
-          This form reuses the existing manual connection flow.
+          Use this when a Page is owned by a business portfolio that doesn&apos;t expose it via Facebook Login.
         </p>
-        {/* The original manual form lives on the Social setup docs; keeping a minimal version here is optional. */}
-        <p>
-          For now, prefer using <span className="font-semibold">Continue with Facebook</span> above
-          so tokens and Pages are discovered automatically.
-        </p>
+
+        <form
+          action={connectFacebookPageForm}
+          className="space-y-3 rounded-lg border border-(--hub-border-light) bg-black/2 p-4 text-xs"
+        >
+          <div>
+            <label htmlFor="manual-clientId" className="block font-medium text-(--hub-text)">
+              Client
+            </label>
+            <select
+              id="manual-clientId"
+              name="clientId"
+              required
+              className="mt-1 w-full rounded-md border border-(--hub-border-light) px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
+            >
+              <option value="">Select client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.companyName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="manual-pageId" className="block font-medium text-(--hub-text)">
+                Page ID
+              </label>
+              <input
+                id="manual-pageId"
+                name="pageId"
+                required
+                className="mt-1 w-full rounded-md border border-(--hub-border-light) px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
+                placeholder="e.g. 1234567890"
+              />
+            </div>
+            <div>
+              <label htmlFor="manual-pageName" className="block font-medium text-(--hub-text)">
+                Page name
+              </label>
+              <input
+                id="manual-pageName"
+                name="pageName"
+                required
+                className="mt-1 w-full rounded-md border border-(--hub-border-light) px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
+                placeholder="e.g. Build it Ulundi"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="manual-pageAccessToken" className="block font-medium text-(--hub-text)">
+              Long-lived Page access token
+            </label>
+            <textarea
+              id="manual-pageAccessToken"
+              name="pageAccessToken"
+              required
+              rows={3}
+              className="mt-1 w-full rounded-md border border-(--hub-border-light) px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
+              placeholder="EAAB..."
+            />
+            <p className="mt-1 text-[10px] text-(--hub-muted)">
+              Paste the Page access token from Meta Business Suite or Graph API Explorer. Keep this secret.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-md bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)"
+          >
+            Connect page with token
+          </button>
+        </form>
       </details>
     </div>
   );

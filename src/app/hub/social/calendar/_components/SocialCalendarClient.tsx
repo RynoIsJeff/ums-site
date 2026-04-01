@@ -229,7 +229,11 @@ export function SocialCalendarClient({
                         href={`/hub/social/posts/${post.id}`}
                         onClick={(e) => e.stopPropagation()}
                     className={`block rounded px-1.5 py-1 text-xs transition-colors hover:bg-black/5 ${
-                      post.status === "SCHEDULED" ? "bg-amber-50 text-amber-900" : "bg-black/5 text-(--hub-muted)"
+                      post.status === "SCHEDULED"
+                        ? "bg-amber-50 text-amber-900"
+                        : post.status === "PUBLISHED"
+                          ? "bg-green-50 text-green-800"
+                          : "bg-black/5 text-(--hub-muted)"
                     }`}
                       >
                         <span className="line-clamp-2" title={post.caption}>

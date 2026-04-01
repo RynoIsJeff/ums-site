@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 /**
  * Facebook (Meta) Graph API helpers for posting to a Page feed, fetching page info, etc.
  * Requires a Page access token with pages_manage_posts (and related) permissions.
@@ -15,6 +17,12 @@ export type PageProfile = {
 export type PublishResult =
   | { ok: true; postId: string; permalink?: string }
   | { ok: false; error: string; code?: number };
+
+function buildAppSecretProof(accessToken: string): string | null {
+  const appSecret = process.env.META_APP_SECRET;
+  if (!appSecret) return null;
+  return crypto.createHmac("sha256", appSecret).update(accessToken).digest("hex");
+}
 
 /**
  * Publish a text post to a Facebook Page.
@@ -60,6 +68,103 @@ export async function publishPageFeedPost(
       ok: true,
       postId: String(postId),
     };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: message };
+  }
+}
+
+/**
+ * Publish a photo post to a Facebook Page using a public image URL.
+ * Uses /{page-id}/photos with `url` + `caption`.
+ */
+export async function publishPagePhotoPost(
+  pageId: string,
+  pageAccessToken: string,
+  imageUrl: string,
+  caption: string
+): Promise<PublishResult> {
+  const url = `${GRAPH_BASE}/${pageId}/photos`;
+  const body = new URLSearchParams({
+    url: imageUrl,
+    caption,
+    access_token: pageAccessToken,
+    published: "true",
+  });
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    const data = (await res.json()) as {
+      id?: string;
+      post_id?: string;
+      error?: { message: string; code: number; type?: string };
+    };
+
+    if (!res.ok) {
+      const err = data?.error;
+      return {
+        ok: false,
+        error: err?.message ?? `HTTP ${res.status}`,
+        code: err?.code,
+      };
+    }
+
+    // photos endpoint may return both a photo id and post_id
+    const postId = data.post_id ?? data.id ?? "";
+    return { ok: true, postId: String(postId) };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Network error";
+    return { ok: false, error: message };
+  }
+}
+
+/**
+ * Publish a video post to a Facebook Page using a public video URL.
+ * Uses /{page-id}/videos with `file_url` + `description`.
+ * For reels, Facebook may surface certain videos as reels depending on the Page setup.
+ */
+export async function publishPageVideoPost(
+  pageId: string,
+  pageAccessToken: string,
+  videoUrl: string,
+  caption: string
+): Promise<PublishResult> {
+  const url = `${GRAPH_BASE}/${pageId}/videos`;
+  const body = new URLSearchParams({
+    file_url: videoUrl,
+    description: caption,
+    access_token: pageAccessToken,
+    published: "true",
+  });
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    const data = (await res.json()) as {
+      id?: string;
+      error?: { message: string; code: number; type: string };
+    };
+
+    if (!res.ok) {
+      const err = data?.error;
+      return {
+        ok: false,
+        error: err?.message ?? `HTTP ${res.status}`,
+        code: err?.code,
+      };
+    }
+
+    const postId = data.id ?? "";
+    return { ok: true, postId: String(postId) };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     return { ok: false, error: message };
@@ -236,9 +341,22 @@ export async function listManagedPages(
   userAccessToken: string
 ): Promise<{ ok: true; pages: FacebookPageSummary[] } | { ok: false; error: string }> {
   const fields = ["id", "name", "access_token", "picture{url}"];
-  const url =
-    `${GRAPH_BASE}/me/accounts?fields=${fields.join(",")}` +
-    `&access_token=${encodeURIComponent(userAccessToken)}`;
+  const appSecretProof = buildAppSecretProof(userAccessToken);
+
+  if (!appSecretProof) {
+    return {
+      ok: false,
+      error: "META_APP_SECRET is not configured; cannot generate appsecret_proof.",
+    };
+  }
+
+  const params = new URLSearchParams({
+    fields: fields.join(","),
+    access_token: userAccessToken,
+    appsecret_proof: appSecretProof,
+  });
+
+  const url = `${GRAPH_BASE}/me/accounts?${params.toString()}`;
 
   try {
     const res = await fetch(url);

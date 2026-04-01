@@ -5,6 +5,8 @@ import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { SetInvoiceStatusButton } from "../_components/SetInvoiceStatusButton";
+import { DeleteInvoiceButton } from "../_components/DeleteInvoiceButton";
+import { DuplicateInvoiceButton } from "../_components/DuplicateInvoiceButton";
 import { RecordPaymentForm } from "@/app/hub/payments/_components/RecordPaymentForm";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
@@ -69,6 +71,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           >
             Download
           </a>
+          {invoice.lineItems.length > 0 && <DuplicateInvoiceButton invoiceId={id} />}
           {invoice.status === "DRAFT" && (
             <Link
               href={`/hub/invoices/${id}/edit`}
@@ -76,6 +79,13 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             >
               Edit
             </Link>
+          )}
+          {invoice.status === "DRAFT" && invoice.payments.length === 0 && (
+            <DeleteInvoiceButton
+              invoiceId={id}
+              invoiceNumber={invoice.invoiceNumber}
+              afterDelete="invoices"
+            />
           )}
           <SetInvoiceStatusButton invoiceId={id} currentStatus={invoice.status} />
         </div>

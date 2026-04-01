@@ -31,7 +31,7 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
     prisma.socialPost.findMany({
       where: {
         ...clientIdWhere(scope),
-        status: { in: ["DRAFT", "SCHEDULED"] },
+        status: { in: ["DRAFT", "SCHEDULED", "PUBLISHED", "FAILED"] },
         scheduledFor: {
           gte: startOfMonth,
           lte: endOfMonth,

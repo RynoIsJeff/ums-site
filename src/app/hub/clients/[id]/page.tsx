@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ClientTabs } from "./_components/ClientTabs";
 import { DeleteClientButton } from "./_components/DeleteClientButton";
+import { RetainerLineItemsForm } from "./_components/RetainerLineItemsForm";
+import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toNum } from "@/lib/utils";
@@ -68,6 +70,8 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
   ]);
 
   if (!client) notFound();
+
+  const retainerLineTemplates = normalizeRetainerLineItemsJson(client.retainerLineItems);
 
   const outstandingTotal = clientInvoices
     .filter((inv) => inv.status === "SENT" || inv.status === "OVERDUE")
@@ -280,6 +284,23 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                   </ul>
                 </div>
               )}
+
+              <div className="rounded-lg border border-(--hub-border-light) bg-white p-5">
+                <h4 className="text-sm font-medium text-(--hub-text)">
+                  Recurring retainer invoice lines
+                </h4>
+                <p className="mt-1 text-xs text-(--hub-muted) max-w-2xl">
+                  For clients on monthly, quarterly, or annual billing, the automation cron builds
+                  draft invoices from these lines (or from the retainer amount alone if no lines
+                  are saved).
+                </p>
+                <div className="mt-4">
+                  <RetainerLineItemsForm
+                    clientId={client.id}
+                    defaultLines={retainerLineTemplates}
+                  />
+                </div>
+              </div>
             </div>
           )}
           {tab === "invoices" && (
