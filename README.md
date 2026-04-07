@@ -23,7 +23,9 @@ UMS Hub uses **Supabase** for auth and Postgres.
 
    - **NEXT_PUBLIC_SUPABASE_URL** — Project URL (Project Settings → API).
    - **NEXT_PUBLIC_SUPABASE_ANON_KEY** — anon/public key (Project Settings → API).
-   - **DATABASE_URL** — Session pooler URI (IPv4-friendly for Vercel). Supabase: Settings → Database → Connection string → **Session** mode. Example: `...@xxx.pooler.supabase.com:5432/postgres`.
+   - **DATABASE_URL** — Postgres URI for Prisma.
+     - **Vercel / production:** use Supabase **Transaction** pooler (port **6543**), not Session mode. Session mode hits a low per-project connection cap (`MaxClientsInSessionMode`) when many serverless requests run at once. In the dashboard: Database → Connection string → **Transaction** pooler. Add query params: `?pgbouncer=true&connection_limit=1` (example host: `...@....pooler.supabase.com:6543/postgres?...`).
+     - **Local dev:** Session pooler (`:5432`) is often fine.
    Put these in `.env` (Prisma CLI reads `.env`). The seed script also reads `.env.local` if present.
 
 3. **Create a user in Supabase Auth** (Authentication → Users → Add user) with the same email you will use for `HUB_BOOTSTRAP_EMAIL` (e.g. `admin@ultimatemarketingsmash.com`). Set a password.
@@ -88,4 +90,4 @@ Both require `Authorization: Bearer <CRON_SECRET>` when `CRON_SECRET` is set.
 
 ## Deploy on Vercel
 
-Set the same env vars in the Vercel project (Supabase URL, anon key, `DATABASE_URL` with the **Session pooler** URL). Add `CRON_SECRET` if you use crons. Add `RESEND_API_KEY` for invoice emails and reminders. Add `NEXT_PUBLIC_APP_URL` for correct portal links in emails. In your build command or a postinstall script, run `prisma generate` and `prisma migrate deploy` so the schema is applied using the pooler (no direct connection required).
+Set the same env vars in the Vercel project (Supabase URL, anon key). For **`DATABASE_URL`**, use the **Transaction pooler** URL (port **6543**) with `pgbouncer=true` and `connection_limit=1` — see the Supabase setup notes above. Add `CRON_SECRET` if you use crons. Add `RESEND_API_KEY` for invoice emails and reminders. Add `NEXT_PUBLIC_APP_URL` for correct portal links in emails. In your build command or a postinstall script, run `prisma generate` and `prisma migrate deploy` so the schema is applied (pooler is OK for deploy).

@@ -19,6 +19,7 @@ import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toNum } from "@/lib/utils";
 import { DeleteInvoiceButton } from "./_components/DeleteInvoiceButton";
 import { DuplicateInvoiceButton } from "./_components/DuplicateInvoiceButton";
+import { MarkInvoiceSentButton } from "./_components/MarkInvoiceSentButton";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -218,6 +219,9 @@ export default async function HubInvoicesPage({
                         >
                           Edit
                         </Link>
+                      )}
+                      {inv.status === "DRAFT" && (
+                        <MarkInvoiceSentButton invoiceId={inv.id} />
                       )}
                       <DuplicateInvoiceButton invoiceId={inv.id} compact />
                       {inv.status === "DRAFT" && inv._count.payments === 0 && (

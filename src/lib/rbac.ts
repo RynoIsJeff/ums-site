@@ -21,9 +21,13 @@ export function canAccessClient(scope: AuthScope, clientId: string): boolean {
  * ADMIN: {} (no filter). STAFF: { id: { in: assignedClientIds } }.
  * Use in: prisma.client.findMany({ where: { ...clientWhere(scope) } })
  */
-export function clientWhere(scope: AuthScope): { id?: { in: string[] } } {
+/** Placeholder id so `where` matches no rows (Prisma rejects `in: []` on some DBs). */
+const NO_ACCESS_ID = "__no_client_scope__";
+
+export function clientWhere(scope: AuthScope): { id?: { in: string[] } | string } {
   if (scope.role === "ADMIN") return {};
   const ids = scope.assignedClientIds ?? [];
+  if (ids.length === 0) return { id: NO_ACCESS_ID };
   return { id: { in: ids } };
 }
 
@@ -33,9 +37,10 @@ export function clientWhere(scope: AuthScope): { id?: { in: string[] } } {
  */
 export function clientIdWhere(
   scope: AuthScope
-): { clientId?: { in: string[] } } {
+): { clientId?: { in: string[] } | string } {
   if (scope.role === "ADMIN") return {};
   const ids = scope.assignedClientIds ?? [];
+  if (ids.length === 0) return { clientId: NO_ACCESS_ID };
   return { clientId: { in: ids } };
 }
 

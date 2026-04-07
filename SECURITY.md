@@ -12,7 +12,7 @@ Use this as a deployment checklist. Never commit `.env` or `.env.local`.
 |----------|----------|------------|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes (Hub) | Public | Supabase project URL. Safe to expose. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (Hub) | Public | Supabase anon key. Intended for client; rate-limited by Supabase. |
-| `DATABASE_URL` | Yes (Hub) | Secret | Postgres connection string. Use **Session pooler** for Vercel. Never expose. |
+| `DATABASE_URL` | Yes (Hub) | Secret | Postgres for Prisma. **Vercel:** Supabase **Transaction** pooler (`:6543`) + `?pgbouncer=true&connection_limit=1`. Avoid Session pooler (`:5432`) in production — it exhausts connections under serverless concurrency. Never expose. |
 | `HUB_BOOTSTRAP_EMAIL` | Yes (Hub) | Secret | Email for bootstrap admin. Must match Supabase Auth user. |
 | `HUB_BOOTSTRAP_ROLE` | Yes (Hub) | Secret | `ADMIN` or `STAFF`. |
 | `FORMSPREE_FORM_ID` | Yes (contact) | Public | Formspree form ID. Safe to expose. |
@@ -24,7 +24,7 @@ Use this as a deployment checklist. Never commit `.env` or `.env.local`.
 
 **Production checklist**
 
-- [ ] `DATABASE_URL` uses Session pooler, not direct connection
+- [ ] `DATABASE_URL` uses Transaction pooler for Vercel (not Session mode); not the direct DB URL in production apps
 - [ ] `CRON_SECRET` set if using social publish cron
 - [ ] `SEED_SAMPLE_DATA=false` in production
 - [ ] Supabase project has Row Level Security (RLS) enabled where applicable
@@ -54,7 +54,7 @@ pg_dump "$DATABASE_URL" --no-owner --no-acl -F c -f backup-$(date +%Y%m%d).dump
 pg_dump "$DATABASE_URL" --no-owner --no-acl -s -f schema-$(date +%Y%m%d).sql
 ```
 
-Use the **Session pooler** URL for `pg_dump`. If connection fails (e.g. pooler limits), use the **Direct** connection from Supabase Dashboard → Database → Connection string (Transaction mode, port 5432).
+Use the **Session** or **direct** connection string for `pg_dump` (not the port-6543 transaction pooler). If the pooler fails, use **Direct connection** from Supabase → Database → Connection string.
 
 ### Restore
 

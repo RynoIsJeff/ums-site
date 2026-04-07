@@ -22,7 +22,7 @@ Requires Node >= 20 (pinned in `.nvmrc`). The VM update script handles `nvm use 
 
 ### Environment variables
 
-Copy `.env.example` to both `.env` and `.env.local`. The marketing site works without any real values. The Hub (`/hub/*`, `/login`) requires valid Supabase and `DATABASE_URL` credentials — see `README.md` § "Supabase setup".
+Copy `.env.example` to both `.env` and `.env.local`. The marketing site works without any real values. The Hub (`/hub/*`, `/login`) requires valid Supabase and `DATABASE_URL` credentials — see `README.md` § "Supabase setup". On **Vercel**, `DATABASE_URL` should use Supabase’s **Transaction** pooler (port 6543) with `pgbouncer=true` — Session pooler (`:5432`) causes `MaxClientsInSessionMode` under load.
 
 ### Two-part architecture
 
