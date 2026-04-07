@@ -161,6 +161,8 @@ export default async function HubHomePage() {
     });
   }
   const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.amount), 1);
+  /** Bar area height in px; bars use ratio × this (CSS % height failed — parent had no explicit height). */
+  const revenueChartMaxBarPx = 120;
   const sections = HUB_SECTIONS.filter((s) => !s.adminOnly || canAccessSettings(scope));
   const greeting = getGreeting();
 
@@ -253,22 +255,35 @@ export default async function HubHomePage() {
         {/* Revenue chart */}
         <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-(--hub-text)">Revenue (last 6 months)</h2>
-          <div className="mt-4 flex items-end gap-3 h-32">
-            {monthlyRevenue.map((m) => (
-              <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+          <div className="mt-4 flex items-end gap-2 sm:gap-3">
+            {monthlyRevenue.map((m) => {
+              const ratio = maxRevenue > 0 ? m.amount / maxRevenue : 0;
+              const barPx =
+                m.amount <= 0 ? 0 : Math.max(6, Math.round(ratio * revenueChartMaxBarPx));
+              return (
+              <div
+                key={m.month}
+                className="flex min-w-0 flex-1 flex-col items-center gap-1"
+              >
                 <div
-                  className="w-full rounded-t bg-(--primary)/20 min-h-2 transition-all"
-                  style={{
-                    height: `${Math.max(4, (m.amount / maxRevenue) * 100)}%`,
-                  }}
-                  title={`${m.month}: R ${m.amount.toLocaleString("en-ZA")}`}
-                />
+                  className="flex w-full flex-col items-center justify-end"
+                  style={{ height: revenueChartMaxBarPx }}
+                >
+                  <div
+                    className="w-[min(100%,2.75rem)] rounded-t-md bg-(--primary)/25 transition-[height] duration-300 sm:w-full"
+                    style={{ height: barPx }}
+                    title={`${m.month}: R ${m.amount.toLocaleString("en-ZA")}`}
+                  />
+                </div>
                 <span className="text-xs text-(--hub-muted)">{m.month}</span>
                 <span className="text-xs font-medium text-(--hub-text)">
-                  R {Math.round(m.amount / 1000)}k
+                  {m.amount >= 1000
+                    ? `R ${(m.amount / 1000).toLocaleString("en-ZA", { maximumFractionDigits: 1 })}k`
+                    : `R ${m.amount.toLocaleString("en-ZA")}`}
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--hub-muted)">

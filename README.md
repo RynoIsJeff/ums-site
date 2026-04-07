@@ -23,8 +23,8 @@ UMS Hub uses **Supabase** for auth and Postgres.
 
    - **NEXT_PUBLIC_SUPABASE_URL** — Project URL (Project Settings → API).
    - **NEXT_PUBLIC_SUPABASE_ANON_KEY** — anon/public key (Project Settings → API).
-   - **DATABASE_URL** — Postgres URI for Prisma.
-     - **Vercel / production:** use Supabase **Transaction** pooler (port **6543**), not Session mode. Session mode hits a low per-project connection cap (`MaxClientsInSessionMode`) when many serverless requests run at once. In the dashboard: Database → Connection string → **Transaction** pooler. Add query params: `?pgbouncer=true&connection_limit=1` (example host: `...@....pooler.supabase.com:6543/postgres?...`).
+   - **DATABASE_URL** — Postgres URI for Prisma. Must be a **complete** URI beginning with `postgresql://` or `postgres://` (copy from Supabase; do not paste hostnames only). In Vercel, enter the value **without** wrapping it in `"` quotes.
+     - **Vercel / production:** use Supabase **Transaction** pooler (port **6543**), not Session mode. Session mode hits a low per-project connection cap (`MaxClientsInSessionMode`) when many serverless requests run at once. In the dashboard: Database → Connection string → **Transaction** pooler. Add query params: `?pgbouncer=true&connection_limit=1` (example host: `...@....pooler.supabase.com:6543/postgres?...`). If Prisma reports `the URL must start with the protocol postgresql://`, the variable is empty, mistyped, or missing the scheme.
      - **Local dev:** Session pooler (`:5432`) is often fine.
    Put these in `.env` (Prisma CLI reads `.env`). The seed script also reads `.env.local` if present.
 

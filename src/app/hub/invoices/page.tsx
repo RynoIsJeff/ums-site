@@ -154,11 +154,12 @@ export default async function HubInvoicesPage({
         </div>
       ) : (
       <div className="mt-6 overflow-x-auto">
-        <table className="hub-table min-w-[600px]">
+        <table className="hub-table min-w-[720px]">
           <thead>
             <tr>
               <th>Number</th>
               <th>Client</th>
+              <th>Invoice date</th>
               <th>Due date</th>
               <th>Amount</th>
               <th>Status</th>
@@ -183,6 +184,11 @@ export default async function HubInvoicesPage({
                     >
                       {inv.client.companyName}
                     </Link>
+                  </td>
+                  <td className="text-(--hub-text)">
+                    {inv.issueDate.toLocaleDateString("en-ZA", {
+                      dateStyle: "medium",
+                    })}
                   </td>
                   <td className="text-(--hub-text)">
                     {inv.dueDate.toLocaleDateString("en-ZA", {
