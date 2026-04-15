@@ -13,7 +13,9 @@ const statuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"] as const;
 
 const LineItemSchema = z.object({
   description: z.string().min(1).max(500),
-  quantity: z.string().transform((s) => (Number(s) || 0) <= 0 ? 1 : Number(s)),
+  quantity: z
+    .string()
+    .transform((s) => ((Number(s) || 0) <= 0 ? 1 : Number(s))),
   unitPrice: z.string().transform((s) => Number(s) || 0),
 });
 
@@ -39,7 +41,7 @@ export type InvoiceFormState = { error?: string; emailError?: string };
 
 export async function createInvoice(
   _prev: InvoiceFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<InvoiceFormState> {
   try {
     const { scope, user } = await requireHubAuth();
@@ -64,7 +66,11 @@ export async function createInvoice(
     const quantities = formData.getAll("quantity") as string[];
     const unitPrices = formData.getAll("unitPrice") as string[];
 
-    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
+    const lineItems: {
+      description: string;
+      quantity: number;
+      unitPrice: number;
+    }[] = [];
     for (let i = 0; i < descriptions.length; i++) {
       const desc = descriptions[i]?.trim();
       if (!desc) continue;
@@ -77,7 +83,8 @@ export async function createInvoice(
         lineItems.push(parsed.data);
       }
     }
-    if (lineItems.length === 0) return { error: "At least one line item is required." };
+    if (lineItems.length === 0)
+      return { error: "At least one line item is required." };
 
     const existing = await prisma.invoice.findUnique({
       where: { invoiceNumber },
@@ -136,7 +143,7 @@ export async function createInvoice(
 export async function updateInvoice(
   invoiceId: string,
   _prev: InvoiceFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<InvoiceFormState> {
   try {
     const { scope } = await requireHubAuth();
@@ -164,7 +171,11 @@ export async function updateInvoice(
     const quantities = formData.getAll("quantity") as string[];
     const unitPrices = formData.getAll("unitPrice") as string[];
 
-    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
+    const lineItems: {
+      description: string;
+      quantity: number;
+      unitPrice: number;
+    }[] = [];
     for (let i = 0; i < descriptions.length; i++) {
       const desc = descriptions[i]?.trim();
       if (!desc) continue;
@@ -175,7 +186,8 @@ export async function updateInvoice(
       });
       if (parsed.success) lineItems.push(parsed.data);
     }
-    if (lineItems.length === 0) return { error: "At least one line item is required." };
+    if (lineItems.length === 0)
+      return { error: "At least one line item is required." };
 
     let subtotal = 0;
     const items = lineItems.map((item) => {
@@ -228,13 +240,17 @@ export async function updateInvoice(
 
 export async function setInvoiceStatus(
   invoiceId: string,
-  status: InvoiceStatus
+  status: InvoiceStatus,
 ): Promise<InvoiceFormState> {
   const { scope } = await requireHubAuth();
 
   const inv = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    select: { clientId: true, status: true, client: { select: { email: true, companyName: true } } },
+    select: {
+      clientId: true,
+      status: true,
+      client: { select: { email: true, companyName: true } },
+    },
   });
   if (!inv || !canAccessClient(scope, inv.clientId)) {
     return { error: "Invoice not found or access denied." };
@@ -249,7 +265,9 @@ export async function setInvoiceStatus(
 
   const crypto = await import("crypto");
   const portalToken =
-    status === "SENT" ? crypto.randomBytes(24).toString("base64url") : undefined;
+    status === "SENT"
+      ? crypto.randomBytes(24).toString("base64url")
+      : undefined;
 
   const TOKEN_EXPIRY_DAYS = 90;
   const updates: {
@@ -288,8 +306,7 @@ export async function setInvoiceStatus(
     ]);
     if (fullInvoice) {
       const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.VERCEL_URL
+        process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
           ? `https://${process.env.VERCEL_URL}`
           : "http://localhost:3000";
       const portalUrl = portalToken
@@ -299,7 +316,7 @@ export async function setInvoiceStatus(
         fullInvoice,
         companyConfig?.companyName ?? null,
         companyConfig?.supportEmail ?? null,
-        portalUrl
+        portalUrl,
       );
       if (!result.success && result.error) {
         emailError = result.error;
@@ -317,17 +334,22 @@ export async function setInvoiceStatus(
 export async function setInvoiceStatusForm(
   invoiceId: string,
   _prev: InvoiceFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<InvoiceFormState> {
   const status = formData.get("status");
-  if (typeof status !== "string" || !statuses.includes(status as InvoiceStatus)) {
+  if (
+    typeof status !== "string" ||
+    !statuses.includes(status as InvoiceStatus)
+  ) {
     return { error: "Invalid status" };
   }
   return setInvoiceStatus(invoiceId, status as InvoiceStatus);
 }
 
 /** Draft invoices only, with no payments linked. */
-export async function deleteInvoice(invoiceId: string): Promise<{ error?: string }> {
+export async function deleteInvoice(
+  invoiceId: string,
+): Promise<{ error?: string }> {
   try {
     const { scope } = await requireHubAuth();
 
@@ -362,7 +384,9 @@ export async function deleteInvoice(invoiceId: string): Promise<{ error?: string
 }
 
 /** Regenerate the portal token for a sent/overdue invoice (e.g. after expiry). Resets expiry to 90 days from now. */
-export async function regeneratePortalToken(invoiceId: string): Promise<{ error?: string }> {
+export async function regeneratePortalToken(
+  invoiceId: string,
+): Promise<{ error?: string }> {
   const { scope } = await requireHubAuth();
 
   const inv = await prisma.invoice.findUnique({
@@ -373,7 +397,10 @@ export async function regeneratePortalToken(invoiceId: string): Promise<{ error?
     return { error: "Invoice not found or access denied." };
   }
   if (!["SENT", "OVERDUE", "PAID"].includes(inv.status)) {
-    return { error: "Portal link can only be regenerated for sent, overdue, or paid invoices." };
+    return {
+      error:
+        "Portal link can only be regenerated for sent, overdue, or paid invoices.",
+    };
   }
 
   const crypto = await import("crypto");
@@ -383,7 +410,6 @@ export async function regeneratePortalToken(invoiceId: string): Promise<{ error?
 
   await prisma.invoice.update({
     where: { id: invoiceId },
-    // @ts-expect-error portalTokenExpiresAt — run prisma generate after migration
     data: { portalToken: newToken, portalTokenExpiresAt: expiresAt },
   });
 
