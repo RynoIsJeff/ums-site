@@ -1,9 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { useState } from "react";
 
-type PageOption = { id: string; pageName: string; clientId: string };
+type PageOption = {
+  id: string;
+  pageName: string;
+  clientId: string;
+  /** Whether this page has a linked Instagram Business Account */
+  hasInstagram?: boolean;
+};
 
 type PostFormProps = {
   action: (prev: { error?: string }, formData: FormData) => Promise<{ error?: string }>;
@@ -126,12 +133,19 @@ export function PostForm({
                         onChange={() => togglePage(p.id)}
                         className="rounded border-black/20"
                       />
-                      <span>{p.pageName}</span>
+                      <span>
+                        {p.pageName}
+                        {p.hasInstagram && (
+                          <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                            + Instagram
+                          </span>
+                        )}
+                      </span>
                     </label>
                   ))}
                 </div>
                 <p className="mt-1 text-xs text-black/50">
-                  {selectedPageIds.size} page{selectedPageIds.size !== 1 ? "s" : ""} selected — one post will be created per page
+                  {selectedPageIds.size} page{selectedPageIds.size !== 1 ? "s" : ""} selected — one post will be created per page. Pages with <span className="text-purple-600 font-medium">+ Instagram</span> will also publish to Instagram.
                 </p>
               </>
             )}
@@ -215,12 +229,9 @@ export function PostForm({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          className="rounded-lg bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90"
-        >
+        <PendingSubmitButton className="rounded-lg border border-transparent bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
           {submitLabel}
-        </button>
+        </PendingSubmitButton>
         <a
           href={backHref}
           className="rounded-lg border border-(--hub-border-light) px-4 py-2.5 text-sm font-medium hover:bg-black/5"

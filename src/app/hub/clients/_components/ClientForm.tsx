@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { ClientStatus, BillingFrequency } from "@prisma/client";
 
 const STATUS_OPTIONS: { value: ClientStatus; label: string }[] = [
@@ -240,12 +241,9 @@ export function ClientForm({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90"
-        >
+        <PendingSubmitButton className="rounded-md border border-transparent bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
           {submitLabel}
-        </button>
+        </PendingSubmitButton>
         <a
           href={backHref}
           className="rounded-md border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5"

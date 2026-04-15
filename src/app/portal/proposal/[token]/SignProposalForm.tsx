@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { signProposalFormAction } from "./actions";
 
 type SignProposalFormProps = {
@@ -11,20 +11,12 @@ export function SignProposalForm({ token }: SignProposalFormProps) {
   return (
     <form action={signProposalFormAction} className="border-t border-slate-200 pt-6">
       <input type="hidden" name="token" value={token} />
-      <p className="text-sm text-slate-600 mb-4">
+      <p className="mb-4 text-sm text-slate-600">
         By clicking below, you agree to the terms of this proposal.
       </p>
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-700"
-      >
-        <SignButtonLabel />
-      </button>
+      <PendingSubmitButton className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white hover:bg-green-700">
+        Sign proposal
+      </PendingSubmitButton>
     </form>
   );
-}
-
-function SignButtonLabel() {
-  const { pending } = useFormStatus();
-  return pending ? "Processing…" : "Sign proposal";
 }

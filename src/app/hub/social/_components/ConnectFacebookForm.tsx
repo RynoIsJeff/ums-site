@@ -1,4 +1,5 @@
 import { connectFacebookPageForm } from "../actions";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 type Props = {
   clients: { id: string; companyName: string }[];
@@ -121,12 +122,9 @@ export function ConnectFacebookForm({ clients }: Props) {
             </p>
           </div>
 
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)"
-          >
+          <PendingSubmitButton className="inline-flex items-center justify-center rounded-md border border-transparent bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)">
             Connect page with token
-          </button>
+          </PendingSubmitButton>
         </form>
       </details>
     </div>

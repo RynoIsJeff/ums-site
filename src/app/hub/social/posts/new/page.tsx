@@ -33,6 +33,7 @@ export default async function NewPostPage() {
     id: p.id,
     pageName: p.pageName,
     clientId: p.socialAccount.clientId,
+    hasInstagram: !!p.instagramBusinessAccountId,
   }));
 
   return (

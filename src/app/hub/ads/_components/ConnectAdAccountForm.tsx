@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { connectAdAccount } from "../actions";
 
 type Props = { clients: { id: string; companyName: string }[] };
@@ -93,12 +94,9 @@ export function ConnectAdAccountForm({ clients }: Props) {
         </p>
       </div>
 
-      <button
-        type="submit"
-        className="rounded-lg bg-(--meta-blue) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-(--meta-blue-hover)"
-      >
+      <PendingSubmitButton className="rounded-lg border border-transparent bg-(--meta-blue) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-(--meta-blue-hover)">
         Connect
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { signOut } from "./actions";
+import { LogoutForm } from "./LogoutForm";
 
 export const metadata = {
   title: "Logout | UMS Hub",
@@ -21,15 +21,7 @@ export default function LogoutPage() {
         <p className="mt-1.5 text-sm text-black/50">
           End your UMS Hub session
         </p>
-        <form action={signOut} className="mt-6">
-          <button
-            type="submit"
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
-          >
-            Sign out
-          </button>
-        </form>
+        <LogoutForm />
         <p className="mt-6 text-xs text-black/35">
           <Link href="/hub" className="hover:text-black/55 transition-colors">
             &larr; Back to Hub

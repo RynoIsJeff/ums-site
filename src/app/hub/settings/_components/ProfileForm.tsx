@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { ProfileFormState } from "../actions";
 
 type ProfileFormProps = {
@@ -36,12 +37,9 @@ export function ProfileForm({ action, defaultName }: ProfileFormProps) {
           className="mt-1 w-full max-w-sm rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
         />
       </div>
-      <button
-        type="submit"
-        className="rounded-lg bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-      >
+      <PendingSubmitButton className="rounded-lg border border-transparent bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95">
         Save changes
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

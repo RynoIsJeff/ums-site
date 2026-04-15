@@ -99,6 +99,7 @@ export async function updateCompanyConfig(
   }
 
   revalidatePath("/hub/settings");
+  revalidatePath("/hub"); // Invalidates cached company config used across hub pages
   return { success: true };
 }
 
@@ -153,7 +154,7 @@ export async function enableTwoFactor(
 export async function confirmTwoFactor(
   secret: string,
   token: string
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; recoveryCodes?: string[] }> {
   const { user } = await requireHubAuth();
   const { verifyTotpToken, generateRecoveryCodes } = await import("@/lib/two-factor");
   if (!(await verifyTotpToken(secret, token))) return { error: "Invalid code." };
@@ -167,7 +168,8 @@ export async function confirmTwoFactor(
     },
   });
   revalidatePath("/hub/settings");
-  return {};
+  // Return codes so the UI can display them once — they are stored hashed and cannot be retrieved again
+  return { recoveryCodes: codes };
 }
 
 export async function disableTwoFactor(): Promise<{ error?: string }> {

@@ -63,6 +63,18 @@ export async function POST(req: NextRequest) {
       return new NextResponse("OK", { status: 200 });
     }
 
+    // Duplicate guard: if this pfPaymentId was already recorded, skip
+    if (pfPaymentId) {
+      const existing = await prisma.payment.findFirst({
+        where: { externalReference: pfPaymentId },
+        select: { id: true },
+      });
+      if (existing) {
+        console.warn(`[payfast-notify] Duplicate webhook for pfPaymentId=${pfPaymentId} — skipping`);
+        return new NextResponse("OK", { status: 200 });
+      }
+    }
+
     await prisma.$transaction([
       prisma.payment.create({
         data: {
@@ -81,8 +93,10 @@ export async function POST(req: NextRequest) {
         data: { status: "PAID", paidAt: new Date() },
       }),
     ]);
-  } catch {
-    // Log but still return 200
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[payfast-notify] Failed to record payment:", message, { invoiceId, pfPaymentId });
+    return new NextResponse("Internal error", { status: 500 });
   }
 
   return new NextResponse("OK", { status: 200 });

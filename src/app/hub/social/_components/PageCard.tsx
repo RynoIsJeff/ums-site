@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Camera, RefreshCw, ExternalLink } from "lucide-react";
+import { Camera, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
 import { refreshPageProfile, updatePagePicture } from "../actions";
 
 type PageCardProps = {
@@ -173,14 +173,22 @@ export function PageCard({ page }: PageCardProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-(--meta-blue) px-4 py-2 text-sm font-medium text-white hover:bg-(--meta-blue-hover) disabled:opacity-50"
+                  aria-busy={loading}
+                  className="hub-hit-target inline-flex items-center justify-center gap-2 rounded-lg bg-(--meta-blue) px-4 py-2 text-sm font-medium text-white hover:bg-(--meta-blue-hover) disabled:opacity-50"
                 >
-                  {loading ? "Updating…" : "Update"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                      Updating…
+                    </>
+                  ) : (
+                    "Update"
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEditProfile(false); setError(null); }}
-                  className="rounded-lg border border-(--hub-border-light) px-4 py-2 text-sm font-medium hover:bg-black/5"
+                  className="hub-hit-target rounded-lg border border-(--hub-border-light) px-4 py-2 text-sm font-medium hover:bg-black/5"
                 >
                   Cancel
                 </button>
@@ -210,14 +218,22 @@ export function PageCard({ page }: PageCardProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-(--meta-blue) px-4 py-2 text-sm font-medium text-white hover:bg-(--meta-blue-hover) disabled:opacity-50"
+                  aria-busy={loading}
+                  className="hub-hit-target inline-flex items-center justify-center gap-2 rounded-lg bg-(--meta-blue) px-4 py-2 text-sm font-medium text-white hover:bg-(--meta-blue-hover) disabled:opacity-50"
                 >
-                  {loading ? "Updating…" : "Update"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                      Updating…
+                    </>
+                  ) : (
+                    "Update"
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEditCover(false); setError(null); }}
-                  className="rounded-lg border border-(--hub-border-light) px-4 py-2 text-sm font-medium hover:bg-black/5"
+                  className="hub-hit-target rounded-lg border border-(--hub-border-light) px-4 py-2 text-sm font-medium hover:bg-black/5"
                 >
                   Cancel
                 </button>

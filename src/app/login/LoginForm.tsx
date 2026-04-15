@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { signIn } from "./actions";
 
 type LoginFormProps = {
@@ -72,10 +73,18 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+        aria-busy={isSubmitting}
+        className="hub-hit-target inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
         style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
       >
-        {isSubmitting ? "Signing in..." : "Sign in to Hub"}
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+            Signing in…
+          </>
+        ) : (
+          "Sign in to Hub"
+        )}
       </button>
     </form>
   );

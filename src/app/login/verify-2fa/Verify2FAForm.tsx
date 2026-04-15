@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { verify2FA } from "./actions";
 
 type Props = { callbackUrl: string };
@@ -36,13 +37,12 @@ export function Verify2FAForm({ callbackUrl }: Props) {
       {error && (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
-      <button
-        type="submit"
+      <PendingSubmitButton
         className="inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
         style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
       >
         Verify
-      </button>
+      </PendingSubmitButton>
       <p className="text-center text-xs text-black/50">
         Use a recovery code if you don&apos;t have access to your authenticator app.
       </p>

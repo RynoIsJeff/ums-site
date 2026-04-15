@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { setInvoiceStatusForm } from "../actions";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { InvoiceStatus } from "@prisma/client";
 
 const STATUS_OPTIONS: { value: InvoiceStatus; label: string }[] = [
@@ -37,12 +38,9 @@ export function SetInvoiceStatusButton({ invoiceId, currentStatus }: Props) {
         {STATUS_OPTIONS.filter((o) => o.value !== currentStatus).map((opt) => (
           <form key={opt.value} action={action} className="inline">
             <input type="hidden" name="status" value={opt.value} />
-            <button
-              type="submit"
-              className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5"
-            >
+            <PendingSubmitButton className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5">
               {opt.label}
-            </button>
+            </PendingSubmitButton>
           </form>
         ))}
       </div>

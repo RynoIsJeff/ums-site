@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { toNum } from "@/lib/utils";
 import { getCompanyConfig } from "@/lib/company-config";
 import { isPayFastConfigured } from "@/lib/payfast";
+import { PortalPayForm } from "./PortalPayForm";
 
 type PageProps = { params: Promise<{ token: string }> };
 
@@ -26,8 +27,25 @@ export default async function PortalInvoicePage({ params }: PageProps) {
 
   if (!invoice) notFound();
 
-  // Don't show PAID or VOID invoices in portal (optional - or allow view)
+  // Don't show VOID invoices in portal
   if (invoice.status === "VOID") notFound();
+
+  // Check token expiry — portalTokenExpiresAt added in migration; will be typed after prisma generate
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const invoiceAny = invoice as any;
+  if (invoiceAny.portalTokenExpiresAt && invoiceAny.portalTokenExpiresAt < new Date()) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4" style={{ fontFamily: "system-ui, sans-serif" }}>
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+            <svg className="h-7 w-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h1 className="text-xl font-semibold text-slate-900">Link expired</h1>
+          <p className="mt-2 text-sm text-slate-600">This invoice link has expired. Please contact us to receive a new link.</p>
+        </div>
+      </div>
+    );
+  }
 
   const config = await getCompanyConfig();
   const total = toNum(invoice.totalAmount);
@@ -185,15 +203,10 @@ export default async function PortalInvoicePage({ params }: PageProps) {
                   Pay online
                 </h3>
                 {payFastEnabled ? (
-                  <form action="/api/portal/pay" method="POST">
-                    <input type="hidden" name="token" value={token} />
-                    <button
-                      type="submit"
-                      className="w-full rounded-lg bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-700"
-                    >
-                      Pay R {remaining.toLocaleString("en-ZA")} with card or EFT
-                    </button>
-                  </form>
+                  <PortalPayForm
+                    token={token}
+                    amountFormatted={remaining.toLocaleString("en-ZA")}
+                  />
                 ) : (
                   <div className="rounded-lg bg-slate-100 p-4 text-sm text-slate-700">
                     <p className="font-medium mb-2">Bank transfer details</p>

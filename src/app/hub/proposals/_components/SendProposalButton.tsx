@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { sendProposalFormAction } from "../actions";
 
 type SendProposalButtonProps = {
@@ -11,17 +11,9 @@ export function SendProposalButton({ proposalId }: SendProposalButtonProps) {
   return (
     <form action={sendProposalFormAction}>
       <input type="hidden" name="proposalId" value={proposalId} />
-      <button
-        type="submit"
-        className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
-      >
-        <SendButtonLabel />
-      </button>
+      <PendingSubmitButton className="rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+        Send to client
+      </PendingSubmitButton>
     </form>
   );
-}
-
-function SendButtonLabel() {
-  const { pending } = useFormStatus();
-  return pending ? "Sending…" : "Send to client";
 }

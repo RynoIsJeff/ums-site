@@ -13,6 +13,7 @@ import {
   parseListParams,
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 export const metadata = {
   title: "Proposals | UMS Hub",
@@ -124,12 +125,9 @@ export default async function HubProposalsPage({
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            className="rounded-md border border-(--hub-border) px-3 py-2 text-sm hover:bg-(--hub-bg)"
-          >
+          <PendingSubmitButton className="rounded-md border border-(--hub-border) px-3 py-2 text-sm hover:bg-(--hub-bg)">
             Filter
-          </button>
+          </PendingSubmitButton>
         </form>
       </div>
 

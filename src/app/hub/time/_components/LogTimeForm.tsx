@@ -1,16 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { useActionState, useState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { TimeEntryFormState } from "../actions";
 import { Input, Select } from "@/app/hub/_components/form";
+import { TaskCombobox } from "./TaskCombobox";
 
 type Client = { id: string; companyName: string };
-type Task = { id: string; title: string; clientId: string | null };
 
 type LogTimeFormProps = {
   clients: Client[];
-  tasks: Task[];
   action: (
     prev: TimeEntryFormState,
     formData: FormData
@@ -20,20 +19,13 @@ type LogTimeFormProps = {
 
 export function LogTimeForm({
   clients,
-  tasks,
   action,
   initialState,
 }: LogTimeFormProps) {
-  const [state, formAction] = useActionState<
-    TimeEntryFormState,
-    FormData
-  >(action, initialState ?? {});
+  const [state, formAction] = useActionState<TimeEntryFormState, FormData>(action, initialState ?? {});
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   const clientOptions = clients.map((c) => ({ value: c.id, label: c.companyName }));
-  const taskOptions = tasks
-    .filter((t) => t.clientId)
-    .map((t) => ({ value: t.id, label: t.title }));
-
   const defaultDate = new Date().toISOString().slice(0, 10);
 
   return (
@@ -52,14 +44,12 @@ export function LogTimeForm({
           options={clientOptions}
           placeholder="Select client"
           required
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedClientId(e.target.value)}
         />
-        <Select
-          id="taskId"
-          name="taskId"
-          label="Task (optional)"
-          options={taskOptions}
-          placeholder="None"
-        />
+        <div>
+          <label className="block text-sm font-medium text-(--hub-text) mb-1">Task (optional)</label>
+          <TaskCombobox clientId={selectedClientId} />
+        </div>
         <Input
           id="date"
           type="date"
@@ -104,20 +94,9 @@ export function LogTimeForm({
           Billable
         </label>
       </div>
-      <SubmitButton />
+      <PendingSubmitButton className="rounded-md border border-transparent bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-95">
+        Log time
+      </PendingSubmitButton>
     </form>
-  );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-    >
-      {pending ? "Saving…" : "Log time"}
-    </button>
   );
 }

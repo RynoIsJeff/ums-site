@@ -19,6 +19,14 @@ export function TasksListFilters({ params, basePath, clients }: TasksListFilters
 
   return (
     <FilterForm basePath={basePath}>
+      <Input
+        id="tasks-search"
+        type="search"
+        name="search"
+        label="Search"
+        placeholder="Task title…"
+        defaultValue={params.search}
+      />
       <Select
         id="tasks-status"
         name="status"

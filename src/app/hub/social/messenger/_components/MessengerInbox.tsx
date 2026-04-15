@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { sendMessengerReply } from "../actions";
 
 type Page = {
@@ -156,13 +157,10 @@ function ReplyForm({
           placeholder="Type a reply..."
           className="flex-1 rounded-lg border border-(--hub-border-light) px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-(--primary)"
         />
-        <button
-          type="submit"
-          className="rounded-lg bg-(--meta-blue) px-4 py-2 text-white text-sm font-medium hover:opacity-90 inline-flex items-center gap-2"
-        >
-          <Send className="h-4 w-4" />
+        <PendingSubmitButton className="inline-flex items-center gap-2 rounded-lg border border-transparent bg-(--meta-blue) px-4 py-2 text-sm font-medium text-white hover:opacity-95 [&>span]:gap-2">
+          <Send className="h-4 w-4 shrink-0" aria-hidden />
           Send
-        </button>
+        </PendingSubmitButton>
       </div>
     </form>
   );

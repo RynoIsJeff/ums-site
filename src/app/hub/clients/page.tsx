@@ -122,8 +122,13 @@ export default async function HubClientsPage({
                 href={`/hub/clients/${client.id}`}
                 className="block rounded-lg border border-(--hub-border-light) bg-white p-4 transition hover:border-black/25 hover:bg-black/2"
               >
-                <div className="font-medium text-(--hub-text)">
-                  {client.companyName}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-(--hub-text)">{client.companyName}</span>
+                  {!client.email && (
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                      No email
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 text-sm text-(--hub-muted)">
                   {client.contactPerson}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { FileText, FilePlus, Download } from "lucide-react";
+// Note: table rendering is delegated to BulkInvoiceTable (client component)
 import { getSession } from "@/lib/auth";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { EmptyState } from "@/app/hub/_components/EmptyState";
@@ -15,11 +16,7 @@ import {
   parseListParams,
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
-import { StatusBadge } from "@/app/hub/_components/StatusBadge";
-import { toNum } from "@/lib/utils";
-import { DeleteInvoiceButton } from "./_components/DeleteInvoiceButton";
-import { DuplicateInvoiceButton } from "./_components/DuplicateInvoiceButton";
-import { MarkInvoiceSentButton } from "./_components/MarkInvoiceSentButton";
+import { BulkInvoiceTable } from "./_components/BulkInvoiceActions";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -153,96 +150,8 @@ export default async function HubInvoicesPage({
           />
         </div>
       ) : (
-      <div className="mt-6 overflow-x-auto">
-        <table className="hub-table min-w-[720px]">
-          <thead>
-            <tr>
-              <th>Number</th>
-              <th>Client</th>
-              <th>Invoice date</th>
-              <th>Due date</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td>
-                    <Link
-                      href={`/hub/invoices/${inv.id}`}
-                      className="font-medium text-(--hub-text) hover:underline"
-                    >
-                      {inv.invoiceNumber}
-                    </Link>
-                  </td>
-                  <td>
-                    <Link
-                      href={`/hub/clients/${inv.client.id}`}
-                      className="text-(--hub-muted) hover:underline"
-                    >
-                      {inv.client.companyName}
-                    </Link>
-                  </td>
-                  <td className="text-(--hub-text)">
-                    {inv.issueDate.toLocaleDateString("en-ZA", {
-                      dateStyle: "medium",
-                    })}
-                  </td>
-                  <td className="text-(--hub-text)">
-                    {inv.dueDate.toLocaleDateString("en-ZA", {
-                      dateStyle: "medium",
-                    })}
-                  </td>
-                  <td className="text-(--hub-text)">
-                    R {toNum(inv.totalAmount).toLocaleString("en-ZA")}
-                  </td>
-                  <td>
-                    <StatusBadge status={inv.status} />
-                  </td>
-                  <td className="whitespace-nowrap text-right">
-                    <span className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-                      <Link
-                        href={`/api/hub/invoices/${inv.id}/pdf`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-(--hub-muted) hover:underline"
-                      >
-                        View
-                      </Link>
-                      <a
-                        href={`/api/hub/invoices/${inv.id}/pdf?download=1`}
-                        download
-                        className="text-(--hub-muted) hover:underline"
-                      >
-                        Download
-                      </a>
-                      {inv.status === "DRAFT" && (
-                        <Link
-                          href={`/hub/invoices/${inv.id}/edit`}
-                          className="text-(--hub-muted) hover:underline"
-                        >
-                          Edit
-                        </Link>
-                      )}
-                      {inv.status === "DRAFT" && (
-                        <MarkInvoiceSentButton invoiceId={inv.id} />
-                      )}
-                      <DuplicateInvoiceButton invoiceId={inv.id} compact />
-                      {inv.status === "DRAFT" && inv._count.payments === 0 && (
-                        <DeleteInvoiceButton
-                          invoiceId={inv.id}
-                          invoiceNumber={inv.invoiceNumber}
-                          compact
-                        />
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      <div className="mt-6">
+        <BulkInvoiceTable invoices={invoices.map((inv) => ({ ...inv, totalAmount: String(inv.totalAmount) }))} />
       </div>
       )}
 

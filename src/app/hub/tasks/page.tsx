@@ -12,7 +12,7 @@ import {
   parseListParams,
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
-import { StatusBadge } from "@/app/hub/_components/StatusBadge";
+import { BulkTaskTable } from "./_components/BulkTaskActions";
 
 export const metadata = {
   title: "Tasks | UMS Hub",
@@ -37,6 +37,10 @@ export default async function HubTasksPage({
   const where: Prisma.TaskWhereInput = {
     ...scopeWhere,
   };
+
+  if (params.search) {
+    where.title = { contains: params.search, mode: "insensitive" };
+  }
 
   if (params.status) {
     where.status = params.status as "TODO" | "IN_PROGRESS" | "DONE" | "CANCELLED";
@@ -117,87 +121,8 @@ export default async function HubTasksPage({
           />
         </div>
       ) : (
-      <div className="mt-6 overflow-x-auto">
-        <table className="hub-table min-w-[600px]">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Client</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Recurrence</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-              {tasks.map((task) => (
-                <tr key={task.id}>
-                  <td>
-                    <Link
-                      href={`/hub/tasks/${task.id}`}
-                      className="font-medium text-(--hub-text) hover:underline"
-                    >
-                      {task.title}
-                    </Link>
-                  </td>
-                  <td className="p-3">
-                    {task.client ? (
-                      <Link
-                        href={`/hub/clients/${task.client.id}`}
-                        className="text-(--hub-muted) hover:underline"
-                      >
-                        {task.client.companyName}
-                      </Link>
-                    ) : (
-                      <span className="text-(--hub-muted)">—</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-(--hub-text)">
-                    {task.dueDate
-                      ? task.dueDate.toLocaleDateString("en-ZA", {
-                          dateStyle: "medium",
-                        })
-                      : task.occurrences[0]
-                        ? task.occurrences[0].dueDate.toLocaleDateString(
-                            "en-ZA",
-                            { dateStyle: "medium" }
-                          )
-                        : "—"}
-                  </td>
-                  <td className="p-3">
-                    <span
-                      className={
-                        task.status === "DONE"
-                          ? "text-green-600"
-                          : task.status === "IN_PROGRESS"
-                            ? "text-amber-600"
-                            : "text-(--hub-muted)"
-                      }
-                    >
-                      {task.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    {task.recurrencePattern === "NONE" ? (
-                      <span className="text-(--hub-muted)">—</span>
-                    ) : (
-                      <span className="text-(--hub-muted)">
-                        {task.recurrencePattern} every {task.recurrenceInterval}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <Link
-                      href={`/hub/tasks/${task.id}/edit`}
-                      className="text-(--hub-muted) hover:underline"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      <div className="mt-6">
+        <BulkTaskTable tasks={tasks} />
       </div>
       )}
 

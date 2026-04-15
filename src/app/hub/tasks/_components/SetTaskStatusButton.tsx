@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { PendingSubmitButton } from "../../_components/PendingSubmitButton";
 import { setTaskStatus } from "../actions";
 import type { TaskStatus } from "@prisma/client";
 
@@ -26,12 +27,9 @@ export function SetTaskStatusButton({ taskId, currentStatus }: Props) {
           }}
           className="inline"
         >
-          <button
-            type="submit"
-            className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5"
-          >
+          <PendingSubmitButton className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5">
             {opt.label}
-          </button>
+          </PendingSubmitButton>
         </form>
       ))}
     </div>

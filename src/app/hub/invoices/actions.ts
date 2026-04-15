@@ -234,25 +234,38 @@ export async function setInvoiceStatus(
 
   const inv = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    select: { clientId: true, status: true },
+    select: { clientId: true, status: true, client: { select: { email: true, companyName: true } } },
   });
   if (!inv || !canAccessClient(scope, inv.clientId)) {
     return { error: "Invoice not found or access denied." };
+  }
+
+  // Block marking as Sent if client has no email (invoice email will fail silently)
+  if (status === "SENT" && !inv.client.email) {
+    return {
+      error: `${inv.client.companyName} has no email address. Add one in the client record before sending this invoice.`,
+    };
   }
 
   const crypto = await import("crypto");
   const portalToken =
     status === "SENT" ? crypto.randomBytes(24).toString("base64url") : undefined;
 
+  const TOKEN_EXPIRY_DAYS = 90;
   const updates: {
     status: InvoiceStatus;
     sentAt?: Date;
     voidedAt?: Date;
     portalToken?: string;
+    portalTokenExpiresAt?: Date;
   } = { status };
   if (status === "SENT") {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + TOKEN_EXPIRY_DAYS);
     updates.sentAt = new Date();
     updates.portalToken = portalToken ?? undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (updates as any).portalTokenExpiresAt = expiresAt; // added in migration — typed after prisma generate
   }
   if (status === "VOID") updates.voidedAt = new Date();
 
@@ -345,6 +358,36 @@ export async function deleteInvoice(invoiceId: string): Promise<{ error?: string
     console.error("[deleteInvoice]", e);
     return { error: "Something went wrong." };
   }
+  return {};
+}
+
+/** Regenerate the portal token for a sent/overdue invoice (e.g. after expiry). Resets expiry to 90 days from now. */
+export async function regeneratePortalToken(invoiceId: string): Promise<{ error?: string }> {
+  const { scope } = await requireHubAuth();
+
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { clientId: true, status: true },
+  });
+  if (!inv || !canAccessClient(scope, inv.clientId)) {
+    return { error: "Invoice not found or access denied." };
+  }
+  if (!["SENT", "OVERDUE", "PAID"].includes(inv.status)) {
+    return { error: "Portal link can only be regenerated for sent, overdue, or paid invoices." };
+  }
+
+  const crypto = await import("crypto");
+  const newToken = crypto.randomBytes(24).toString("base64url");
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90);
+
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    // @ts-expect-error portalTokenExpiresAt — run prisma generate after migration
+    data: { portalToken: newToken, portalTokenExpiresAt: expiresAt },
+  });
+
+  revalidatePath(`/hub/invoices/${invoiceId}`);
   return {};
 }
 

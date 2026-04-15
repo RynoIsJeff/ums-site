@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { ProposalFormState } from "../actions";
 import { Input, Select } from "@/app/hub/_components/form";
 
@@ -65,7 +65,9 @@ export function ProposalForm({
         />
       </div>
       <div className="flex gap-3">
-        <SubmitButton label={submitLabel} />
+        <PendingSubmitButton className="rounded-md border border-transparent bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-95">
+          {submitLabel}
+        </PendingSubmitButton>
         <a
           href={backHref}
           className="rounded-md border border-(--hub-border) px-4 py-2 text-sm font-medium hover:bg-(--hub-bg)"
@@ -77,15 +79,3 @@ export function ProposalForm({
   );
 }
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-    >
-      {pending ? "Saving…" : label}
-    </button>
-  );
-}

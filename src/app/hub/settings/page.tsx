@@ -7,7 +7,8 @@ import { CompanyConfigForm } from "./_components/CompanyConfigForm";
 import { StaffAssignmentsForm } from "./_components/StaffAssignmentsForm";
 import { updateProfile, updateCompanyConfig } from "./actions";
 import { TwoFactorForm } from "./_components/TwoFactorForm";
-import { UserPlus, Building2, Users } from "lucide-react";
+import { UserPlus, Building2, Users, ClipboardList } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = {
   title: "Settings | UMS Hub",
@@ -205,6 +206,29 @@ export default async function HubSettingsPage() {
               staffUsers={staffUsers}
               allClients={allClients}
             />
+          </div>
+        </div>
+
+        {/* Audit log */}
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+                <ClipboardList className="h-5 w-5" style={{ color: "var(--primary)" }} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-(--hub-text)">Audit log</h2>
+                <p className="text-sm text-(--hub-muted)">
+                  Track who did what and when across the Hub.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/hub/settings/audit-log"
+              className="rounded-lg border border-(--hub-border-light) px-4 py-2 text-sm font-medium text-(--hub-text) hover:bg-black/5"
+            >
+              View audit log →
+            </Link>
           </div>
         </div>
       </div>

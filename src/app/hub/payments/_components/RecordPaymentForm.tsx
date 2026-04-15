@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { recordPayment } from "../actions";
 
 type Props = {
@@ -82,12 +83,9 @@ export function RecordPaymentForm({ clientId, invoiceId, invoiceNumber, remainin
           className="mt-0.5 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
         />
       </div>
-      <button
-        type="submit"
-        className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/90"
-      >
+      <PendingSubmitButton className="rounded-md border border-transparent bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/90">
         Record payment
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useState } from "react";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 type PageOption = { id: string; pageName: string; clientId: string };
 
@@ -219,12 +220,9 @@ export function SchedulePostModal({
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              className="rounded-lg bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90"
-            >
+            <PendingSubmitButton className="rounded-lg border border-transparent bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
               Schedule
-            </button>
+            </PendingSubmitButton>
             <button
               type="button"
               onClick={onClose}

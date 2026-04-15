@@ -15,6 +15,8 @@ export async function GET(req: Request) {
     }
   }
 
+  try {
+
   const now = new Date();
   const in7Days = new Date(now);
   in7Days.setDate(in7Days.getDate() + 7);
@@ -93,10 +95,22 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({
-    ok: true,
-    sent: sent.length,
-    reminders: sent,
-    errors: errors.length > 0 ? errors : undefined,
-  });
+    if (errors.length > 0) {
+      console.error("[payment-reminders cron] Email errors:", errors);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      sent: sent.length,
+      reminders: sent,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[payment-reminders cron] Unhandled error:", message);
+    return NextResponse.json(
+      { ok: false, error: message },
+      { status: 500 }
+    );
+  }
 }

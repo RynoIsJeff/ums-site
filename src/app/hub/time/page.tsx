@@ -4,7 +4,6 @@ import { getSession } from "@/lib/auth";
 import { EmptyState } from "@/app/hub/_components/EmptyState";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere, clientIdWhere } from "@/lib/rbac";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/app/hub/_components/Pagination";
 import { TimeListFilters } from "./_components/TimeListFilters";
@@ -35,9 +34,9 @@ export default async function HubTimePage({
 
   const scope = toAuthScope(user);
   const clientWhereClause = clientWhere(scope);
-  const timeWhere = clientIdWhere(scope) as Prisma.TimeEntryWhereInput;
+  const timeWhere = clientIdWhere(scope) as Record<string, unknown>;
 
-  const where: Prisma.TimeEntryWhereInput = { ...timeWhere };
+  const where: Record<string, unknown> = { ...timeWhere };
 
   if (params.clientId) {
     where.clientId = params.clientId;
@@ -70,15 +69,6 @@ export default async function HubTimePage({
     }),
   ]);
 
-  const tasks = await prisma.task.findMany({
-    where: {
-      clientId: { in: clients.map((c) => c.id) },
-    } as Prisma.TaskWhereInput,
-    orderBy: { title: "asc" },
-    select: { id: true, title: true, clientId: true },
-    take: 200,
-  });
-
   return (
     <section className="py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -96,7 +86,6 @@ export default async function HubTimePage({
         <h2 className="text-sm font-medium text-(--hub-text) mb-3">Log time</h2>
         <LogTimeForm
           clients={clients}
-          tasks={tasks}
           action={createTimeEntry}
         />
       </div>

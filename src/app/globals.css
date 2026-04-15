@@ -37,16 +37,54 @@ html, body { background-color: var(--bg); color: var(--ink); }
 }
 
 .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
   background: linear-gradient(90deg, var(--primary), var(--accent));
-  color:#fff; border-radius:.75rem; padding:.75rem 1.25rem; font-weight:600; transition:opacity .2s ease;
+  color:#fff; border-radius:.75rem; padding:.75rem 1.25rem; font-weight:600;
+  border: none;
+  transition: opacity .2s ease, transform .12s ease, box-shadow .2s ease;
 }
-.btn-primary:hover { opacity:.92; }
+.btn-primary:hover:not(:disabled) {
+  opacity: .94;
+  box-shadow: 0 2px 12px color-mix(in oklab, var(--primary) 35%, transparent);
+}
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
 
 .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
   border:1px solid rgba(0,0,0,.08); background:#fff; color:var(--ink);
-  border-radius:.75rem; padding:.75rem 1.25rem; font-weight:600; transition: all .2s ease;
+  border-radius:.75rem; padding:.75rem 1.25rem; font-weight:600;
+  transition: border-color .2s ease, background .2s ease, transform .12s ease, box-shadow .2s ease;
 }
-.btn-outline:hover { border-color: color-mix(in oklab, var(--primary) 40%, #0000); background: rgba(2,214,228,.06); }
+.btn-outline:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--primary) 45%, rgba(0,0,0,.08));
+  background: rgba(2,214,228,.08);
+  box-shadow: 0 1px 4px rgba(3,3,3,.06);
+}
+.btn-outline:active:not(:disabled) { transform: scale(0.98); }
+.btn-outline:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.btn-outline:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
 
 .kicker {
   display:inline-flex; align-items:center; gap:.5rem; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(3,3,3,.6);
@@ -407,6 +445,69 @@ html, body { background-color: var(--bg); color: var(--ink); }
   .hub-sidebar { display: none !important; }
   .hub-mobile-header { display: none !important; }
   .hub-content { margin-left: 0 !important; padding-top: 0 !important; }
+}
+
+/* ---- Hub: click affordance (pointer, hover ring, active press) ---- */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/**
+ * Add to buttons/links that should feel tactile. PendingSubmitButton includes this class.
+ */
+.hub-hit-target {
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease,
+    transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.hub-hit-target:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+.hub-hit-target:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Bordered hub controls: clearer hover than barely-visible bg */
+.hub-content__inner button.rounded-md.border:not(:disabled),
+.hub-content__inner a.rounded-md.border[href],
+.hub-content__inner button.rounded-lg.border:not(:disabled),
+.hub-content__inner a.rounded-lg.border[href] {
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease,
+    box-shadow 0.15s ease;
+}
+.hub-content__inner button.rounded-md.border:hover:not(:disabled),
+.hub-content__inner a.rounded-md.border[href]:hover,
+.hub-content__inner button.rounded-lg.border:hover:not(:disabled),
+.hub-content__inner a.rounded-lg.border[href]:hover {
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--hub-border-light));
+  background-color: color-mix(in oklab, var(--primary) 9%, #fff);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+.hub-content__inner button.rounded-md.border:active:not(:disabled),
+.hub-content__inner a.rounded-md.border[href]:active,
+.hub-content__inner button.rounded-lg.border:active:not(:disabled),
+.hub-content__inner a.rounded-lg.border[href]:active {
+  transform: scale(0.98);
+}
+
+/* Solid primary / dark submit-style buttons in hub */
+.hub-content__inner button.rounded-md:not(.border):not(:disabled),
+.hub-content__inner button.rounded-lg:not(.border):not(:disabled) {
+  transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.hub-content__inner button.rounded-md:not(.border):hover:not(:disabled),
+.hub-content__inner button.rounded-lg:not(.border):hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
+}
+.hub-content__inner button.rounded-md:not(.border):active:not(:disabled),
+.hub-content__inner button.rounded-lg:not(.border):active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 /* Hub login button on marketing site */

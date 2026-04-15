@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { SetInvoiceStatusButton } from "../_components/SetInvoiceStatusButton";
 import { DeleteInvoiceButton } from "../_components/DeleteInvoiceButton";
 import { DuplicateInvoiceButton } from "../_components/DuplicateInvoiceButton";
+import { RegeneratePortalLinkButton } from "../_components/RegeneratePortalLinkButton";
 import { RecordPaymentForm } from "@/app/hub/payments/_components/RecordPaymentForm";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
@@ -141,6 +142,30 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Portal link info */}
+          {invoice.portalToken && (invoice.status === "SENT" || invoice.status === "OVERDUE" || invoice.status === "PAID") && (
+            <div className="rounded-xl border border-black/10 bg-white p-5">
+              <h2 className="text-sm font-medium text-black/60">Client portal link</h2>
+              {/* portalTokenExpiresAt typed after prisma generate — use unknown cast */}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(() => { const inv = invoice as any; const exp: Date | null = inv.portalTokenExpiresAt ?? null;
+                return exp && exp < new Date() ? (
+                  <div className="mt-2">
+                    <p className="text-xs text-amber-700 font-medium">Link expired {exp.toLocaleDateString("en-ZA")}</p>
+                    <RegeneratePortalLinkButton invoiceId={id} />
+                  </div>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-black/50">
+                      Expires {exp ? exp.toLocaleDateString("en-ZA", { dateStyle: "medium" }) : "never"}
+                    </p>
+                    <RegeneratePortalLinkButton invoiceId={id} />
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           <div className="rounded-xl border border-black/10 bg-white p-5">
             <h2 className="text-sm font-medium text-black/60">Payments</h2>
             {invoice.payments.length === 0 ? (

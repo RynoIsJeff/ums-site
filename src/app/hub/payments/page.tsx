@@ -72,7 +72,7 @@ export default async function HubPaymentsPage({
     }),
     prisma.invoice.findMany({
       where: { ...scopeWhere, status: { in: ["SENT", "OVERDUE"] } },
-      select: { id: true, invoiceNumber: true, clientId: true },
+      select: { id: true, invoiceNumber: true, clientId: true, totalAmount: true },
     }),
   ]);
 
@@ -192,7 +192,7 @@ export default async function HubPaymentsPage({
           </h2>
           <RecordPaymentFormStandalone
             clients={clients}
-            unpaidInvoices={unpaidInvoices}
+            unpaidInvoices={unpaidInvoices.map((inv) => ({ ...inv, totalAmount: String(inv.totalAmount) }))}
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { PendingSubmitButton } from "../../_components/PendingSubmitButton";
 import { skipOccurrence } from "../actions";
 
 type Props = { occurrenceId: string };
@@ -16,12 +17,9 @@ export function SkipOccurrenceButton({ occurrenceId }: Props) {
       }}
       className="inline"
     >
-      <button
-        type="submit"
-        className="ml-1 rounded-md border border-black/15 px-2 py-1 text-xs text-black/60 hover:bg-black/5"
-      >
+      <PendingSubmitButton className="ml-1 rounded-md border border-black/15 px-2 py-1 text-xs text-black/60 hover:bg-black/5">
         Skip
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

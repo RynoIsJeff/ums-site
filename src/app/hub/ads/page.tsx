@@ -3,7 +3,8 @@ import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { Megaphone, Building2, Target, BarChart3, ExternalLink } from "lucide-react";
+import { fetchAdAccountInsights, fetchAdAccountCampaigns } from "@/lib/meta-ads";
+import { Megaphone, Building2, Target, BarChart3, ExternalLink, AlertCircle } from "lucide-react";
 
 export const metadata = {
   title: "Ads | UMS Hub",
@@ -19,6 +20,51 @@ export default async function AdsOverviewPage() {
     include: { client: { select: { companyName: true } } },
   });
 
+  // Fetch MTD insights and active campaign counts for all connected ad accounts in parallel
+  const now = new Date();
+  const mtdPreset = "this_month" as const;
+
+  const [insightResults, campaignResults] = await Promise.all([
+    Promise.all(
+      adAccounts
+        .filter((acc) => acc.accessTokenEncrypted)
+        .map((acc) =>
+          fetchAdAccountInsights(acc.accountId, acc.accessTokenEncrypted!, mtdPreset as "today" | "last_7d" | "last_30d")
+        )
+    ),
+    Promise.all(
+      adAccounts
+        .filter((acc) => acc.accessTokenEncrypted)
+        .map((acc) =>
+          fetchAdAccountCampaigns(acc.accountId, acc.accessTokenEncrypted!, 200)
+        )
+    ),
+  ]);
+
+  let totalSpend = 0;
+  let totalReach = 0;
+  let activeCampaigns = 0;
+  let hasApiData = false;
+  const apiErrors: string[] = [];
+
+  insightResults.forEach((r) => {
+    if (r.ok) {
+      hasApiData = true;
+      totalSpend += r.data.spend;
+      totalReach += r.data.reach ?? 0;
+    } else {
+      apiErrors.push(r.error);
+    }
+  });
+
+  campaignResults.forEach((r) => {
+    if (r.ok) {
+      activeCampaigns += r.campaigns.filter((c) => c.status === "ACTIVE").length;
+    }
+  });
+
+  const noTokenAccounts = adAccounts.filter((acc) => !acc.accessTokenEncrypted).length;
+
   return (
     <section className="py-6">
       <div>
@@ -29,6 +75,23 @@ export default async function AdsOverviewPage() {
           Manage Facebook & Instagram ad campaigns and insights.
         </p>
       </div>
+
+      {apiErrors.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>
+            Could not load metrics for {apiErrors.length} account{apiErrors.length !== 1 ? "s" : ""}.
+            Check that access tokens have <code className="rounded bg-amber-100 px-1">ads_read</code> permission.
+          </span>
+        </div>
+      )}
+
+      {noTokenAccounts > 0 && (
+        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>{noTokenAccounts} account{noTokenAccounts !== 1 ? "s" : ""} missing an access token — add one in <Link href="/hub/ads/accounts" className="underline">Ad Accounts</Link>.</span>
+        </div>
+      )}
 
       {/* Quick stats */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -49,7 +112,9 @@ export default async function AdsOverviewPage() {
               <Target className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-(--hub-text)">0</p>
+              <p className="text-2xl font-bold text-(--hub-text)">
+                {hasApiData ? activeCampaigns : adAccounts.length === 0 ? "—" : "—"}
+              </p>
               <p className="text-sm text-(--hub-muted)">Active campaigns</p>
             </div>
           </div>
@@ -60,7 +125,9 @@ export default async function AdsOverviewPage() {
               <BarChart3 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-(--hub-text)">N/A</p>
+              <p className="text-2xl font-bold text-(--hub-text)">
+                {hasApiData ? `R ${totalSpend.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+              </p>
               <p className="text-sm text-(--hub-muted)">Spend (MTD)</p>
             </div>
           </div>
@@ -71,7 +138,9 @@ export default async function AdsOverviewPage() {
               <Megaphone className="h-5 w-5 text-slate-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-(--hub-text)">N/A</p>
+              <p className="text-2xl font-bold text-(--hub-text)">
+                {hasApiData ? totalReach.toLocaleString("en-ZA") : "—"}
+              </p>
               <p className="text-sm text-(--hub-muted)">Reach (MTD)</p>
             </div>
           </div>

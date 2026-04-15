@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { publishPageFeedPost, publishPagePhotoPost, publishPageVideoPost } from "@/lib/facebook";
+import { publishInstagramPost } from "@/lib/instagram";
 
 /**
  * Worker: publish scheduled social posts (Facebook/META).
@@ -37,6 +38,7 @@ async function runWorker(req: Request) {
     }
   }
 
+  try {
   const now = new Date();
   const posts = await prisma.socialPost.findMany({
     where: {
@@ -114,6 +116,22 @@ async function runWorker(req: Request) {
         },
       });
       results.push({ id: post.id, status: "PUBLISHED" });
+
+      // Cross-post to Instagram if the page has a linked IG Business Account
+      if (page.instagramBusinessAccountId) {
+        const imageUrl = firstMedia?.mediaUrl && firstMedia.mediaType === "IMAGE"
+          ? firstMedia.mediaUrl
+          : undefined;
+        const igResult = await publishInstagramPost(
+          page.instagramBusinessAccountId,
+          page.pageAccessTokenEncrypted,
+          post.caption ?? "",
+          imageUrl
+        );
+        if (!igResult.ok) {
+          console.warn(`[social-publish] Instagram cross-post failed for post ${post.id}: ${igResult.error}`);
+        }
+      }
     } else {
       await prisma.socialPost.update({
         where: { id: post.id },
@@ -131,4 +149,12 @@ async function runWorker(req: Request) {
     processed: results.length,
     results,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[social-publish cron] Unhandled error:", message);
+    return NextResponse.json(
+      { ok: false, error: message },
+      { status: 500 }
+    );
+  }
 }

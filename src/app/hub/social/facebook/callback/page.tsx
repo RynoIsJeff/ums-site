@@ -3,6 +3,7 @@ import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeForUserToken, listManagedPages } from "@/lib/facebook";
 import { connectFacebookPageForm } from "../../actions";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 type CallbackPageProps = {
   searchParams: Promise<{ code?: string; error?: string }>;
@@ -138,12 +139,9 @@ export default async function FacebookCallbackPage({
               <input type="hidden" name="pageName" value={page.name} />
               <input type="hidden" name="pageAccessToken" value={page.accessToken} />
 
-              <button
-                type="submit"
-                className="mt-1 inline-flex w-full items-center justify-center rounded-lg bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)"
-              >
+              <PendingSubmitButton className="mt-1 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)">
                 Connect this page
-              </button>
+              </PendingSubmitButton>
             </form>
           ))}
         </div>

@@ -5,6 +5,7 @@ import {
   updateClientRetainerLineItems,
   type RetainerLineItemsFormState,
 } from "../../actions";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { RetainerInvoiceLineTemplate } from "@/lib/retainer-invoice-lines";
 
 const LINE_ROWS = 5;
@@ -74,12 +75,9 @@ export function RetainerLineItemsForm({ clientId, defaultLines }: Props) {
         invoices use a single line from the retainer amount. If you add lines here, the
         monthly (or quarterly/annual) cron invoice uses these lines and their totals.
       </p>
-      <button
-        type="submit"
-        className="rounded-md bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-      >
+      <PendingSubmitButton className="rounded-md border border-transparent bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-95">
         Save retainer invoice lines
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -238,6 +239,7 @@ model Invoice {
   clientId          String
   invoiceNumber     String            @unique
   portalToken       String?           @unique /// Secure token for client portal view (generated on send)
+  portalTokenExpiresAt DateTime?                /// Expiry for the portal token (90 days from send)
   lastReminderAt    DateTime?         /// Last payment reminder sent
   issueDate         DateTime
   dueDate           DateTime

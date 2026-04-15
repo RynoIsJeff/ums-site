@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { setInvoiceStatusForm } from "../actions";
+import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 type Props = { invoiceId: string };
 
@@ -27,12 +28,9 @@ export function MarkInvoiceSentButton({ invoiceId }: Props) {
       )}
       <form action={action} className="inline">
         <input type="hidden" name="status" value="SENT" />
-        <button
-          type="submit"
-          className="text-sm font-medium text-(--primary) hover:underline disabled:opacity-50"
-        >
+        <PendingSubmitButton className="inline-flex min-h-[1.25rem] items-center justify-center border-0 bg-transparent p-0 text-sm font-medium text-(--primary) hover:underline disabled:opacity-50 [&>span]:gap-1.5">
           Mark sent
-        </button>
+        </PendingSubmitButton>
       </form>
     </span>
   );
