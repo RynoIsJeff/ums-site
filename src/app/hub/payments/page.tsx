@@ -147,13 +147,13 @@ export default async function HubPaymentsPage({
             />
           ) : (
           <div className="overflow-x-auto">
-            <table className="hub-table min-w-[500px]">
+            <table className="hub-table min-w-[420px]">
               <thead>
                 <tr>
                   <th>Date</th>
                   <th>Client</th>
-                  <th>Invoice</th>
-                  <th>Method</th>
+                  <th className="hidden sm:table-cell">Invoice</th>
+                  <th className="hidden sm:table-cell">Method</th>
                   <th>Amount</th>
                   <th aria-label="Actions" />
                 </tr>
@@ -174,7 +174,7 @@ export default async function HubPaymentsPage({
                           {p.client.companyName}
                         </Link>
                       </td>
-                      <td className="p-3">
+                      <td className="hidden sm:table-cell p-3">
                         {p.allocations.length === 0 ? (
                           <span className="text-(--hub-muted)">—</span>
                         ) : p.allocations.length === 1 ? (
@@ -200,7 +200,7 @@ export default async function HubPaymentsPage({
                           </span>
                         )}
                       </td>
-                      <td className="text-(--hub-text)">{p.method}</td>
+                      <td className="hidden sm:table-cell text-(--hub-text)">{p.method}</td>
                       <td className="text-(--hub-text)">
                         R {toNum(p.amount).toLocaleString("en-ZA")}
                       </td>
