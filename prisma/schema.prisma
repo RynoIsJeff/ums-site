@@ -260,7 +260,7 @@ model Invoice {
   client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   createdBy      User?             @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   lineItems      InvoiceLineItem[]
-  payments       Payment[]
+  allocations    PaymentAllocation[]
 
   @@index([clientId])
   @@index([status, dueDate])
@@ -282,7 +282,6 @@ model InvoiceLineItem {
 
 model Payment {
   id                 String        @id @default(cuid())
-  invoiceId          String?
   clientId           String
   amount             Decimal       @db.Decimal(12, 2)
   method             PaymentMethod
@@ -294,11 +293,24 @@ model Payment {
   externalReference  String?       /// Gateway transaction ID
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
-  invoice            Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   client             Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
   recordedBy         User?         @relation("PaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+  allocations        PaymentAllocation[]
 
   @@index([clientId])
+}
+
+model PaymentAllocation {
+  id              String   @id @default(cuid())
+  paymentId       String
+  invoiceId       String
+  allocatedAmount Decimal  @db.Decimal(12, 2)
+  createdAt       DateTime @default(now())
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentId, invoiceId])
+  @@index([paymentId])
   @@index([invoiceId])
 }
 

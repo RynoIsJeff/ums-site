@@ -75,11 +75,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await prisma.$transaction([
-      prisma.payment.create({
+    await prisma.$transaction(async (tx) => {
+      const pay = await tx.payment.create({
         data: {
           clientId: invoice.clientId,
-          invoiceId: invoice.id,
           amount: amount,
           method: "CARD",
           paidAt: new Date(),
@@ -87,12 +86,19 @@ export async function POST(req: NextRequest) {
           paymentGateway: "PAYFAST",
           externalReference: pfPaymentId,
         },
-      }),
-      prisma.invoice.update({
+      });
+      await tx.paymentAllocation.create({
+        data: {
+          paymentId: pay.id,
+          invoiceId: invoice.id,
+          allocatedAmount: amount,
+        },
+      });
+      await tx.invoice.update({
         where: { id: invoice.id },
         data: { status: "PAID", paidAt: new Date() },
-      }),
-    ]);
+      });
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[payfast-notify] Failed to record payment:", message, { invoiceId, pfPaymentId });

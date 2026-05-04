@@ -358,7 +358,7 @@ export async function deleteInvoice(
       select: {
         clientId: true,
         status: true,
-        _count: { select: { payments: true } },
+        _count: { select: { allocations: true } },
       },
     });
     if (!inv || !canAccessClient(scope, inv.clientId)) {
@@ -367,7 +367,7 @@ export async function deleteInvoice(
     if (inv.status !== "DRAFT") {
       return { error: "Only draft invoices can be deleted." };
     }
-    if (inv._count.payments > 0) {
+    if (inv._count.allocations > 0) {
       return { error: "Cannot delete an invoice that has payments recorded." };
     }
 

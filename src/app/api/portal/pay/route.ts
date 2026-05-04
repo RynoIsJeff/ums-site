@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
 
   const invoice = await prisma.invoice.findUnique({
     where: { portalToken: token },
-    include: { client: true, payments: true },
+    include: {
+      client: true,
+      allocations: { select: { allocatedAmount: true } },
+    },
   });
 
   if (!invoice) {
@@ -21,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   const total = Number(invoice.totalAmount);
-  const totalPaid = invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
+  const totalPaid = invoice.allocations.reduce((s, a) => s + Number(a.allocatedAmount), 0);
   const remaining = total - totalPaid;
 
   if (

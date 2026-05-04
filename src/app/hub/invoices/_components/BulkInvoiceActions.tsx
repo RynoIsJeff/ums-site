@@ -17,7 +17,7 @@ type Invoice = {
   dueDate: Date;
   totalAmount: string | number;
   client: { id: string; companyName: string };
-  _count: { payments: number };
+  _count: { allocations: number };
 };
 
 type Props = {
@@ -199,7 +199,7 @@ export function BulkInvoiceTable({ invoices }: Props) {
                       <MarkInvoiceSentButton invoiceId={inv.id} />
                     )}
                     <DuplicateInvoiceButton invoiceId={inv.id} compact />
-                    {inv.status === "DRAFT" && inv._count.payments === 0 && (
+                    {inv.status === "DRAFT" && inv._count.allocations === 0 && (
                       <DeleteInvoiceButton invoiceId={inv.id} invoiceNumber={inv.invoiceNumber} compact />
                     )}
                   </span>

@@ -21,7 +21,12 @@ export default async function PortalInvoicePage({ params }: PageProps) {
     include: {
       client: true,
       lineItems: { orderBy: { createdAt: "asc" } },
-      payments: { orderBy: { paidAt: "desc" } },
+      allocations: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          payment: { select: { id: true, paidAt: true, method: true, amount: true } },
+        },
+      },
     },
   });
 
@@ -49,7 +54,7 @@ export default async function PortalInvoicePage({ params }: PageProps) {
 
   const config = await getCompanyConfig();
   const total = toNum(invoice.totalAmount);
-  const totalPaid = invoice.payments.reduce((s, p) => s + toNum(p.amount), 0);
+  const totalPaid = invoice.allocations.reduce((s, a) => s + toNum(a.allocatedAmount), 0);
   const remaining = total - totalPaid;
   const canPay =
     (invoice.status === "SENT" || invoice.status === "OVERDUE") &&
@@ -167,21 +172,21 @@ export default async function PortalInvoicePage({ params }: PageProps) {
             </div>
 
             {/* Payments */}
-            {invoice.payments.length > 0 && (
+            {invoice.allocations.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-slate-700 mb-2">
                   Payments received
                 </h3>
                 <ul className="space-y-1 text-sm">
-                  {invoice.payments.map((p) => (
+                  {invoice.allocations.map((a) => (
                     <li
-                      key={p.id}
+                      key={a.id}
                       className="flex justify-between text-slate-600"
                     >
                       <span>
-                        {p.paidAt.toLocaleDateString("en-ZA")} · {p.method}
+                        {a.payment.paidAt.toLocaleDateString("en-ZA")} · {a.payment.method}
                       </span>
-                      <span>R {toNum(p.amount).toLocaleString("en-ZA")}</span>
+                      <span>R {toNum(a.allocatedAmount).toLocaleString("en-ZA")}</span>
                     </li>
                   ))}
                 </ul>
