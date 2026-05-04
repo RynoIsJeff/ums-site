@@ -37,7 +37,7 @@ export function EditPaymentForm({
   availableInvoices,
 }: Props) {
   const boundAction = updatePayment.bind(null, paymentId);
-  const [state, formAction] = useActionState<PaymentFormState, FormData>(boundAction, {});
+  const [state, formAction] = useActionState(boundAction, {} as PaymentFormState);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [allocations, setAllocations] = useState<AllocationRow[]>(

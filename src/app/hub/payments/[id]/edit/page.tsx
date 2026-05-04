@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getSession, toAuthScope } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
+import { toAuthScope } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
