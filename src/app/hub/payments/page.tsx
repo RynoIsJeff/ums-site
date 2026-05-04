@@ -9,6 +9,7 @@ import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { RecordPaymentFormStandalone } from "./_components/RecordPaymentFormStandalone";
+import { DeletePaymentButton } from "./_components/DeletePaymentButton";
 import { Pagination } from "@/app/hub/_components/Pagination";
 import { PaymentsListFilters } from "./_components/PaymentsListFilters";
 import {
@@ -125,6 +126,7 @@ export default async function HubPaymentsPage({
 
       <Suspense fallback={null}>
         <SuccessBanner message="Payment recorded successfully." />
+        <SuccessBanner paramKey="updated" message="Payment updated successfully." />
       </Suspense>
       <div className="mt-6">
         <PaymentsListFilters
@@ -153,6 +155,7 @@ export default async function HubPaymentsPage({
                   <th>Invoice</th>
                   <th>Method</th>
                   <th>Amount</th>
+                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -200,6 +203,17 @@ export default async function HubPaymentsPage({
                       <td className="text-(--hub-text)">{p.method}</td>
                       <td className="text-(--hub-text)">
                         R {toNum(p.amount).toLocaleString("en-ZA")}
+                      </td>
+                      <td className="whitespace-nowrap text-right">
+                        <span className="inline-flex items-center gap-3">
+                          <Link
+                            href={`/hub/payments/${p.id}/edit`}
+                            className="text-sm text-(--hub-muted) hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <DeletePaymentButton paymentId={p.id} />
+                        </span>
                       </td>
                     </tr>
                   ))}
