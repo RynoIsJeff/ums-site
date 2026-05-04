@@ -31,7 +31,7 @@ export function DeletePaymentButton({ paymentId }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-red-600 hover:underline text-sm"
+        className="text-xs text-red-600 hover:underline"
       >
         Delete
       </button>
