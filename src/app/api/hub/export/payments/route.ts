@@ -44,14 +44,16 @@ export async function GET(req: NextRequest) {
     orderBy: { paidAt: "desc" },
     include: {
       client: { select: { companyName: true } },
-      invoice: { select: { invoiceNumber: true } },
+      allocations: {
+        include: { invoice: { select: { invoiceNumber: true } } },
+      },
     },
   });
 
   const headers = [
     "Date",
     "Client",
-    "Invoice",
+    "Invoices",
     "Method",
     "Amount",
     "Reference",
@@ -60,7 +62,7 @@ export async function GET(req: NextRequest) {
   const rows = payments.map((p) => [
     p.paidAt.toISOString().split("T")[0],
     p.client.companyName,
-    p.invoice?.invoiceNumber ?? "",
+    p.allocations.map((a) => a.invoice.invoiceNumber).join("; "),
     p.method,
     toNum(p.amount),
     p.reference ?? "",

@@ -67,7 +67,7 @@ export default async function HubInvoicesPage({
       orderBy: [{ status: "asc" }, { dueDate: "desc" }],
       include: {
         client: { select: { id: true, companyName: true } },
-        _count: { select: { payments: true } },
+        _count: { select: { allocations: true } },
       },
       skip: (params.page - 1) * params.pageSize,
       take: params.pageSize,

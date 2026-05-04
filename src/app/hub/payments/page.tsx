@@ -53,13 +53,15 @@ export default async function HubPaymentsPage({
     };
   }
 
-  const [payments, total, clients, unpaidInvoices] = await Promise.all([
+  const [payments, total, clients, unpaidInvoicesRaw] = await Promise.all([
     prisma.payment.findMany({
       where,
       orderBy: { paidAt: "desc" },
       include: {
         client: { select: { id: true, companyName: true } },
-        invoice: { select: { id: true, invoiceNumber: true } },
+        allocations: {
+          include: { invoice: { select: { id: true, invoiceNumber: true } } },
+        },
       },
       skip: (params.page - 1) * params.pageSize,
       take: params.pageSize,
@@ -72,9 +74,26 @@ export default async function HubPaymentsPage({
     }),
     prisma.invoice.findMany({
       where: { ...scopeWhere, status: { in: ["SENT", "OVERDUE"] } },
-      select: { id: true, invoiceNumber: true, clientId: true, totalAmount: true },
+      select: {
+        id: true,
+        invoiceNumber: true,
+        clientId: true,
+        totalAmount: true,
+        allocations: { select: { allocatedAmount: true } },
+      },
     }),
   ]);
+
+  const unpaidInvoices = unpaidInvoicesRaw.map((inv) => {
+    const allocated = inv.allocations.reduce((s, a) => s + toNum(a.allocatedAmount), 0);
+    const remaining = Math.max(0, toNum(inv.totalAmount) - allocated);
+    return {
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      clientId: inv.clientId,
+      remainingAmount: remaining.toFixed(2),
+    };
+  });
 
   return (
     <section className="py-10">
@@ -153,15 +172,29 @@ export default async function HubPaymentsPage({
                         </Link>
                       </td>
                       <td className="p-3">
-                        {p.invoice ? (
+                        {p.allocations.length === 0 ? (
+                          <span className="text-(--hub-muted)">—</span>
+                        ) : p.allocations.length === 1 ? (
                           <Link
-                            href={`/hub/invoices/${p.invoice.id}`}
+                            href={`/hub/invoices/${p.allocations[0].invoice.id}`}
                             className="text-(--hub-muted) hover:underline"
                           >
-                            {p.invoice.invoiceNumber}
+                            {p.allocations[0].invoice.invoiceNumber}
                           </Link>
                         ) : (
-                          <span className="text-(--hub-muted)">—</span>
+                          <span className="text-(--hub-muted)">
+                            {p.allocations.map((a, i) => (
+                              <span key={a.invoice.id}>
+                                {i > 0 && ", "}
+                                <Link
+                                  href={`/hub/invoices/${a.invoice.id}`}
+                                  className="hover:underline"
+                                >
+                                  {a.invoice.invoiceNumber}
+                                </Link>
+                              </span>
+                            ))}
+                          </span>
                         )}
                       </td>
                       <td className="text-(--hub-text)">{p.method}</td>
@@ -192,7 +225,7 @@ export default async function HubPaymentsPage({
           </h2>
           <RecordPaymentFormStandalone
             clients={clients}
-            unpaidInvoices={unpaidInvoices.map((inv) => ({ ...inv, totalAmount: String(inv.totalAmount) }))}
+            unpaidInvoices={unpaidInvoices}
           />
         </div>
       </div>

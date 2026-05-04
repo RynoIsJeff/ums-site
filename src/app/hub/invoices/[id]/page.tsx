@@ -36,13 +36,20 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     include: {
       client: { select: { id: true, companyName: true } },
       lineItems: { orderBy: { createdAt: "asc" } },
-      payments: { orderBy: { paidAt: "desc" } },
+      allocations: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          payment: {
+            select: { id: true, paidAt: true, method: true, reference: true, amount: true },
+          },
+        },
+      },
     },
   });
 
   if (!invoice || !canAccessClient(scope, invoice.clientId)) notFound();
 
-  const totalPaid = invoice.payments.reduce((s, p) => s + toNum(p.amount), 0);
+  const totalPaid = invoice.allocations.reduce((s, a) => s + toNum(a.allocatedAmount), 0);
   const totalAmount = toNum(invoice.totalAmount);
   const isFullyPaid = totalPaid >= totalAmount;
 
@@ -81,7 +88,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               Edit
             </Link>
           )}
-          {invoice.status === "DRAFT" && invoice.payments.length === 0 && (
+          {invoice.status === "DRAFT" && invoice.allocations.length === 0 && (
             <DeleteInvoiceButton
               invoiceId={id}
               invoiceNumber={invoice.invoiceNumber}
@@ -168,17 +175,17 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
 
           <div className="rounded-xl border border-black/10 bg-white p-5">
             <h2 className="text-sm font-medium text-black/60">Payments</h2>
-            {invoice.payments.length === 0 ? (
+            {invoice.allocations.length === 0 ? (
               <p className="mt-2 text-sm text-black/50">No payments recorded.</p>
             ) : (
               <ul className="mt-2 space-y-2">
-                {invoice.payments.map((p) => (
-                  <li key={p.id} className="flex justify-between text-sm">
+                {invoice.allocations.map((a) => (
+                  <li key={a.id} className="flex justify-between text-sm">
                     <span>
-                      {p.paidAt.toLocaleDateString("en-ZA")} · {p.method}
-                      {p.reference ? ` (${p.reference})` : ""}
+                      {a.payment.paidAt.toLocaleDateString("en-ZA")} · {a.payment.method}
+                      {a.payment.reference ? ` (${a.payment.reference})` : ""}
                     </span>
-                    <span>R {toNum(p.amount).toLocaleString("en-ZA")}</span>
+                    <span>R {toNum(a.allocatedAmount).toLocaleString("en-ZA")}</span>
                   </li>
                 ))}
               </ul>
