@@ -119,6 +119,7 @@ model User {
   taskOccurrencesCompleted        TaskOccurrence[]        @relation("TaskOccurrenceCompletedBy")
   auditLogs                       AuditLog[]
   timeEntries                     TimeEntry[]
+  promosCreated                   Promo[]                 @relation("PromoCreatedBy")
 }
 
 model Account {
@@ -202,6 +203,9 @@ model Client {
   timeEntries      TimeEntry[]
   proposals        Proposal[]
   auditLogs        AuditLog[]
+  promoStores      PromoStore[]
+  promoProducts    PromoProduct[]
+  promos           Promo[]
 
   @@index([status])
   @@index([renewalDate])
@@ -558,6 +562,74 @@ model Proposal {
 
   @@index([clientId])
   @@index([status])
+}
+
+enum PromoStatus {
+  DRAFT
+  READY
+}
+
+model PromoStore {
+  id        String   @id @default(cuid())
+  clientId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  promos    Promo[]
+
+  @@index([clientId])
+}
+
+model PromoProduct {
+  id         String      @id @default(cuid())
+  clientId   String
+  name       String
+  variant    String?
+  price      Decimal     @db.Decimal(10, 2)
+  imageData  String?     @db.Text
+  sortOrder  Int         @default(0)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  promoItems PromoItem[]
+
+  @@index([clientId])
+}
+
+model Promo {
+  id              String      @id @default(cuid())
+  clientId        String
+  createdById     String?
+  title           String
+  headerImageData String?     @db.Text
+  promoDateFrom   DateTime
+  promoDateTo     DateTime
+  storeId         String?
+  status          PromoStatus @default(DRAFT)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  client          Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy       User?       @relation("PromoCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  store           PromoStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  items           PromoItem[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model PromoItem {
+  id        String       @id @default(cuid())
+  promoId   String
+  productId String
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  promo     Promo        @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  product   PromoProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([promoId, productId])
+  @@index([promoId])
 }
 
 /// Singleton: company defaults for invoices, branding, and email.
