@@ -41,6 +41,31 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
             defaultValue={store.name}
             className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-(--hub-muted)">Shown under the Build It logo on cards.</p>
+        </div>
+
+        <div>
+          <label htmlFor="number" className="block text-sm font-medium">Store number</label>
+          <input
+            id="number"
+            name="number"
+            type="text"
+            defaultValue={store.number ?? ""}
+            placeholder="e.g. RU 05 05"
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium">Store address</label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            defaultValue={store.address ?? ""}
+            placeholder="e.g. 12 Main Street, Pongola, 3170"
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          />
         </div>
 
         <div className="flex gap-3 pt-2">

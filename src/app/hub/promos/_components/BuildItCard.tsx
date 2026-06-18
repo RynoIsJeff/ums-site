@@ -5,8 +5,8 @@ const RED = "#C8102E";
 const CARD_W = 540;
 const HEADER_H = 205;
 const BANNER_H = 40;
-const PRODUCT_H = 219;
-const FOOTER_H = 76;
+const PRODUCT_H = 213;
+const FOOTER_H = 82;
 const IMG_W = 216;
 
 function formatDate(d: Date, withYear = false) {
@@ -39,6 +39,8 @@ type Props = {
   promoDateFrom: Date;
   promoDateTo: Date;
   storeName?: string | null;
+  storeNumber?: string | null;
+  storeAddress?: string | null;
   productName: string;
   productVariant?: string | null;
   productPrice: number | Decimal;
@@ -50,6 +52,8 @@ export function BuildItCard({
   promoDateFrom,
   promoDateTo,
   storeName,
+  storeNumber,
+  storeAddress,
   productName,
   productVariant,
   productPrice,
@@ -57,6 +61,7 @@ export function BuildItCard({
 }: Props) {
   const price = toNum(productPrice);
   const dateStr = `Promotion valid ${formatDate(promoDateFrom)} – ${formatDate(promoDateTo, true)} · While stocks last. Ts & Cs apply.`;
+  const hasStoreInfo = !!(storeName || storeNumber || storeAddress);
 
   return (
     <div
@@ -207,33 +212,83 @@ export function BuildItCard({
           background: RED,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: hasStoreInfo ? "space-between" : "center",
           padding: "0 20px",
           flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* Left: store number + address */}
+        {hasStoreInfo && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: 3,
+              flex: 1,
+              paddingRight: 12,
+            }}
+          >
+            {storeNumber && (
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.03em",
+                }}
+              >
+                {storeNumber}
+              </span>
+            )}
+            {storeAddress && (
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.88)",
+                  fontSize: 10,
+                  lineHeight: 1.35,
+                }}
+              >
+                {storeAddress}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Right: Build It logo + store name below */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/client-logo/buildit.png"
             alt="Build It"
-            style={{ height: 40, objectFit: "contain" }}
+            style={{ height: 38, objectFit: "contain" }}
             crossOrigin="anonymous"
           />
+          {storeName && (
+            <span
+              style={{
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                lineHeight: 1,
+              }}
+            >
+              {storeName}
+            </span>
+          )}
         </div>
-        {storeName && (
-          <span
-            style={{
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {storeName}
-          </span>
-        )}
       </div>
     </div>
   );

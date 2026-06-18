@@ -31,7 +31,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
     prisma.promoStore.findMany({
       where: { clientId: promo.clientId },
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      select: { id: true, name: true, number: true, address: true },
     }),
     prisma.promoProduct.findMany({
       where: { clientId: promo.clientId, isActive: true },

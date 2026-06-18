@@ -18,6 +18,7 @@ export default async function NewProductPage() {
     orderBy: { companyName: "asc" },
     select: { id: true, companyName: true },
   });
+  const defaultClient = clients[0];
 
   return (
     <section className="py-10 max-w-lg">
@@ -30,69 +31,60 @@ export default async function NewProductPage() {
         </Link>
       </div>
 
-      <form action={createProduct} className="mt-6 space-y-4">
-        <div>
-          <label htmlFor="clientId" className="block text-sm font-medium">Client *</label>
-          <select
-            id="clientId"
-            name="clientId"
-            required
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-          >
-            <option value="">Select client</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.companyName}</option>
-            ))}
-          </select>
-        </div>
+      {!defaultClient ? (
+        <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
+      ) : (
+        <form action={createProduct} className="mt-6 space-y-4">
+          <input type="hidden" name="clientId" value={defaultClient.id} />
 
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium">Product name *</label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            placeholder="e.g. Cemcrete Cretestone"
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-          />
-        </div>
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium">Product name *</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              required
+              placeholder="e.g. Cemcrete Cretestone"
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="variant" className="block text-sm font-medium">Variant / description</label>
-          <input
-            id="variant"
-            name="variant"
-            type="text"
-            placeholder="e.g. 25kg bag · Grey"
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-          />
-        </div>
+          <div>
+            <label htmlFor="variant" className="block text-sm font-medium">Variant / description</label>
+            <input
+              id="variant"
+              name="variant"
+              type="text"
+              placeholder="e.g. 25kg bag · Grey"
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="price" className="block text-sm font-medium">Price (R) *</label>
-          <input
-            id="price"
-            name="price"
-            type="text"
-            inputMode="decimal"
-            required
-            placeholder="e.g. 109.99"
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-          />
-        </div>
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium">Price (R) *</label>
+            <input
+              id="price"
+              name="price"
+              type="text"
+              inputMode="decimal"
+              required
+              placeholder="e.g. 109.99"
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            />
+          </div>
 
-        <ImageUploadInput name="imageData" label="Product image" />
+          <ImageUploadInput name="imageData" label="Product image" />
 
-        <div className="flex gap-3 pt-2">
-          <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
-            Save product
-          </PendingSubmitButton>
-          <Link href="/hub/promos/products" className="rounded-md border border-black/15 px-4 py-2 text-sm hover:bg-black/5">
-            Cancel
-          </Link>
-        </div>
-      </form>
+          <div className="flex gap-3 pt-2">
+            <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
+              Save product
+            </PendingSubmitButton>
+            <Link href="/hub/promos/products" className="rounded-md border border-black/15 px-4 py-2 text-sm hover:bg-black/5">
+              Cancel
+            </Link>
+          </div>
+        </form>
+      )}
     </section>
   );
 }

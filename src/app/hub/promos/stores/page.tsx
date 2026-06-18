@@ -17,7 +17,11 @@ export default async function PromoStoresPage() {
   const stores = await prisma.promoStore.findMany({
     where: scopeWhere,
     orderBy: [{ clientId: "asc" }, { name: "asc" }],
-    include: {
+    select: {
+      id: true,
+      name: true,
+      number: true,
+      address: true,
       client: { select: { companyName: true } },
       _count: { select: { promos: true } },
     },
@@ -57,7 +61,8 @@ export default async function PromoStoresPage() {
               <thead>
                 <tr>
                   <th>Store name</th>
-                  <th>Client</th>
+                  <th>Number</th>
+                  <th>Address</th>
                   <th>Promos</th>
                   <th></th>
                 </tr>
@@ -71,7 +76,8 @@ export default async function PromoStoresPage() {
                         {s.name}
                       </span>
                     </td>
-                    <td className="text-(--hub-muted)">{s.client.companyName}</td>
+                    <td className="text-(--hub-muted)">{s.number ?? <span className="text-black/25">—</span>}</td>
+                    <td className="text-(--hub-muted)">{s.address ?? <span className="text-black/25">—</span>}</td>
                     <td className="text-(--hub-muted)">{s._count.promos}</td>
                     <td>
                       <div className="flex items-center gap-3 justify-end">

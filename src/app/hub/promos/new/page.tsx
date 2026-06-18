@@ -16,27 +16,30 @@ export default async function NewPromoPage() {
 
   const scope = toAuthScope(user);
 
-  const [clients, products, stores] = await Promise.all([
-    prisma.client.findMany({
-      where: clientWhere(scope),
-      orderBy: { companyName: "asc" },
-      select: { id: true, companyName: true },
-    }),
-    prisma.promoProduct.findMany({
-      where: { ...clientIdWhere(scope), isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      select: { id: true, clientId: true, name: true, variant: true, price: true, imageData: true },
-    }),
-    prisma.promoStore.findMany({
-      where: clientIdWhere(scope),
-      orderBy: [{ clientId: "asc" }, { name: "asc" }],
-      select: { id: true, clientId: true, name: true },
-    }),
-  ]);
+  const clients = await prisma.client.findMany({
+    where: clientWhere(scope),
+    orderBy: { companyName: "asc" },
+    select: { id: true, companyName: true },
+  });
+  const defaultClient = clients[0];
+
+  const [products, stores] = defaultClient
+    ? await Promise.all([
+        prisma.promoProduct.findMany({
+          where: { clientId: defaultClient.id, isActive: true },
+          orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+          select: { id: true, name: true, variant: true, price: true, imageData: true },
+        }),
+        prisma.promoStore.findMany({
+          where: { clientId: defaultClient.id },
+          orderBy: { name: "asc" },
+          select: { id: true, name: true },
+        }),
+      ])
+    : [[], []];
 
   const productsForForm = products.map((p) => ({
     id: p.id,
-    clientId: p.clientId,
     name: p.name,
     variant: p.variant,
     price: toNum(p.price).toFixed(2),
@@ -56,93 +59,84 @@ export default async function NewPromoPage() {
         </Link>
       </div>
 
-      <form action={createPromo} className="mt-6 space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label htmlFor="clientId" className="block text-sm font-medium">Client *</label>
-            <select
-              id="clientId"
-              name="clientId"
-              required
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            >
-              <option value="">Select client</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.companyName}</option>
-              ))}
-            </select>
+      {!defaultClient ? (
+        <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
+      ) : (
+        <form action={createPromo} className="mt-6 space-y-6">
+          <input type="hidden" name="clientId" value={defaultClient.id} />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="title" className="block text-sm font-medium">Promo title *</label>
+              <input
+                id="title"
+                name="title"
+                type="text"
+                required
+                placeholder="e.g. June 2025 Promo"
+                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="promoDateFrom" className="block text-sm font-medium">From date *</label>
+              <input
+                id="promoDateFrom"
+                name="promoDateFrom"
+                type="date"
+                required
+                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="promoDateTo" className="block text-sm font-medium">To date *</label>
+              <input
+                id="promoDateTo"
+                name="promoDateTo"
+                type="date"
+                required
+                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label htmlFor="storeId" className="block text-sm font-medium">Store location (optional)</label>
+              <select
+                id="storeId"
+                name="storeId"
+                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              >
+                <option value="">No specific store</option>
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              {stores.length === 0 && (
+                <p className="mt-1 text-xs text-(--hub-muted)">
+                  No stores yet.{" "}
+                  <Link href="/hub/promos/stores/new" className="underline">Add a store</Link>
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="sm:col-span-2">
-            <label htmlFor="title" className="block text-sm font-medium">Promo title *</label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              required
-              placeholder="e.g. June 2025 Promo"
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            />
+          <ImageUploadInput name="headerImageData" label="Promo header image" />
+
+          <div className="border-t border-black/10 pt-6">
+            <ProductSelector products={productsForForm} />
           </div>
 
-          <div>
-            <label htmlFor="promoDateFrom" className="block text-sm font-medium">From date *</label>
-            <input
-              id="promoDateFrom"
-              name="promoDateFrom"
-              type="date"
-              required
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            />
+          <div className="flex gap-3 pt-2">
+            <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
+              Create promo
+            </PendingSubmitButton>
+            <Link href="/hub/promos" className="rounded-md border border-black/15 px-4 py-2 text-sm hover:bg-black/5">
+              Cancel
+            </Link>
           </div>
-
-          <div>
-            <label htmlFor="promoDateTo" className="block text-sm font-medium">To date *</label>
-            <input
-              id="promoDateTo"
-              name="promoDateTo"
-              type="date"
-              required
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor="storeId" className="block text-sm font-medium">Store location (optional)</label>
-            <select
-              id="storeId"
-              name="storeId"
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            >
-              <option value="">No specific store</option>
-              {stores.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-            {stores.length === 0 && (
-              <p className="mt-1 text-xs text-(--hub-muted)">
-                No stores yet.{" "}
-                <Link href="/hub/promos/stores/new" className="underline">Add a store</Link>
-              </p>
-            )}
-          </div>
-        </div>
-
-        <ImageUploadInput name="headerImageData" label="Promo header image" />
-
-        <div className="border-t border-black/10 pt-6">
-          <ProductSelector products={productsForForm} />
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
-            Create promo
-          </PendingSubmitButton>
-          <Link href="/hub/promos" className="rounded-md border border-black/15 px-4 py-2 text-sm hover:bg-black/5">
-            Cancel
-          </Link>
-        </div>
-      </form>
+        </form>
+      )}
     </section>
   );
 }
