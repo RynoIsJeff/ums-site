@@ -35,25 +35,33 @@ export function PageCard({ page }: PageCardProps) {
   const [coverUrl, setCoverUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tokenExpired, setTokenExpired] = useState(false);
 
   const status = tokenStatus(page.tokenExpiresAt);
   const daysLeft = page.tokenExpiresAt
     ? Math.ceil((new Date(page.tokenExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
+  const showExpiredBanner = status === "expired" || tokenExpired;
+
   const handleRefresh = async () => {
     setLoading(true);
     setError(null);
-    // First try to refresh the token, then refresh the profile data
     const tokenResult = await refreshPageToken(page.id);
     if (tokenResult?.error) {
-      // Token refresh failed — still try profile refresh with existing token
-      setError(tokenResult.error);
+      const msg = tokenResult.error.toLowerCase();
+      if (msg.includes("session has expired") || msg.includes("error validating access token") || msg.includes("invalid oauth")) {
+        setTokenExpired(true);
+      } else {
+        setError(tokenResult.error);
+      }
+      setLoading(false);
+      return;
     }
     const profileResult = await refreshPageProfile(page.id);
     setLoading(false);
-    if (profileResult?.error && !tokenResult?.error) setError(profileResult.error);
-    else if (!tokenResult?.error) router.refresh();
+    if (profileResult?.error) setError(profileResult.error);
+    else router.refresh();
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -170,7 +178,7 @@ export function PageCard({ page }: PageCardProps) {
         </div>
 
         {/* Token status banners */}
-        {status === "expired" && (
+        {showExpiredBanner && (
           <div className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
             <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
             <div className="text-xs text-red-800">
