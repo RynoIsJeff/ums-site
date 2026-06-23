@@ -434,6 +434,50 @@ export async function listManagedPages(
   }
 }
 
+export type FacebookFeedPost = {
+  id: string;
+  message?: string;
+  createdTime: string;
+  permalink?: string;
+};
+
+export async function getPageFeedPosts(
+  pageId: string,
+  pageAccessToken: string,
+  since: Date,
+  until: Date,
+): Promise<{ ok: true; posts: FacebookFeedPost[] } | { ok: false; error: string }> {
+  const params = new URLSearchParams({
+    fields: "id,message,created_time,permalink_url",
+    since: Math.floor(since.getTime() / 1000).toString(),
+    until: Math.floor(until.getTime() / 1000).toString(),
+    limit: "100",
+    access_token: pageAccessToken,
+  });
+
+  try {
+    const res = await fetch(`${GRAPH_BASE}/${pageId}/posts?${params}`, {
+      next: { revalidate: 3600 },
+    } as RequestInit);
+    const data = (await res.json()) as {
+      data?: Array<{ id: string; message?: string; created_time: string; permalink_url?: string }>;
+      error?: { message: string };
+    };
+    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    return {
+      ok: true,
+      posts: (data.data ?? []).map((p) => ({
+        id: p.id,
+        message: p.message,
+        createdTime: new Date(p.created_time).toISOString(),
+        permalink: p.permalink_url,
+      })),
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
 /**
  * Update page cover photo. Requires pages_manage_metadata.
  * @param imageUrl - Public URL of the new cover photo (recommended 820x312)
