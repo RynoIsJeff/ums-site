@@ -437,6 +437,7 @@ export async function listManagedPages(
 export type FacebookFeedPost = {
   id: string;
   message?: string;
+  picture?: string;
   createdTime: string;
   permalink?: string;
 };
@@ -448,7 +449,7 @@ export async function getPageFeedPosts(
   until: Date,
 ): Promise<{ ok: true; posts: FacebookFeedPost[] } | { ok: false; error: string }> {
   const params = new URLSearchParams({
-    fields: "id,message,created_time,permalink_url",
+    fields: "id,message,created_time,permalink_url,full_picture",
     since: Math.floor(since.getTime() / 1000).toString(),
     until: Math.floor(until.getTime() / 1000).toString(),
     limit: "100",
@@ -460,7 +461,7 @@ export async function getPageFeedPosts(
       next: { revalidate: 3600 },
     } as RequestInit);
     const data = (await res.json()) as {
-      data?: Array<{ id: string; message?: string; created_time: string; permalink_url?: string }>;
+      data?: Array<{ id: string; message?: string; created_time: string; permalink_url?: string; full_picture?: string }>;
       error?: { message: string };
     };
     if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
@@ -469,6 +470,7 @@ export async function getPageFeedPosts(
       posts: (data.data ?? []).map((p) => ({
         id: p.id,
         message: p.message,
+        picture: p.full_picture,
         createdTime: new Date(p.created_time).toISOString(),
         permalink: p.permalink_url,
       })),

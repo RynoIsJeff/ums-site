@@ -77,7 +77,7 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
           startOfMonth,
           endOfMonth,
         );
-        if (!result.ok) return [] as { id: string; message?: string; createdTime: string; permalink?: string; pageId: string; pageName: string }[];
+        if (!result.ok) return [] as { id: string; message?: string; picture?: string; createdTime: string; permalink?: string; pageId: string; pageName: string }[];
         return result.posts.map((post) => ({ ...post, pageId: p.id, pageName: p.pageName }));
       })
   );
