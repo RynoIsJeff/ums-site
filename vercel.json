@@ -1,4 +1,4 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "crons": [{"path": "/api/cron/social-publish", "schedule": "*/5 * * * *"}, {"path": "/api/cron/recurring-invoices", "schedule": "0 8 * * *"}, {"path": "/api/cron/payment-reminders", "schedule": "0 9 * * *"}]
+  "buildCommand": "prisma migrate deploy && prisma generate && next build",
+  "crons": [{"path": "/api/cron/social-publish", "schedule": "*/5 * * * *"}, {"path": "/api/cron/recurring-invoices", "schedule": "0 8 * * *"}, {"path": "/api/cron/payment-reminders", "schedule": "0 9 * * *"}, {"path": "/api/cron/social-token-refresh", "schedule": "0 1 * * *"}]
 }

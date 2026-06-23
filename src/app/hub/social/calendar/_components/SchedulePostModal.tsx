@@ -3,6 +3,8 @@
 import { useActionState, useCallback, useEffect, useState } from "react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
+const MODAL_INITIAL_STATE: { error?: string } = {};
+
 type PageOption = { id: string; pageName: string; clientId: string };
 
 type SchedulePostModalProps = {
@@ -28,7 +30,7 @@ export function SchedulePostModal({
   onSuccess,
   createPost,
 }: SchedulePostModalProps) {
-  const [state, formAction] = useActionState(createPost, {});
+  const [state, formAction] = useActionState(createPost, MODAL_INITIAL_STATE);
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id ?? "");
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set(preselectedPageIds));
 
@@ -36,10 +38,15 @@ export function SchedulePostModal({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedClientId(clients[0]?.id ?? "");
-      setSelectedPageIds(new Set(preselectedPageIds));
+      const clientId = clients[0]?.id ?? "";
+      setSelectedClientId(clientId);
+      if (preselectedPageIds.length > 0) {
+        setSelectedPageIds(new Set(preselectedPageIds));
+      } else {
+        setSelectedPageIds(new Set(pages.filter((p) => p.clientId === clientId).map((p) => p.id)));
+      }
     }
-  }, [isOpen, clients, preselectedPageIds]);
+  }, [isOpen, clients, preselectedPageIds, pages]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -55,7 +62,8 @@ export function SchedulePostModal({
   }, [isOpen, handleKeyDown]);
 
   useEffect(() => {
-    if (state && !state.error) {
+    if (state === MODAL_INITIAL_STATE) return;
+    if (!state?.error) {
       onSuccess?.();
       onClose();
     }
@@ -121,8 +129,9 @@ export function SchedulePostModal({
               required
               value={selectedClientId}
               onChange={(e) => {
-                setSelectedClientId(e.target.value);
-                setSelectedPageIds(new Set());
+                const id = e.target.value;
+                setSelectedClientId(id);
+                setSelectedPageIds(new Set(pages.filter((p) => p.clientId === id).map((p) => p.id)));
               }}
               className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
             >
@@ -140,21 +149,28 @@ export function SchedulePostModal({
             {pagesForClient.length === 0 ? (
               <p className="mt-1 text-sm text-(--hub-muted)">No connected pages — connect one in Pages</p>
             ) : (
-              <div className="mt-2 max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-(--hub-border-light) p-2">
-                {pagesForClient.map((p) => (
-                  <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      name="socialPageIds"
-                      value={p.id}
-                      checked={selectedPageIds.has(p.id)}
-                      onChange={() => togglePage(p.id)}
-                      className="rounded border-black/20"
-                    />
-                    <span>{p.pageName}</span>
-                  </label>
-                ))}
-              </div>
+              <>
+                <div className="mt-1 flex gap-3">
+                  <button type="button" onClick={() => setSelectedPageIds(new Set(pagesForClient.map((p) => p.id)))} className="text-xs underline text-black/60 hover:text-black">All</button>
+                  <button type="button" onClick={() => setSelectedPageIds(new Set())} className="text-xs underline text-black/60 hover:text-black">None</button>
+                  <span className="text-xs text-black/40">{selectedPageIds.size} selected</span>
+                </div>
+                <div className="mt-1.5 max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-(--hub-border-light) p-2">
+                  {pagesForClient.map((p) => (
+                    <label key={p.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        name="socialPageIds"
+                        value={p.id}
+                        checked={selectedPageIds.has(p.id)}
+                        onChange={() => togglePage(p.id)}
+                        className="rounded border-black/20"
+                      />
+                      <span>{p.pageName}</span>
+                    </label>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

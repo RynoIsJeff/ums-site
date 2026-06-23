@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { toAuthScope } from "@/lib/auth";
 import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { getPageFeedPosts } from "@/lib/facebook";
 import { SocialCalendarClient } from "./_components/SocialCalendarClient";
 
 export const metadata = {
@@ -61,6 +62,29 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
     clientId: p.socialAccount.clientId,
     clientName: p.socialAccount.client.companyName,
   }));
+
+  const visiblePages = selectedPageIds.length > 0
+    ? pages.filter((p) => selectedPageIds.includes(p.id))
+    : pages;
+
+  const externalResults = await Promise.allSettled(
+    visiblePages
+      .filter((p) => !!p.pageAccessTokenEncrypted)
+      .map(async (p) => {
+        const result = await getPageFeedPosts(
+          p.pageExternalId,
+          p.pageAccessTokenEncrypted!,
+          startOfMonth,
+          endOfMonth,
+        );
+        if (!result.ok) return [] as { id: string; message?: string; createdTime: string; permalink?: string; pageId: string; pageName: string }[];
+        return result.posts.map((post) => ({ ...post, pageId: p.id, pageName: p.pageName }));
+      })
+  );
+
+  const externalPosts = externalResults.flatMap((r) =>
+    r.status === "fulfilled" ? r.value : []
+  );
 
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevYear = month === 1 ? year - 1 : year;
@@ -127,11 +151,13 @@ export default async function SocialCalendarPage({ searchParams }: PageProps) {
             clientId: p.client.id,
             pageId: p.socialPage?.id ?? "",
             pageName: p.socialPage?.pageName ?? "—",
+            externalPostId: p.externalPostId ?? null,
           }))}
           pages={pageOptions}
           clients={clients}
           selectedPageIds={selectedPageIds}
           baseUrl={baseUrl}
+          externalPosts={externalPosts}
         />
       </div>
     </section>

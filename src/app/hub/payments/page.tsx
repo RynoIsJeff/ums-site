@@ -152,10 +152,9 @@ export default async function HubPaymentsPage({
                 <tr>
                   <th>Date</th>
                   <th>Client</th>
-                  <th className="hidden sm:table-cell">Invoice</th>
-                  <th className="hidden sm:table-cell">Method</th>
+                  <th>Invoice</th>
+                  <th>Method</th>
                   <th>Amount</th>
-                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -173,8 +172,17 @@ export default async function HubPaymentsPage({
                         >
                           {p.client.companyName}
                         </Link>
+                        <div className="mt-1 flex items-center gap-3">
+                          <Link
+                            href={`/hub/payments/${p.id}/edit`}
+                            className="text-xs text-(--hub-muted) hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <DeletePaymentButton paymentId={p.id} />
+                        </div>
                       </td>
-                      <td className="hidden sm:table-cell p-3">
+                      <td className="p-3">
                         {p.allocations.length === 0 ? (
                           <span className="text-(--hub-muted)">—</span>
                         ) : p.allocations.length === 1 ? (
@@ -200,20 +208,9 @@ export default async function HubPaymentsPage({
                           </span>
                         )}
                       </td>
-                      <td className="hidden sm:table-cell text-(--hub-text)">{p.method}</td>
+                      <td className="text-(--hub-text)">{p.method}</td>
                       <td className="text-(--hub-text)">
                         R {toNum(p.amount).toLocaleString("en-ZA")}
-                      </td>
-                      <td className="whitespace-nowrap text-right">
-                        <span className="inline-flex items-center gap-3">
-                          <Link
-                            href={`/hub/payments/${p.id}/edit`}
-                            className="text-sm text-(--hub-muted) hover:underline"
-                          >
-                            Edit
-                          </Link>
-                          <DeletePaymentButton paymentId={p.id} />
-                        </span>
                       </td>
                     </tr>
                   ))}

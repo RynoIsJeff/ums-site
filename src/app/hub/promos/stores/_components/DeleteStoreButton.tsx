@@ -1,38 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { deleteStore } from "../../actions";
 import { useRouter } from "next/navigation";
-import { deletePayment } from "../actions";
 
-type Props = {
-  paymentId: string;
-};
-
-export function DeletePaymentButton({ paymentId }: Props) {
+export function DeleteStoreButton({ storeId, promoCount }: { storeId: string; promoCount: number }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    setError(null);
     setLoading(true);
-    const result = await deletePayment(paymentId);
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
-      return;
-    }
+    const res = await deleteStore(storeId);
+    if (res?.error) { setError(res.error); setLoading(false); return; }
     router.refresh();
+  }
+
+  if (promoCount > 0) {
+    return <span className="text-xs text-(--hub-muted)">In use</span>;
   }
 
   if (!confirming) {
     return (
-      <button
-        type="button"
-        onClick={() => setConfirming(true)}
-        className="text-xs text-red-600 hover:underline"
-      >
+      <button type="button" onClick={() => setConfirming(true)} className="text-xs text-red-600 hover:underline">
         Delete
       </button>
     );

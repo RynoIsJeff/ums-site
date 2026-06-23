@@ -2,28 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { deletePayment } from "../actions";
+import { deletePromo } from "../../actions";
 
-type Props = {
-  paymentId: string;
-};
-
-export function DeletePaymentButton({ paymentId }: Props) {
+export function DeletePromoButton({ promoId }: { promoId: string }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    setError(null);
     setLoading(true);
-    const result = await deletePayment(paymentId);
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
-      return;
-    }
-    router.refresh();
+    const res = await deletePromo(promoId);
+    if (res?.error) { setError(res.error); setLoading(false); return; }
+    router.push("/hub/promos");
   }
 
   if (!confirming) {
@@ -31,7 +22,7 @@ export function DeletePaymentButton({ paymentId }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-xs text-red-600 hover:underline"
+        className="inline-flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
       >
         Delete
       </button>
@@ -42,7 +33,7 @@ export function DeletePaymentButton({ paymentId }: Props) {
     <span className="inline-flex flex-col items-end gap-1">
       {error && <span className="text-xs text-red-700">{error}</span>}
       <span className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50/80 px-2 py-1">
-        <span className="text-xs text-red-800 mr-1">Delete?</span>
+        <span className="text-xs text-red-800 mr-1">Delete promo?</span>
         <button
           type="button"
           onClick={handleDelete}
