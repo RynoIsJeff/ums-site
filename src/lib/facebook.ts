@@ -334,6 +334,47 @@ export async function exchangeCodeForUserToken(code: string, redirectUri: string
 }
 
 /**
+ * Exchange a short-lived or expiring user access token for a long-lived one (~60 days).
+ * Must be called with META_APP_ID and META_APP_SECRET configured.
+ */
+export async function extendUserToken(token: string): Promise<
+  | { ok: true; accessToken: string; expiresIn: number }
+  | { ok: false; error: string }
+> {
+  const clientId = process.env.META_APP_ID;
+  const clientSecret = process.env.META_APP_SECRET;
+  if (!clientId || !clientSecret) {
+    return { ok: false, error: "META_APP_ID or META_APP_SECRET not configured." };
+  }
+
+  const url =
+    `${GRAPH_BASE}/oauth/access_token?` +
+    `grant_type=fb_exchange_token` +
+    `&client_id=${encodeURIComponent(clientId)}` +
+    `&client_secret=${encodeURIComponent(clientSecret)}` +
+    `&fb_exchange_token=${encodeURIComponent(token)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = (await res.json()) as {
+      access_token?: string;
+      expires_in?: number;
+      error?: { message: string };
+    };
+    if (!res.ok || !data.access_token) {
+      return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    }
+    return {
+      ok: true,
+      accessToken: data.access_token,
+      expiresIn: data.expires_in ?? 5184000, // default 60 days
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
  * List Facebook Pages the user can manage, including page access tokens.
  * Uses /me/accounts. Requires: pages_show_list, pages_read_engagement.
  */

@@ -21,7 +21,11 @@ export default async function SocialPagesPage() {
       where: { socialAccount: clientIdWhere(scope), provider: "META" },
       include: {
         socialAccount: {
-          select: { clientId: true, client: { select: { companyName: true } } },
+          select: {
+            clientId: true,
+            tokenExpiresAt: true,
+            client: { select: { companyName: true } },
+          },
         },
       },
     }),
@@ -59,6 +63,7 @@ export default async function SocialPagesPage() {
                 clientId: page.socialAccount.clientId,
                 profilePictureUrl: metadata.profilePictureUrl,
                 coverPhotoUrl: metadata.coverPhotoUrl,
+                tokenExpiresAt: page.socialAccount.tokenExpiresAt?.toISOString() ?? null,
               }}
             />
           );

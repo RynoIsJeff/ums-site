@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Camera, RefreshCw, ExternalLink, Loader2 } from "lucide-react";
-import { refreshPageProfile, updatePagePicture } from "../actions";
+import { Camera, RefreshCw, ExternalLink, Loader2, AlertTriangle, XCircle } from "lucide-react";
+import { refreshPageProfile, refreshPageToken, updatePagePicture } from "../actions";
 
 type PageCardProps = {
   page: {
@@ -15,8 +15,17 @@ type PageCardProps = {
     clientId: string;
     profilePictureUrl?: string;
     coverPhotoUrl?: string;
+    tokenExpiresAt?: string | null;
   };
 };
+
+function tokenStatus(expiresAt: string | null | undefined) {
+  if (!expiresAt) return "unknown";
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "expired";
+  if (ms < 15 * 24 * 60 * 60 * 1000) return "expiring";
+  return "ok";
+}
 
 export function PageCard({ page }: PageCardProps) {
   const router = useRouter();
@@ -27,13 +36,24 @@ export function PageCard({ page }: PageCardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const status = tokenStatus(page.tokenExpiresAt);
+  const daysLeft = page.tokenExpiresAt
+    ? Math.ceil((new Date(page.tokenExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+
   const handleRefresh = async () => {
     setLoading(true);
     setError(null);
-    const result = await refreshPageProfile(page.id);
+    // First try to refresh the token, then refresh the profile data
+    const tokenResult = await refreshPageToken(page.id);
+    if (tokenResult?.error) {
+      // Token refresh failed — still try profile refresh with existing token
+      setError(tokenResult.error);
+    }
+    const profileResult = await refreshPageProfile(page.id);
     setLoading(false);
-    if (result?.error) setError(result.error);
-    else router.refresh();
+    if (profileResult?.error && !tokenResult?.error) setError(profileResult.error);
+    else if (!tokenResult?.error) router.refresh();
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -145,9 +165,35 @@ export function PageCard({ page }: PageCardProps) {
             className="inline-flex items-center gap-1 text-xs font-medium text-(--hub-muted) hover:text-(--hub-text) disabled:opacity-50"
           >
             <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
+
+        {/* Token status banners */}
+        {status === "expired" && (
+          <div className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+            <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <div className="text-xs text-red-800">
+              <p className="font-medium">Access token expired</p>
+              <a
+                href="/hub/social/facebook/connect"
+                className="underline font-semibold mt-0.5 inline-block"
+              >
+                Reconnect via Facebook →
+              </a>
+            </div>
+          </div>
+        )}
+        {status === "expiring" && daysLeft !== null && (
+          <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800">
+              <p className="font-medium">Token expires in {daysLeft} day{daysLeft !== 1 ? "s" : ""}</p>
+              <p>Click Refresh to extend, or <a href="/hub/social/facebook/connect" className="underline">reconnect</a>.</p>
+            </div>
+          </div>
+        )}
+
         {error && (
           <p className="mt-2 text-xs text-red-600">{error}</p>
         )}

@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { exchangeCodeForUserToken, listManagedPages } from "@/lib/facebook";
+import { exchangeCodeForUserToken, extendUserToken, listManagedPages } from "@/lib/facebook";
 import { connectFacebookPageForm } from "../../actions";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
@@ -44,19 +44,27 @@ export default async function FacebookCallbackPage({
     );
   }
 
-  const tokenResult = await exchangeCodeForUserToken(code, redirectUri);
-  if (!tokenResult.ok) {
+  // Step 1: Exchange code for short-lived user token
+  const shortTokenResult = await exchangeCodeForUserToken(code, redirectUri);
+  if (!shortTokenResult.ok) {
     return (
       <section className="py-10">
         <div className="max-w-xl mx-auto rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
           <p className="font-semibold mb-2">Facebook login failed</p>
-          <p>{tokenResult.error}</p>
+          <p>{shortTokenResult.error}</p>
         </div>
       </section>
     );
   }
 
-  const pagesResult = await listManagedPages(tokenResult.accessToken);
+  // Step 2: Extend to long-lived token (~60 days) — page tokens from a long-lived user token don't expire
+  const extendResult = await extendUserToken(shortTokenResult.accessToken);
+  const userToken = extendResult.ok ? extendResult.accessToken : shortTokenResult.accessToken;
+  const userTokenExpiresIn = extendResult.ok ? extendResult.expiresIn : (shortTokenResult.expiresIn ?? 3600);
+  const userTokenExpiresAt = new Date(Date.now() + userTokenExpiresIn * 1000).toISOString();
+
+  // Step 3: Fetch pages using the long-lived token (page tokens will also be long-lived)
+  const pagesResult = await listManagedPages(userToken);
   if (!pagesResult.ok) {
     return (
       <section className="py-10">
@@ -134,10 +142,13 @@ export default async function FacebookCallbackPage({
                 </select>
               </div>
 
-              {/* Hidden fields to reuse existing connectFacebookPage action */}
+              {/* Hidden fields passed to connectFacebookPage action */}
               <input type="hidden" name="pageId" value={page.id} />
               <input type="hidden" name="pageName" value={page.name} />
               <input type="hidden" name="pageAccessToken" value={page.accessToken} />
+              {/* Long-lived user token — stored on SocialAccount for auto-refresh */}
+              <input type="hidden" name="userToken" value={userToken} />
+              <input type="hidden" name="userTokenExpiresAt" value={userTokenExpiresAt} />
 
               <PendingSubmitButton className="mt-1 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)">
                 Connect this page
@@ -149,4 +160,3 @@ export default async function FacebookCallbackPage({
     </section>
   );
 }
-

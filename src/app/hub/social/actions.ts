@@ -82,6 +82,11 @@ export async function connectFacebookPage(formData: FormData): Promise<SocialFor
     return { error: "Access denied to this client." };
   }
 
+  // Long-lived user token from OAuth callback (optional — not present for manual connections)
+  const userToken = (formData.get("userToken") as string | null) || null;
+  const userTokenExpiresAtStr = (formData.get("userTokenExpiresAt") as string | null) || null;
+  const userTokenExpiresAt = userTokenExpiresAtStr ? new Date(userTokenExpiresAtStr) : null;
+
   const existing = await prisma.socialPage.findFirst({
     where: { provider: "META", pageExternalId: pageId },
     include: { socialAccount: { select: { clientId: true } } },
@@ -108,6 +113,13 @@ export async function connectFacebookPage(formData: FormData): Promise<SocialFor
   }
 
   if (existing) {
+    // Also update the SocialAccount with the fresh user token if provided
+    if (userToken && userTokenExpiresAt) {
+      await prisma.socialAccount.update({
+        where: { id: existing.socialAccountId },
+        data: { accessTokenEncrypted: userToken, tokenExpiresAt: userTokenExpiresAt },
+      });
+    }
     await prisma.socialPage.update({
       where: { id: existing.id },
       data: {
@@ -132,11 +144,14 @@ export async function connectFacebookPage(formData: FormData): Promise<SocialFor
       provider: "META",
       accountName: pageName,
       accountExternalId: pageId,
-      accessTokenEncrypted: pageAccessToken,
+      // Store the long-lived user token (from OAuth) — used for auto-refresh
+      accessTokenEncrypted: userToken ?? pageAccessToken,
+      tokenExpiresAt: userTokenExpiresAt,
     },
     update: {
       accountName: pageName,
-      accessTokenEncrypted: pageAccessToken,
+      accessTokenEncrypted: userToken ?? pageAccessToken,
+      tokenExpiresAt: userTokenExpiresAt,
     },
   });
 
@@ -457,6 +472,71 @@ export async function updatePagePicture(
     where: { id: socialPageId },
     data: { metadata },
   });
+
+  revalidatePath("/hub/social");
+  revalidatePath("/hub/social/pages");
+  return {};
+}
+
+/**
+ * Attempt to refresh the page access token using the stored long-lived user token.
+ * Falls back gracefully if no user token is available (manual connections).
+ */
+export async function refreshPageToken(socialPageId: string): Promise<SocialFormState> {
+  const { scope } = await requireHubAuth();
+
+  const page = await prisma.socialPage.findUnique({
+    where: { id: socialPageId },
+    include: {
+      socialAccount: {
+        select: { id: true, clientId: true, accessTokenEncrypted: true, tokenExpiresAt: true },
+      },
+    },
+  });
+  if (!page || !canAccessClient(scope, page.socialAccount.clientId)) {
+    return { error: "Page not found or access denied." };
+  }
+
+  const { extendUserToken, listManagedPages } = await import("@/lib/facebook");
+  const account = page.socialAccount;
+
+  // If no user token stored, we can't auto-refresh — manual reconnect required
+  if (!account.accessTokenEncrypted) {
+    return { error: "No user token stored. Please reconnect this page via Facebook Login." };
+  }
+
+  // Extend the user token (works when token is still valid; fails if expired/revoked)
+  const extendResult = await extendUserToken(account.accessTokenEncrypted);
+  if (!extendResult.ok) {
+    return {
+      error: `Token refresh failed: ${extendResult.error}. Please reconnect via "Continue with Facebook".`,
+    };
+  }
+
+  // Update the account with the new user token and its expiry
+  const newExpiresAt = new Date(Date.now() + extendResult.expiresIn * 1000);
+  await prisma.socialAccount.update({
+    where: { id: account.id },
+    data: {
+      accessTokenEncrypted: extendResult.accessToken,
+      tokenExpiresAt: newExpiresAt,
+    },
+  });
+
+  // Fetch fresh page tokens using the extended user token
+  const pagesResult = await listManagedPages(extendResult.accessToken);
+  if (!pagesResult.ok) {
+    return { error: `Could not fetch page tokens: ${pagesResult.error}` };
+  }
+
+  // Find the matching page in the refreshed list and update its token
+  const freshPage = pagesResult.pages.find((p) => p.id === page.pageExternalId);
+  if (freshPage) {
+    await prisma.socialPage.update({
+      where: { id: socialPageId },
+      data: { pageAccessTokenEncrypted: freshPage.accessToken },
+    });
+  }
 
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/pages");
