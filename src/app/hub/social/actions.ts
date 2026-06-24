@@ -185,6 +185,118 @@ export async function connectFacebookPage(formData: FormData): Promise<SocialFor
   redirect("/hub/social");
 }
 
+type BatchPageInput = {
+  pageId: string;
+  pageName: string;
+  pageAccessToken: string;
+  clientId: string;
+};
+
+export async function connectAllPages(
+  pages: BatchPageInput[],
+  userToken: string,
+  userTokenExpiresAt: string,
+): Promise<{ errors: Array<{ page: string; error: string }> }> {
+  const { scope } = await requireHubAuth();
+  const errors: Array<{ page: string; error: string }> = [];
+
+  const userTokenDate = userTokenExpiresAt ? new Date(userTokenExpiresAt) : null;
+
+  await Promise.all(
+    pages.map(async ({ pageId, pageName, pageAccessToken, clientId }) => {
+      if (!canAccessClient(scope, clientId)) {
+        errors.push({ page: pageName, error: "Access denied to this client." });
+        return;
+      }
+
+      const existing = await prisma.socialPage.findFirst({
+        where: { provider: "META", pageExternalId: pageId },
+        include: { socialAccount: { select: { clientId: true } } },
+      });
+      if (existing && existing.socialAccount.clientId !== clientId) {
+        errors.push({ page: pageName, error: "Already connected to a different client." });
+        return;
+      }
+
+      let metadata: { profilePictureUrl?: string; coverPhotoUrl?: string } | undefined;
+      let instagramBusinessAccountId: string | null = null;
+      try {
+        const [profileResult, igResult] = await Promise.all([
+          getPageProfile(pageId, pageAccessToken),
+          getPageInstagramAccountId(pageId, pageAccessToken),
+        ]);
+        if (profileResult.ok) {
+          metadata = {
+            profilePictureUrl: profileResult.profile.pictureUrl,
+            coverPhotoUrl: profileResult.profile.coverUrl,
+          };
+        }
+        if (igResult.ok) instagramBusinessAccountId = igResult.igUserId;
+      } catch {
+        // Non-fatal — profile fetch failures don't block connection
+      }
+
+      if (existing) {
+        await prisma.socialAccount.update({
+          where: { id: existing.socialAccountId },
+          data: { accessTokenEncrypted: userToken, tokenExpiresAt: userTokenDate },
+        });
+        await prisma.socialPage.update({
+          where: { id: existing.id },
+          data: {
+            pageName,
+            pageAccessTokenEncrypted: pageAccessToken,
+            instagramBusinessAccountId,
+            ...(metadata && { metadata }),
+          },
+        });
+        return;
+      }
+
+      const account = await prisma.socialAccount.upsert({
+        where: { provider_accountExternalId: { provider: "META", accountExternalId: pageId } },
+        create: {
+          clientId,
+          provider: "META",
+          accountName: pageName,
+          accountExternalId: pageId,
+          accessTokenEncrypted: userToken,
+          tokenExpiresAt: userTokenDate,
+        },
+        update: {
+          accountName: pageName,
+          accessTokenEncrypted: userToken,
+          tokenExpiresAt: userTokenDate,
+        },
+      });
+
+      await prisma.socialPage.upsert({
+        where: { provider_pageExternalId: { provider: "META", pageExternalId: pageId } },
+        create: {
+          socialAccountId: account.id,
+          provider: "META",
+          pageName,
+          pageExternalId: pageId,
+          pageAccessTokenEncrypted: pageAccessToken,
+          instagramBusinessAccountId,
+          ...(metadata && { metadata }),
+        },
+        update: {
+          pageName,
+          pageAccessTokenEncrypted: pageAccessToken,
+          instagramBusinessAccountId,
+          ...(metadata && { metadata }),
+        },
+      });
+    })
+  );
+
+  revalidatePath("/hub/social");
+  revalidatePath("/hub/social/pages");
+  revalidatePath("/hub/clients/[id]");
+  return { errors };
+}
+
 /** Form action wrapper: Next.js 16 form `action` type expects `Promise<void>`. */
 export async function connectFacebookPageForm(formData: FormData): Promise<void> {
   await connectFacebookPage(formData);

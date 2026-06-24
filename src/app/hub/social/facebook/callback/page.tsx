@@ -2,8 +2,7 @@ import { getSession } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeForUserToken, extendUserToken, listManagedPages } from "@/lib/facebook";
-import { connectFacebookPageForm } from "../../actions";
-import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
+import { ConnectAllPagesForm } from "../../_components/ConnectAllPagesForm";
 
 type CallbackPageProps = {
   searchParams: Promise<{ code?: string; error?: string }>;
@@ -104,58 +103,20 @@ export default async function FacebookCallbackPage({
             Connect Facebook Pages
           </h1>
           <p className="mt-1 text-sm text-(--hub-muted)">
-            Select a page and map it to a client in UMS Hub. You can repeat this for multiple pages.
+            Map each page to a client, then connect them all at once.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {pagesResult.pages.map((page) => (
-            <form
-              key={page.id}
-              action={connectFacebookPageForm}
-              className="space-y-3 rounded-xl border border-(--hub-border-light) bg-white p-4 shadow-sm"
-            >
-              <div>
-                <p className="text-sm font-semibold text-(--hub-text)">{page.name}</p>
-                <p className="mt-0.5 text-xs text-(--hub-muted)">Page ID: {page.id}</p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor={`client-${page.id}`}
-                  className="block text-xs font-medium text-(--hub-text)"
-                >
-                  Map to client
-                </label>
-                <select
-                  id={`client-${page.id}`}
-                  name="clientId"
-                  required
-                  className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-2.5 py-1.5 text-xs focus:border-(--meta-blue) focus:outline-none focus:ring-1 focus:ring-(--meta-blue)"
-                >
-                  <option value="">Select client</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.companyName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Hidden fields passed to connectFacebookPage action */}
-              <input type="hidden" name="pageId" value={page.id} />
-              <input type="hidden" name="pageName" value={page.name} />
-              <input type="hidden" name="pageAccessToken" value={page.accessToken} />
-              {/* Long-lived user token — stored on SocialAccount for auto-refresh */}
-              <input type="hidden" name="userToken" value={userToken} />
-              <input type="hidden" name="userTokenExpiresAt" value={userTokenExpiresAt} />
-
-              <PendingSubmitButton className="mt-1 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-(--meta-blue) px-3 py-1.5 text-xs font-semibold text-white hover:bg-(--meta-blue-hover)">
-                Connect this page
-              </PendingSubmitButton>
-            </form>
-          ))}
-        </div>
+        <ConnectAllPagesForm
+          pages={pagesResult.pages.map((p) => ({
+            id: p.id,
+            name: p.name,
+            accessToken: p.accessToken,
+          }))}
+          clients={clients}
+          userToken={userToken}
+          userTokenExpiresAt={userTokenExpiresAt}
+        />
       </div>
     </section>
   );
