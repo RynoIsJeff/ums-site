@@ -6,7 +6,8 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getPageProfile, getPageInstagramAccountId } from "@/lib/facebook";
+import { getPageProfile, getPageInstagramAccountId, publishPageFeedPost, publishPageMultiPhotoPost, publishPageVideoPost } from "@/lib/facebook";
+import { publishInstagramPost } from "@/lib/instagram";
 
 // SAST = UTC+2, no DST. datetime-local inputs send no timezone; treat them as SAST.
 function parseSastDatetime(value: string): Date {
@@ -546,4 +547,90 @@ export async function refreshPageToken(socialPageId: string): Promise<SocialForm
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/pages");
   return {};
+}
+
+export async function publishPostNow(postId: string): Promise<{ error?: string }> {
+  const { scope } = await requireHubAuth();
+
+  const post = await prisma.socialPost.findUnique({
+    where: { id: postId },
+    include: {
+      socialPage: true,
+      media: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  if (!post || !canAccessClient(scope, post.clientId)) {
+    return { error: "Post not found" };
+  }
+
+  if (post.status === "PUBLISHED") {
+    return { error: "Post is already published" };
+  }
+
+  const page = post.socialPage;
+  if (!page?.pageAccessTokenEncrypted || !page.pageExternalId) {
+    return { error: "No connected Facebook page or token missing. Reconnect the page first." };
+  }
+
+  await prisma.socialPost.update({ where: { id: postId }, data: { status: "PROCESSING" } });
+
+  const imageMedia = post.media.filter((m) => m.mediaType === "IMAGE");
+  const videoMedia = post.media.filter((m) => m.mediaType === "VIDEO");
+
+  let result;
+  if (imageMedia.length > 0) {
+    result = await publishPageMultiPhotoPost(
+      page.pageExternalId,
+      page.pageAccessTokenEncrypted,
+      imageMedia.map((m) => m.mediaUrl),
+      post.caption,
+    );
+  } else if (videoMedia.length > 0) {
+    result = await publishPageVideoPost(
+      page.pageExternalId,
+      page.pageAccessTokenEncrypted,
+      videoMedia[0].mediaUrl,
+      post.caption,
+    );
+  } else {
+    result = await publishPageFeedPost(
+      page.pageExternalId,
+      page.pageAccessTokenEncrypted,
+      post.caption,
+    );
+  }
+
+  if (result.ok) {
+    await prisma.socialPost.update({
+      where: { id: postId },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        externalPostId: result.postId,
+        publishedUrl: result.permalink,
+        lastError: null,
+      },
+    });
+
+    if (page.instagramBusinessAccountId) {
+      await publishInstagramPost(
+        page.instagramBusinessAccountId,
+        page.pageAccessTokenEncrypted,
+        post.caption ?? "",
+        imageMedia[0]?.mediaUrl,
+      ).catch((e) => console.warn(`[publishPostNow] Instagram cross-post failed: ${e}`));
+    }
+
+    revalidatePath(`/hub/social/posts/${postId}`);
+    revalidatePath("/hub/social");
+    return {};
+  } else {
+    await prisma.socialPost.update({
+      where: { id: postId },
+      data: { status: "FAILED", lastError: result.error },
+    });
+    revalidatePath(`/hub/social/posts/${postId}`);
+    return { error: result.error ?? "Publish failed" };
+  }
 }

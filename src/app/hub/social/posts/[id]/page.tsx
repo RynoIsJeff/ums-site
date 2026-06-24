@@ -5,6 +5,7 @@ import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { CancelPostButton } from "../../_components/CancelPostButton";
+import { PublishNowButton } from "../../_components/PublishNowButton";
 import { PostForm } from "../../_components/PostForm";
 import { updatePost } from "../../actions";
 
@@ -60,7 +61,10 @@ export default async function PostDetailPage({ params }: PageProps) {
         <Link href="/hub/social" className="text-sm text-(--hub-muted) hover:text-(--hub-text)">
           ← Content Planner
         </Link>
-        {canEdit && <CancelPostButton postId={id} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {canEdit && post.socialPageId && <PublishNowButton postId={id} />}
+          {canEdit && <CancelPostButton postId={id} />}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-baseline justify-between gap-4">
