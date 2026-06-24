@@ -35,6 +35,7 @@ export function SchedulePostModal({
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id ?? "");
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set(preselectedPageIds));
   const [minDateTime, setMinDateTime] = useState("");
+  const [mode, setMode] = useState<"schedule" | "now">("schedule");
 
   const pagesForClient = selectedClientId ? pages.filter((p) => p.clientId === selectedClientId) : [];
 
@@ -45,6 +46,7 @@ export function SchedulePostModal({
       setMinDateTime(new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16));
       const clientId = clients[0]?.id ?? "";
       setSelectedClientId(clientId);
+      setMode("schedule");
       if (preselectedPageIds.length > 0) {
         setSelectedPageIds(new Set(preselectedPageIds));
       } else {
@@ -99,7 +101,22 @@ export function SchedulePostModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-(--hub-text)">Schedule post</h2>
+          <div className="flex rounded-lg border border-(--hub-border-light) bg-black/4 p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => setMode("schedule")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${mode === "schedule" ? "bg-white shadow-sm text-(--hub-text)" : "text-(--hub-muted) hover:text-(--hub-text)"}`}
+            >
+              Schedule
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("now")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${mode === "now" ? "bg-white shadow-sm text-(--hub-text)" : "text-(--hub-muted) hover:text-(--hub-text)"}`}
+            >
+              Post now
+            </button>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -111,12 +128,15 @@ export function SchedulePostModal({
             </svg>
           </button>
         </div>
-        <p className="mb-4 text-sm text-(--hub-muted)">
-          Schedule for <strong>{new Date(scheduledFor).toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short", timeZone: "Africa/Johannesburg" })}</strong>
-        </p>
+        {mode === "schedule" && (
+          <p className="mb-4 text-sm text-(--hub-muted)">
+            Schedule for <strong>{new Date(scheduledFor).toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short", timeZone: "Africa/Johannesburg" })}</strong>
+          </p>
+        )}
 
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="noRedirect" value="true" />
+          {mode === "now" && <input type="hidden" name="publishNow" value="true" />}
 
           {state?.error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -195,24 +215,26 @@ export function SchedulePostModal({
 
           <MediaUploadInput />
 
-          <div>
-            <label htmlFor="modal-scheduledFor" className="block text-sm font-medium">
-              Date & time
-            </label>
-            <input
-              id="modal-scheduledFor"
-              name="scheduledFor"
-              type="datetime-local"
-              required
-              defaultValue={scheduledFor}
-              min={minDateTime}
-              className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
-            />
-          </div>
+          {mode === "schedule" && (
+            <div>
+              <label htmlFor="modal-scheduledFor" className="block text-sm font-medium">
+                Date & time
+              </label>
+              <input
+                id="modal-scheduledFor"
+                name="scheduledFor"
+                type="datetime-local"
+                required
+                defaultValue={scheduledFor}
+                min={minDateTime}
+                className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
+              />
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <PendingSubmitButton className="rounded-lg border border-transparent bg-(--primary) px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
-              Schedule
+              {mode === "now" ? "Post now" : "Schedule"}
             </PendingSubmitButton>
             <button
               type="button"

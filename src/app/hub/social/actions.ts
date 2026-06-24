@@ -341,10 +341,13 @@ export async function createPost(
     return { error: "One or more selected pages are invalid for this client." };
   }
 
-  const scheduledAt = scheduledFor ? parseSastDatetime(scheduledFor) : null;
+  const publishNow = formData.get("publishNow") === "true";
+  const scheduledAt = !publishNow && scheduledFor ? parseSastDatetime(scheduledFor) : null;
   const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
   const shouldCreateMedia = mediaUrls.length > 0 && !!mediaType;
+
+  const publishErrors: string[] = [];
 
   for (const page of pages) {
     const post = await prisma.socialPost.create({
@@ -369,11 +372,21 @@ export async function createPost(
         })),
       });
     }
+
+    if (publishNow) {
+      const result = await publishPostNow(post.id);
+      if (result.error) publishErrors.push(`${page.pageName ?? page.id}: ${result.error}`);
+    }
   }
 
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/calendar");
+  revalidatePath("/hub/social/posts");
   revalidatePath("/hub/clients/[id]");
+
+  if (publishErrors.length > 0) {
+    return { error: publishErrors.join("\n") };
+  }
 
   if (formData.get("noRedirect") === "true") {
     return {};
