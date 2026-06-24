@@ -36,8 +36,10 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
 
   const pages = await prisma.socialPage.findMany({
     where: {
-      client: {
-        ...clientWhere({ userId: user.id, role: user.role, assignedClientIds: user.assignedClientIds }),
+      socialAccount: {
+        client: {
+          ...clientWhere({ userId: user.id, role: user.role, assignedClientIds: user.assignedClientIds }),
+        },
       },
     },
     orderBy: { pageName: "asc" },
