@@ -97,7 +97,9 @@ export default async function PostDetailPage({ params }: PageProps) {
             defaultPageId={post.socialPageId ?? ""}
             defaultCaption={post.caption}
             defaultScheduledFor={
-              post.scheduledFor ? post.scheduledFor.toISOString().slice(0, 16) : ""
+              post.scheduledFor
+                ? new Date(post.scheduledFor.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16)
+                : ""
             }
             defaultMediaUrl={post.media[0]?.mediaUrl ?? ""}
             defaultMediaType={(post.media[0]?.mediaType as "IMAGE" | "VIDEO" | undefined) ?? ""}
@@ -110,12 +112,12 @@ export default async function PostDetailPage({ params }: PageProps) {
           <div className="whitespace-pre-wrap text-sm">{post.caption}</div>
           {post.scheduledFor && (
             <p className="mt-4 text-sm text-black/60">
-              Scheduled: {post.scheduledFor.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" })}
+              Scheduled: {post.scheduledFor.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Johannesburg" })}
             </p>
           )}
           {post.publishedAt && (
             <p className="mt-2 text-sm text-black/60">
-              Published: {post.publishedAt.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" })}
+              Published: {post.publishedAt.toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Johannesburg" })}
             </p>
           )}
           {post.publishedUrl && (

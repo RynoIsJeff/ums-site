@@ -8,6 +8,12 @@ import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getPageProfile, getPageInstagramAccountId } from "@/lib/facebook";
 
+// SAST = UTC+2, no DST. datetime-local inputs send no timezone; treat them as SAST.
+function parseSastDatetime(value: string): Date {
+  const hasTimezone = value.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(value);
+  return new Date(hasTimezone ? value : `${value}+02:00`);
+}
+
 const ConnectPageSchema = z.object({
   clientId: z.string().min(1),
   pageId: z.string().min(1, "Page ID is required"),
@@ -222,7 +228,7 @@ export async function createPost(
     return { error: "One or more selected pages are invalid for this client." };
   }
 
-  const scheduledAt = scheduledFor ? new Date(scheduledFor) : null;
+  const scheduledAt = scheduledFor ? parseSastDatetime(scheduledFor) : null;
   const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
   const shouldCreateMedia = mediaUrls.length > 0 && !!mediaType;
@@ -307,7 +313,7 @@ export async function updatePost(
     return { error: "Invalid page for this client." };
   }
 
-  const scheduledAt = scheduledFor ? new Date(scheduledFor) : null;
+  const scheduledAt = scheduledFor ? parseSastDatetime(scheduledFor) : null;
   const status =
     scheduledAt && scheduledAt > new Date()
       ? "SCHEDULED"

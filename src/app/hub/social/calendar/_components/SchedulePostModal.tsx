@@ -42,7 +42,7 @@ export function SchedulePostModal({
     if (isOpen) {
       const now = new Date();
       now.setSeconds(0, 0);
-      setMinDateTime(now.toISOString().slice(0, 16));
+      setMinDateTime(new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16));
       const clientId = clients[0]?.id ?? "";
       setSelectedClientId(clientId);
       if (preselectedPageIds.length > 0) {
@@ -112,7 +112,7 @@ export function SchedulePostModal({
           </button>
         </div>
         <p className="mb-4 text-sm text-(--hub-muted)">
-          Schedule for <strong>{new Date(scheduledFor).toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short" })}</strong>
+          Schedule for <strong>{new Date(scheduledFor).toLocaleString("en-ZA", { dateStyle: "long", timeStyle: "short", timeZone: "Africa/Johannesburg" })}</strong>
         </p>
 
         <form action={formAction} className="space-y-4">

@@ -194,6 +194,7 @@ async function HubSocialPageInner() {
                           {post.scheduledFor.toLocaleString("en-ZA", {
                             dateStyle: "short",
                             timeStyle: "short",
+                            timeZone: "Africa/Johannesburg",
                           })}
                         </span>
                       )}

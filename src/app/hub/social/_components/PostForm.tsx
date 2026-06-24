@@ -51,7 +51,7 @@ export function PostForm({
   const [minDateTime] = useState(() => {
     const d = new Date();
     d.setSeconds(0, 0);
-    return d.toISOString().slice(0, 16);
+    return new Date(d.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16);
   });
 
   const pagesForClient = selectedClientId
