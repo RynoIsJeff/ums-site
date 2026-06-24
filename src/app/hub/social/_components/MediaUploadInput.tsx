@@ -17,25 +17,22 @@ export function MediaUploadInput({
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
   const [urlInput, setUrlInput] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
 
+  // Drag-and-drop reorder state
+  const dragSrc = useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+
+  const fileRef = useRef<HTMLInputElement>(null);
   const isVideo = type === "VIDEO";
   const canAddMore = !isVideo && urls.length < MAX_IMAGES;
 
+  // ── Upload ────────────────────────────────────────────────────────────────
+
   async function uploadFile(file: File) {
     const detectedType: MediaType = file.type.startsWith("video/") ? "VIDEO" : "IMAGE";
-    if (detectedType === "VIDEO" && urls.length > 0) {
-      setErr("Remove existing images before adding a video.");
-      return;
-    }
-    if (detectedType === "IMAGE" && type === "VIDEO") {
-      setErr("Remove the video before adding images.");
-      return;
-    }
-    if (urls.length >= MAX_IMAGES) {
-      setErr(`Maximum ${MAX_IMAGES} images per post.`);
-      return;
-    }
+    if (detectedType === "VIDEO" && urls.length > 0) { setErr("Remove existing images before adding a video."); return; }
+    if (detectedType === "IMAGE" && type === "VIDEO") { setErr("Remove the video before adding images."); return; }
+    if (urls.length >= MAX_IMAGES) { setErr(`Maximum ${MAX_IMAGES} images per post.`); return; }
 
     setErr("");
     setUploading(true);
@@ -58,7 +55,6 @@ export function MediaUploadInput({
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    // Upload sequentially so state updates don't race
     files.reduce((p, f) => p.then(() => uploadFile(f)), Promise.resolve());
   }
 
@@ -80,35 +76,80 @@ export function MediaUploadInput({
     setErr("");
   }
 
+  // ── Drag-and-drop reorder ─────────────────────────────────────────────────
+
+  function onDragStart(i: number) {
+    dragSrc.current = i;
+  }
+
+  function onDragOver(e: React.DragEvent, i: number) {
+    e.preventDefault();
+    if (dragSrc.current !== null && dragSrc.current !== i) setDragOver(i);
+  }
+
+  function onDrop(e: React.DragEvent, i: number) {
+    e.preventDefault();
+    const src = dragSrc.current;
+    if (src === null || src === i) { setDragOver(null); return; }
+    setUrls((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(src, 1);
+      next.splice(i, 0, moved);
+      return next;
+    });
+    dragSrc.current = null;
+    setDragOver(null);
+  }
+
+  function onDragEnd() {
+    dragSrc.current = null;
+    setDragOver(null);
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium">Photos / Video (optional)</label>
 
-      {/* Hidden fields: one per URL, one type */}
-      {urls.map((u, i) => (
-        <input key={i} type="hidden" name="mediaUrl" value={u} />
-      ))}
+      {/* Hidden fields submitted with form */}
+      {urls.map((u, i) => <input key={i} type="hidden" name="mediaUrl" value={u} />)}
       <input type="hidden" name="mediaType" value={type} />
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        className="hidden"
-        onChange={handleFiles}
-      />
+      <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFiles} />
 
       {/* Thumbnail grid */}
       {urls.length > 0 && (
         <div className="grid grid-cols-4 gap-2">
           {urls.map((u, i) => (
-            <div key={i} className="relative aspect-square overflow-hidden rounded-lg border border-(--hub-border-light) bg-black/5">
+            <div
+              key={u + i}
+              draggable={!isVideo && urls.length > 1}
+              onDragStart={() => onDragStart(i)}
+              onDragOver={(e) => onDragOver(e, i)}
+              onDrop={(e) => onDrop(e, i)}
+              onDragEnd={onDragEnd}
+              className={[
+                "relative aspect-square overflow-hidden rounded-lg border bg-black/5 transition-all",
+                dragOver === i
+                  ? "scale-105 border-(--primary) ring-2 ring-(--primary)/40"
+                  : "border-(--hub-border-light)",
+                !isVideo && urls.length > 1 ? "cursor-grab active:cursor-grabbing" : "",
+              ].join(" ")}
+            >
               {isVideo ? (
                 <video src={u} className="h-full w-full object-cover" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={u} alt={`media ${i + 1}`} className="h-full w-full object-cover" />
+                <img src={u} alt={`media ${i + 1}`} className="h-full w-full object-cover" draggable={false} />
               )}
+
+              {/* Position badge */}
+              {!isVideo && urls.length > 1 && (
+                <span className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/50 text-[10px] font-medium text-white">
+                  {i + 1}
+                </span>
+              )}
+
               <button
                 type="button"
                 onClick={() => removeAt(i)}
@@ -140,7 +181,7 @@ export function MediaUploadInput({
         </div>
       )}
 
-      {/* Empty state upload button */}
+      {/* Empty state */}
       {urls.length === 0 && (
         <button
           type="button"
@@ -170,7 +211,7 @@ export function MediaUploadInput({
       {urls.length > 0 && (
         <p className="text-xs text-(--hub-muted)">
           {isVideo ? "1 video" : `${urls.length} / ${MAX_IMAGES} photo${urls.length !== 1 ? "s" : ""}`}
-          {!isVideo && urls.length > 1 && " — will post as a multi-photo album"}
+          {!isVideo && urls.length > 1 && " — drag to reorder · will post as a multi-photo album"}
         </p>
       )}
 
