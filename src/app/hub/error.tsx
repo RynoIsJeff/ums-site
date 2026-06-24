@@ -30,22 +30,19 @@ export default function HubError({
           </p>
           <details className="mt-4 max-w-md text-left text-xs text-(--ink)/55">
             <summary className="cursor-pointer text-(--ink)/65 hover:text-(--ink)">
-              Hosting: database pool / Vercel
+              Error details (admin debug)
             </summary>
+            <pre className="mt-2 whitespace-pre-wrap break-all rounded bg-black/5 p-2 font-mono text-[10px]">
+              {error?.message ?? "(no message)"}
+              {"\n"}digest: {error?.digest ?? "(none)"}
+            </pre>
             <p className="mt-2 leading-relaxed">
-              Repeated crashes when opening Hub pages are often{" "}
-              <strong>Supabase Session pooler</strong> limits on Vercel (error{" "}
-              <code className="rounded bg-black/5 px-1 py-0.5 text-[10px]">
-                MaxClientsInSessionMode
-              </code>
-              ). Set{" "}
-              <code className="rounded bg-black/5 px-1 py-0.5 text-[10px]">DATABASE_URL</code>{" "}
-              to the <strong>Transaction</strong> pooler (port{" "}
-              <strong>6543</strong>), not <strong>Session</strong> (5432), and add{" "}
-              <code className="rounded bg-black/5 px-1 py-0.5 text-[10px]">
-                ?pgbouncer=true&amp;connection_limit=1
-              </code>
-              . See the repo <code className="text-[10px]">README.md</code> (Supabase + Vercel).
+              Hosting hint: repeated crashes are often{" "}
+              <strong>Supabase Session pooler</strong> limits (error{" "}
+              <code className="rounded bg-black/5 px-1 py-0.5">MaxClientsInSessionMode</code>
+              ). Set <code className="rounded bg-black/5 px-1 py-0.5">DATABASE_URL</code>{" "}
+              to Transaction pooler port <strong>6543</strong> with{" "}
+              <code className="rounded bg-black/5 px-1 py-0.5">?pgbouncer=true&amp;connection_limit=1</code>.
             </p>
           </details>
         </div>
