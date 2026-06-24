@@ -75,6 +75,88 @@ export async function publishPageFeedPost(
 }
 
 /**
+ * Upload a single photo to a Facebook Page as an unpublished staging photo.
+ * Returns the Facebook photo ID, which can be attached to a multi-photo feed post.
+ */
+async function stageUnpublishedPhoto(
+  pageId: string,
+  pageAccessToken: string,
+  imageUrl: string
+): Promise<{ ok: true; photoId: string } | { ok: false; error: string }> {
+  const body = new URLSearchParams({
+    url: imageUrl,
+    published: "false",
+    access_token: pageAccessToken,
+  });
+  try {
+    const res = await fetch(`${GRAPH_BASE}/${pageId}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const data = (await res.json()) as { id?: string; error?: { message: string; code: number } };
+    if (!res.ok || !data.id) {
+      return { ok: false, error: data.error?.message ?? `HTTP ${res.status}` };
+    }
+    return { ok: true, photoId: data.id };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
+ * Publish a multi-photo post to a Facebook Page.
+ * Stages each image as unpublished then creates one feed post with all photos attached.
+ * Requires pages_manage_posts + pages_read_engagement.
+ */
+export async function publishPageMultiPhotoPost(
+  pageId: string,
+  pageAccessToken: string,
+  imageUrls: string[],
+  caption: string
+): Promise<PublishResult> {
+  if (imageUrls.length === 1) {
+    return publishPagePhotoPost(pageId, pageAccessToken, imageUrls[0], caption);
+  }
+
+  const staged = await Promise.all(
+    imageUrls.map((url) => stageUnpublishedPhoto(pageId, pageAccessToken, url))
+  );
+
+  const failed = staged.find((r) => !r.ok);
+  if (failed) return { ok: false, error: (failed as { ok: false; error: string }).error };
+
+  const attachedMedia = JSON.stringify(
+    (staged as { ok: true; photoId: string }[]).map((r) => ({ media_fbid: r.photoId }))
+  );
+
+  const body = new URLSearchParams({
+    message: caption,
+    attached_media: attachedMedia,
+    access_token: pageAccessToken,
+  });
+
+  try {
+    const res = await fetch(`${GRAPH_BASE}/${pageId}/feed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const data = (await res.json()) as {
+      id?: string;
+      post_id?: string;
+      error?: { message: string; code: number };
+    };
+    if (!res.ok) {
+      return { ok: false, error: data.error?.message ?? `HTTP ${res.status}`, code: data.error?.code };
+    }
+    return { ok: true, postId: String(data.post_id ?? data.id ?? "") };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
  * Publish a photo post to a Facebook Page using a public image URL.
  * Uses /{page-id}/photos with `url` + `caption`.
  */

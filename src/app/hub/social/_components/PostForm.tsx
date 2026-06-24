@@ -48,6 +48,11 @@ export function PostForm({
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(
     defaultPageId ? new Set([defaultPageId]) : new Set()
   );
+  const [minDateTime] = useState(() => {
+    const d = new Date();
+    d.setSeconds(0, 0);
+    return d.toISOString().slice(0, 16);
+  });
 
   const pagesForClient = selectedClientId
     ? pages.filter((p) => p.clientId === selectedClientId)
@@ -195,6 +200,7 @@ export function PostForm({
           name="scheduledFor"
           type="datetime-local"
           defaultValue={defaultScheduledFor}
+          min={minDateTime}
           className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
         />
         <p className="mt-1 text-xs text-black/50">Leave empty for draft. Set a future time to schedule.</p>

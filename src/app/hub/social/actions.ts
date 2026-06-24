@@ -21,15 +21,11 @@ const CreatePostSchema = z
     socialPageIds: z.array(z.string().min(1)).min(1, "Please select at least one page"),
     caption: z.string().min(1, "Caption is required").max(63206),
     scheduledFor: z.string().optional(),
-    mediaUrl: z
-      .string()
-      .url("Enter a valid media URL")
-      .optional()
-      .or(z.literal("")),
+    mediaUrls: z.array(z.string().url("Enter a valid media URL")).optional().default([]),
     mediaType: z.enum(["IMAGE", "VIDEO"]).optional(),
   })
   .refine(
-    (data) => !data.mediaUrl || data.mediaType,
+    (data) => !data.mediaUrls?.length || data.mediaType,
     {
       message: "Select a media type for the media URL.",
       path: ["mediaType"],
@@ -199,6 +195,8 @@ export async function createPost(
     socialPageIds: Array.isArray(pageIds) ? pageIds.filter((id): id is string => typeof id === "string") : [],
     caption: (formData.get("caption") as string)?.trim(),
     scheduledFor: formData.get("scheduledFor") || undefined,
+    mediaUrls: (formData.getAll("mediaUrl") as string[]).filter(Boolean),
+    mediaType: (formData.get("mediaType") as string) || undefined,
   };
 
   const parsed = CreatePostSchema.safeParse(raw);
@@ -207,7 +205,7 @@ export async function createPost(
     return { error: msg };
   }
 
-  const { clientId, socialPageIds, caption, scheduledFor, mediaUrl, mediaType } = parsed.data;
+  const { clientId, socialPageIds, caption, scheduledFor, mediaUrls, mediaType } = parsed.data;
   if (!canAccessClient(scope, clientId)) {
     return { error: "Access denied to this client." };
   }
@@ -227,7 +225,7 @@ export async function createPost(
   const scheduledAt = scheduledFor ? new Date(scheduledFor) : null;
   const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
-  const shouldCreateMedia = !!mediaUrl && !!mediaType;
+  const shouldCreateMedia = mediaUrls.length > 0 && !!mediaType;
 
   for (const page of pages) {
     const post = await prisma.socialPost.create({
@@ -243,12 +241,13 @@ export async function createPost(
     });
 
     if (shouldCreateMedia) {
-      await prisma.socialPostMedia.create({
-        data: {
+      await prisma.socialPostMedia.createMany({
+        data: mediaUrls.map((url, i) => ({
           socialPostId: post.id,
           mediaType: mediaType as "IMAGE" | "VIDEO",
-          mediaUrl,
-        },
+          mediaUrl: url,
+          sortOrder: i,
+        })),
       });
     }
   }

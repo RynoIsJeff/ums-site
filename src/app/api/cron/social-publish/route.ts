@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { publishPageFeedPost, publishPagePhotoPost, publishPageVideoPost } from "@/lib/facebook";
+import { publishPageFeedPost, publishPagePhotoPost, publishPageMultiPhotoPost, publishPageVideoPost } from "@/lib/facebook";
 import { publishInstagramPost } from "@/lib/instagram";
 
 /**
@@ -70,32 +70,26 @@ async function runWorker(req: Request) {
       where: { id: post.id },
       data: { status: "PROCESSING" },
     });
-    const firstMedia = (post.media ?? [])[0];
+
+    const sortedMedia = (post.media ?? []).sort((a, b) => a.sortOrder - b.sortOrder);
+    const imageMedia = sortedMedia.filter((m) => m.mediaType === "IMAGE");
+    const videoMedia = sortedMedia.filter((m) => m.mediaType === "VIDEO");
 
     let result;
-    if (firstMedia && firstMedia.mediaUrl) {
-      if (firstMedia.mediaType === "IMAGE") {
-        result = await publishPagePhotoPost(
-          page.pageExternalId,
-          page.pageAccessTokenEncrypted,
-          firstMedia.mediaUrl,
-          post.caption
-        );
-      } else if (firstMedia.mediaType === "VIDEO") {
-        result = await publishPageVideoPost(
-          page.pageExternalId,
-          page.pageAccessTokenEncrypted,
-          firstMedia.mediaUrl,
-          post.caption
-        );
-      } else {
-        // Fallback for unsupported media types (e.g. DOCUMENT).
-        result = await publishPageFeedPost(
-          page.pageExternalId,
-          page.pageAccessTokenEncrypted,
-          post.caption
-        );
-      }
+    if (imageMedia.length > 0) {
+      result = await publishPageMultiPhotoPost(
+        page.pageExternalId,
+        page.pageAccessTokenEncrypted,
+        imageMedia.map((m) => m.mediaUrl),
+        post.caption
+      );
+    } else if (videoMedia.length > 0) {
+      result = await publishPageVideoPost(
+        page.pageExternalId,
+        page.pageAccessTokenEncrypted,
+        videoMedia[0].mediaUrl,
+        post.caption
+      );
     } else {
       result = await publishPageFeedPost(
         page.pageExternalId,
@@ -119,9 +113,7 @@ async function runWorker(req: Request) {
 
       // Cross-post to Instagram if the page has a linked IG Business Account
       if (page.instagramBusinessAccountId) {
-        const imageUrl = firstMedia?.mediaUrl && firstMedia.mediaType === "IMAGE"
-          ? firstMedia.mediaUrl
-          : undefined;
+        const imageUrl = imageMedia[0]?.mediaUrl ?? undefined;
         const igResult = await publishInstagramPost(
           page.instagramBusinessAccountId,
           page.pageAccessTokenEncrypted,

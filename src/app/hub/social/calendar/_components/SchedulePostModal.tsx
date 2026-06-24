@@ -34,11 +34,15 @@ export function SchedulePostModal({
   const [state, formAction] = useActionState(createPost, MODAL_INITIAL_STATE);
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id ?? "");
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set(preselectedPageIds));
+  const [minDateTime, setMinDateTime] = useState("");
 
   const pagesForClient = selectedClientId ? pages.filter((p) => p.clientId === selectedClientId) : [];
 
   useEffect(() => {
     if (isOpen) {
+      const now = new Date();
+      now.setSeconds(0, 0);
+      setMinDateTime(now.toISOString().slice(0, 16));
       const clientId = clients[0]?.id ?? "";
       setSelectedClientId(clientId);
       if (preselectedPageIds.length > 0) {
@@ -201,6 +205,7 @@ export function SchedulePostModal({
               type="datetime-local"
               required
               defaultValue={scheduledFor}
+              min={minDateTime}
               className="mt-1 w-full rounded-lg border border-(--hub-border-light) px-3 py-2.5 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
             />
           </div>
