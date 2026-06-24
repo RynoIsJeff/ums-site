@@ -21,7 +21,7 @@ type PostFormProps = {
   defaultPageId?: string;
   defaultCaption?: string;
   defaultScheduledFor?: string;
-  defaultMediaUrl?: string;
+  defaultMediaUrls?: string[];
   defaultMediaType?: "IMAGE" | "VIDEO" | "";
   submitLabel: string;
   backHref: string;
@@ -37,7 +37,7 @@ export function PostForm({
   defaultPageId = "",
   defaultCaption = "",
   defaultScheduledFor = "",
-  defaultMediaUrl = "",
+  defaultMediaUrls = [],
   defaultMediaType = "",
   submitLabel,
   backHref,
@@ -189,7 +189,7 @@ export function PostForm({
       </div>
 
       <MediaUploadInput
-        defaultMediaUrl={defaultMediaUrl}
+        defaultMediaUrls={defaultMediaUrls}
         defaultMediaType={defaultMediaType as "IMAGE" | "VIDEO" | ""}
       />
 

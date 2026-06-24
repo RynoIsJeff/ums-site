@@ -6,13 +6,13 @@ type MediaType = "IMAGE" | "VIDEO" | "";
 const MAX_IMAGES = 10;
 
 export function MediaUploadInput({
-  defaultMediaUrl = "",
+  defaultMediaUrls = [],
   defaultMediaType = "" as MediaType,
 }: {
-  defaultMediaUrl?: string;
+  defaultMediaUrls?: string[];
   defaultMediaType?: MediaType;
 }) {
-  const [urls, setUrls] = useState<string[]>(defaultMediaUrl ? [defaultMediaUrl] : []);
+  const [urls, setUrls] = useState<string[]>(defaultMediaUrls);
   const [type, setType] = useState<MediaType>(defaultMediaType);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState("");
