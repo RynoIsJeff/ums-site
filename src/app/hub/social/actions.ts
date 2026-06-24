@@ -347,37 +347,40 @@ export async function createPost(
 
   const shouldCreateMedia = mediaUrls.length > 0 && !!mediaType;
 
-  const publishErrors: string[] = [];
-
-  for (const page of pages) {
-    const post = await prisma.socialPost.create({
-      data: {
-        clientId,
-        socialPageId: page.id,
-        provider: "META",
-        status,
-        caption,
-        scheduledFor: scheduledAt,
-        createdById: user.id,
-      },
-    });
-
-    if (shouldCreateMedia) {
-      await prisma.socialPostMedia.createMany({
-        data: mediaUrls.map((url, i) => ({
-          socialPostId: post.id,
-          mediaType: mediaType as "IMAGE" | "VIDEO",
-          mediaUrl: url,
-          sortOrder: i,
-        })),
+  const results = await Promise.all(
+    pages.map(async (page) => {
+      const post = await prisma.socialPost.create({
+        data: {
+          clientId,
+          socialPageId: page.id,
+          provider: "META",
+          status,
+          caption,
+          scheduledFor: scheduledAt,
+          createdById: user.id,
+        },
       });
-    }
 
-    if (publishNow) {
-      const result = await publishPostNow(post.id);
-      if (result.error) publishErrors.push(`${page.pageName ?? page.id}: ${result.error}`);
-    }
-  }
+      if (shouldCreateMedia) {
+        await prisma.socialPostMedia.createMany({
+          data: mediaUrls.map((url, i) => ({
+            socialPostId: post.id,
+            mediaType: mediaType as "IMAGE" | "VIDEO",
+            mediaUrl: url,
+            sortOrder: i,
+          })),
+        });
+      }
+
+      if (publishNow) {
+        const result = await publishPostNow(post.id);
+        if (result.error) return `${page.pageName ?? page.id}: ${result.error}`;
+      }
+      return null;
+    })
+  );
+
+  const publishErrors = results.filter(Boolean) as string[];
 
   revalidatePath("/hub/social");
   revalidatePath("/hub/social/calendar");
