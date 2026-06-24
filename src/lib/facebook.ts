@@ -586,3 +586,24 @@ export async function updatePageCover(
     return { ok: false, error: message };
   }
 }
+
+export async function deleteFacebookPost(
+  externalPostId: string,
+  pageAccessToken: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const url = `${GRAPH_BASE}/${externalPostId}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ access_token: pageAccessToken }).toString(),
+    });
+    const data = (await res.json()) as { success?: boolean; error?: { message: string } };
+    if (!res.ok || data.error) {
+      return { ok: false, error: data.error?.message ?? `HTTP ${res.status}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}

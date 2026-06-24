@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, ImageIcon, MessageCircle } from "lucide-react";
+import { Calendar, ImageIcon, MessageCircle, FileText } from "lucide-react";
 
 const TABS = [
   { href: "/hub/social", label: "Planner", icon: Calendar },
   { href: "/hub/social/pages", label: "Pages", icon: ImageIcon },
+  { href: "/hub/social/posts", label: "Posts", icon: FileText },
   { href: "/hub/social/messenger", label: "Messenger", icon: MessageCircle },
 ];
 
@@ -19,7 +20,7 @@ export function SocialNav() {
         const Icon = tab.icon;
         const isActive =
           tab.href === "/hub/social"
-            ? pathname === "/hub/social" || pathname.startsWith("/hub/social/calendar") || pathname.startsWith("/hub/social/posts")
+            ? pathname === "/hub/social" || pathname.startsWith("/hub/social/calendar")
             : pathname.startsWith(tab.href);
 
         return (

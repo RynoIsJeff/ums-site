@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getPageProfile, getPageInstagramAccountId, publishPageFeedPost, publishPageMultiPhotoPost, publishPageVideoPost } from "@/lib/facebook";
+import { getPageProfile, getPageInstagramAccountId, publishPageFeedPost, publishPageMultiPhotoPost, publishPageVideoPost, deleteFacebookPost } from "@/lib/facebook";
 import { publishInstagramPost } from "@/lib/instagram";
 
 // SAST = UTC+2, no DST. datetime-local inputs send no timezone; treat them as SAST.
@@ -745,4 +745,35 @@ export async function publishPostNow(postId: string): Promise<{ error?: string }
     revalidatePath(`/hub/social/posts/${postId}`);
     return { error: result.error ?? "Publish failed" };
   }
+}
+
+export async function deletePost(postId: string): Promise<{ error?: string }> {
+  const { scope } = await requireHubAuth();
+
+  const post = await prisma.socialPost.findUnique({
+    where: { id: postId },
+    include: { socialPage: { select: { pageAccessTokenEncrypted: true } } },
+  });
+
+  if (!post || !canAccessClient(scope, post.clientId)) {
+    return { error: "Post not found" };
+  }
+
+  // For published posts with a known external ID, delete from Facebook first
+  if (post.status === "PUBLISHED" && post.externalPostId && post.socialPage?.pageAccessTokenEncrypted) {
+    const fbResult = await deleteFacebookPost(
+      post.externalPostId,
+      post.socialPage.pageAccessTokenEncrypted,
+    );
+    if (!fbResult.ok) {
+      // Log but don't block — remove from our DB either way
+      console.warn(`[deletePost] Facebook delete failed for ${post.externalPostId}: ${fbResult.error}`);
+    }
+  }
+
+  await prisma.socialPost.delete({ where: { id: postId } });
+
+  revalidatePath("/hub/social/posts");
+  revalidatePath("/hub/social");
+  return {};
 }
