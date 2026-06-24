@@ -52,7 +52,7 @@ export default async function PostDetailPage({ params }: PageProps) {
     clientId: p.socialAccount.clientId,
   }));
 
-  const updateAction = (prev: { error?: string }, formData: FormData) => updatePost(id, prev, formData);
+  const updateAction = updatePost.bind(null, id);
 
   return (
     <section className="py-6">

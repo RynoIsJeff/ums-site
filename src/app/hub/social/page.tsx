@@ -32,8 +32,8 @@ async function HubSocialPageInner() {
   const [posts, pages, clients] = await Promise.all([
     prisma.socialPost.findMany({
       where: clientIdWhere(scope),
-      orderBy: [{ status: "asc" }, { scheduledFor: "desc" }, { createdAt: "desc" }],
-      take: 20,
+      orderBy: [{ scheduledFor: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
+      take: 50,
       include: {
         client: { select: { id: true, companyName: true } },
         socialPage: { select: { id: true, pageName: true } },
@@ -51,6 +51,14 @@ async function HubSocialPageInner() {
       select: { id: true, companyName: true },
     }),
   ]);
+
+  const now = new Date();
+  const sortedPosts = [
+    ...posts.filter((p) => p.status === "SCHEDULED" && p.scheduledFor && p.scheduledFor >= now)
+      .sort((a, b) => a.scheduledFor!.getTime() - b.scheduledFor!.getTime()),
+    ...posts.filter((p) => p.status !== "SCHEDULED" || !p.scheduledFor || p.scheduledFor < now)
+      .sort((a, b) => (b.scheduledFor ?? b.createdAt).getTime() - (a.scheduledFor ?? a.createdAt).getTime()),
+  ].slice(0, 20);
 
   const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
   const draftCount = posts.filter((p) => p.status === "DRAFT").length;
@@ -163,7 +171,7 @@ async function HubSocialPageInner() {
                   </Link>
                 </div>
               ) : (
-                posts.map((post) => (
+                sortedPosts.map((post) => (
                   <Link
                     key={post.id}
                     href={`/hub/social/posts/${post.id}`}

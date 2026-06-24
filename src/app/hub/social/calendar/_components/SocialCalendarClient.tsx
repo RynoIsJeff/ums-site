@@ -122,7 +122,7 @@ function DayDetailModal({
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-(--hub-text) line-clamp-2">{post.caption}</p>
                 <p className="mt-1 text-xs text-(--hub-muted)">
-                  {new Date(post.scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })} · {post.pageName}
+                  {new Date(post.scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} · {post.pageName}
                   <span className={`ml-2 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${post.status === "SCHEDULED" ? "bg-amber-100 text-amber-700" : post.status === "PUBLISHED" ? "bg-green-100 text-green-700" : "bg-black/5 text-black/50"}`}>
                     {post.status.toLowerCase()}
                   </span>
@@ -142,7 +142,7 @@ function DayDetailModal({
                 {post.message && <p className="text-sm text-(--hub-text) line-clamp-3">{post.message}</p>}
                 <div className="mt-2 flex items-center justify-between">
                   <p className="text-xs text-(--hub-muted)">
-                    {new Date(post.createdTime).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })} · {post.pageName}
+                    {new Date(post.createdTime).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} · {post.pageName}
                     <span className="ml-2 inline-flex rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">fb</span>
                   </p>
                   {post.permalink && (
