@@ -13,6 +13,21 @@ export const metadata = {
 type PageProps = { searchParams: Promise<{ month?: string; year?: string; pages?: string }> };
 
 export default async function SocialCalendarPage({ searchParams }: PageProps) {
+  try {
+    return await SocialCalendarPageInner({ searchParams });
+  } catch (e) {
+    return (
+      <div className="p-6">
+        <p className="font-semibold text-red-700 mb-2">Calendar page crash (debug — will be removed):</p>
+        <pre className="whitespace-pre-wrap break-all rounded bg-red-50 p-4 text-xs text-red-900 border border-red-200">
+          {e instanceof Error ? `${e.name}: ${e.message}\n\n${e.stack ?? ""}` : String(e)}
+        </pre>
+      </div>
+    );
+  }
+}
+
+async function SocialCalendarPageInner({ searchParams }: PageProps) {
   const { user } = await getSession();
   if (!user) return null;
 

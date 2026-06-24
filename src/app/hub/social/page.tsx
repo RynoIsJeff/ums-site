@@ -19,6 +19,21 @@ export const metadata = {
 };
 
 export default async function HubSocialPage() {
+  try {
+    return await HubSocialPageInner();
+  } catch (e) {
+    return (
+      <div className="p-6">
+        <p className="font-semibold text-red-700 mb-2">Social page crash (debug — will be removed):</p>
+        <pre className="whitespace-pre-wrap break-all rounded bg-red-50 p-4 text-xs text-red-900 border border-red-200">
+          {e instanceof Error ? `${e.name}: ${e.message}\n\n${e.stack ?? ""}` : String(e)}
+        </pre>
+      </div>
+    );
+  }
+}
+
+async function HubSocialPageInner() {
   const { user } = await getSession();
   if (!user) return null;
 
