@@ -44,7 +44,7 @@ export function PostForm({
   backHref,
   multiPage = false,
 }: PostFormProps) {
-  const INIT = useRef({}).current;
+  const INIT = useRef<{ error?: string }>({}).current;
   const [state, formAction] = useActionState(action, INIT);
   const router = useRouter();
   const [selectedClientId, setSelectedClientId] = useState(defaultClientId);
