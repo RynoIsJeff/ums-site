@@ -49,10 +49,19 @@ export function MediaUploadInput({
       const uploadRes = await fetch(urlJson.signedUrl, {
         method: "PUT",
         body: file,
-        headers: { "Content-Type": file.type },
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+          "x-upsert": "false",
+          "cache-control": "max-age=0",
+        },
       });
       if (!uploadRes.ok) {
-        throw new Error(`Upload failed (${uploadRes.status})`);
+        let detail = `Upload failed (${uploadRes.status})`;
+        try {
+          const errBody = await uploadRes.json() as { message?: string; error?: string };
+          detail = errBody.message ?? errBody.error ?? detail;
+        } catch {}
+        throw new Error(detail);
       }
 
       setUrls((prev) => [...prev, urlJson.publicUrl!]);
