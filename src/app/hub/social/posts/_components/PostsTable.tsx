@@ -161,7 +161,7 @@ export function PostsTable({
             </thead>
             <tbody className="divide-y divide-(--hub-border-light)">
               {filtered.map((post) => {
-                const date = post.publishedAt ?? post.scheduledFor;
+                const date = post.scheduledFor ?? post.publishedAt;
                 return (
                   <tr key={post.id} className="hover:bg-black/1.5 transition-colors">
                     <td className="px-4 py-3">
