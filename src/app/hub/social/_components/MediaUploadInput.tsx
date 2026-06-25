@@ -40,7 +40,16 @@ export function MediaUploadInput({
     fd.append("file", file);
     try {
       const res = await fetch("/api/hub/social/upload", { method: "POST", body: fd });
-      const json = (await res.json()) as { url?: string; error?: string };
+      let json: { url?: string; error?: string } = {};
+      try {
+        json = await res.json();
+      } catch {
+        json = {
+          error: res.status === 413
+            ? "Video file is too large to upload directly. Paste a public video URL instead."
+            : `Upload failed (HTTP ${res.status}). For large videos, paste a public URL instead.`,
+        };
+      }
       if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
       setUrls((prev) => [...prev, json.url!]);
       setType(detectedType);

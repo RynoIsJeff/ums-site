@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const maxDuration = 60;
+
 const BUCKET = "social-media";
 const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
 
