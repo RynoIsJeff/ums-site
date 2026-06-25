@@ -189,9 +189,9 @@ async function HubSocialPageInner() {
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-3 text-xs text-(--hub-muted)">
-                      {post.scheduledFor && (
+                      {(post.publishedAt ?? post.scheduledFor) && (
                         <span>
-                          {post.scheduledFor.toLocaleString("en-ZA", {
+                          {(post.publishedAt ?? post.scheduledFor)!.toLocaleString("en-ZA", {
                             dateStyle: "short",
                             timeStyle: "short",
                             timeZone: "Africa/Johannesburg",
