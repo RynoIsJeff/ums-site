@@ -51,7 +51,7 @@ async function compressVideo(
   // Clean up wasm memory
   await ffmpeg.deleteFile(inputName).catch(() => {});
   await ffmpeg.deleteFile("output.mp4").catch(() => {});
-  return new File([data], "compressed.mp4", { type: "video/mp4" });
+  return new File([data.buffer as ArrayBuffer], "compressed.mp4", { type: "video/mp4" });
 }
 
 export function MediaUploadInput({
