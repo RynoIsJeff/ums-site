@@ -42,8 +42,9 @@ async function compressVideo(
   await ffmpeg.writeFile(inputName, await fetchFile(file));
   await ffmpeg.exec([
     "-i", inputName,
-    "-c:v", "libx264", "-crf", "28", "-preset", "fast",
-    "-c:a", "aac", "-b:a", "128k",
+    "-c:v", "libx264", "-crf", "32", "-preset", "ultrafast",
+    "-vf", "scale=-2:720",          // cap at 720p (social media quality)
+    "-c:a", "aac", "-b:a", "96k",
     "-movflags", "+faststart",
     "output.mp4",
   ]);
