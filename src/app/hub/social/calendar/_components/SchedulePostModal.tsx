@@ -44,13 +44,16 @@ export function SchedulePostModal({
       const now = new Date();
       now.setSeconds(0, 0);
       setMinDateTime(new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16));
-      const clientId = clients[0]?.id ?? "";
-      setSelectedClientId(clientId);
       setMode("schedule");
+      const inferredClientId =
+        preselectedPageIds.length > 0
+          ? (pages.find((p) => preselectedPageIds.includes(p.id))?.clientId ?? clients[0]?.id ?? "")
+          : clients[0]?.id ?? "";
+      setSelectedClientId(inferredClientId);
       if (preselectedPageIds.length > 0) {
         setSelectedPageIds(new Set(preselectedPageIds));
       } else {
-        setSelectedPageIds(new Set(pages.filter((p) => p.clientId === clientId).map((p) => p.id)));
+        setSelectedPageIds(new Set(pages.filter((p) => p.clientId === inferredClientId).map((p) => p.id)));
       }
     }
   }, [isOpen, clients, preselectedPageIds, pages]);
