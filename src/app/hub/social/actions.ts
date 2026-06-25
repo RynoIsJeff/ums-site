@@ -391,10 +391,7 @@ export async function createPost(
     return { error: publishErrors.join("\n") };
   }
 
-  if (formData.get("noRedirect") === "true") {
-    return {};
-  }
-  redirect("/hub/social");
+  return {};
 }
 
 export async function updatePost(
@@ -496,7 +493,7 @@ export async function updatePost(
   revalidatePath("/hub/social/calendar");
   revalidatePath(`/hub/social/posts/${postId}`);
   revalidatePath("/hub/clients/[id]");
-  redirect("/hub/social");
+  return {};
 }
 
 export async function cancelPost(postId: string): Promise<SocialFormState> {

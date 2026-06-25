@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { useState } from "react";
 import { MediaUploadInput } from "./MediaUploadInput";
@@ -43,8 +44,16 @@ export function PostForm({
   backHref,
   multiPage = false,
 }: PostFormProps) {
-  const [state, formAction] = useActionState(action, {});
+  const INIT = useRef({}).current;
+  const [state, formAction] = useActionState(action, INIT);
+  const router = useRouter();
   const [selectedClientId, setSelectedClientId] = useState(defaultClientId);
+
+  useEffect(() => {
+    if (state !== INIT && !state?.error) {
+      router.push(backHref);
+    }
+  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(
     defaultPageId ? new Set([defaultPageId]) : new Set()
   );
