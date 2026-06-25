@@ -4,6 +4,55 @@ import { useRef, useState } from "react";
 
 type MediaType = "IMAGE" | "VIDEO" | "";
 const MAX_IMAGES = 10;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB Supabase free plan limit
+
+// Singleton FFmpeg instance — loaded once, reused across uploads
+let ffmpegCache: import("@ffmpeg/ffmpeg").FFmpeg | null = null;
+
+async function loadFFmpeg(): Promise<import("@ffmpeg/ffmpeg").FFmpeg> {
+  if (ffmpegCache) return ffmpegCache;
+  const { FFmpeg } = await import("@ffmpeg/ffmpeg");
+  const { toBlobURL } = await import("@ffmpeg/util");
+  const base = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+  const ffmpeg = new FFmpeg();
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, "text/javascript"),
+    wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, "application/wasm"),
+  });
+  ffmpegCache = ffmpeg;
+  return ffmpeg;
+}
+
+async function compressVideo(
+  file: File,
+  onStep: (msg: string) => void,
+  onProgress: (pct: number) => void,
+): Promise<File> {
+  onStep("Loading video compressor…");
+  const ffmpeg = await loadFFmpeg();
+  const { fetchFile } = await import("@ffmpeg/util");
+
+  ffmpeg.on("progress", ({ progress }) => {
+    onProgress(Math.min(99, Math.round(progress * 100)));
+  });
+
+  const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase();
+  const inputName = `input.${ext}`;
+  onStep("Compressing video…");
+  await ffmpeg.writeFile(inputName, await fetchFile(file));
+  await ffmpeg.exec([
+    "-i", inputName,
+    "-c:v", "libx264", "-crf", "28", "-preset", "fast",
+    "-c:a", "aac", "-b:a", "128k",
+    "-movflags", "+faststart",
+    "output.mp4",
+  ]);
+  const data = await ffmpeg.readFile("output.mp4") as Uint8Array;
+  // Clean up wasm memory
+  await ffmpeg.deleteFile(inputName).catch(() => {});
+  await ffmpeg.deleteFile("output.mp4").catch(() => {});
+  return new File([data], "compressed.mp4", { type: "video/mp4" });
+}
 
 export function MediaUploadInput({
   defaultMediaUrls = [],
@@ -15,6 +64,8 @@ export function MediaUploadInput({
   const [urls, setUrls] = useState<string[]>(defaultMediaUrls);
   const [type, setType] = useState<MediaType>(defaultMediaType);
   const [uploading, setUploading] = useState(false);
+  const [compressionStep, setCompressionStep] = useState("");
+  const [compressionPct, setCompressionPct] = useState(0);
   const [err, setErr] = useState("");
   const [urlInput, setUrlInput] = useState("");
 
@@ -35,10 +86,36 @@ export function MediaUploadInput({
     if (urls.length >= MAX_IMAGES) { setErr(`Maximum ${MAX_IMAGES} images per post.`); return; }
 
     setErr("");
+    setCompressionStep("");
+    setCompressionPct(0);
     setUploading(true);
+
+    let fileToUpload = file;
+    if (detectedType === "VIDEO" && file.size > MAX_UPLOAD_BYTES) {
+      try {
+        fileToUpload = await compressVideo(
+          file,
+          (msg) => setCompressionStep(msg),
+          (pct) => setCompressionPct(pct),
+        );
+        setCompressionStep("");
+        if (fileToUpload.size > MAX_UPLOAD_BYTES) {
+          setErr(`Compressed to ${Math.round(fileToUpload.size / 1024 / 1024)} MB but still over 50 MB. Try a shorter clip.`);
+          setUploading(false);
+          if (fileRef.current) fileRef.current.value = "";
+          return;
+        }
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Compression failed");
+        setUploading(false);
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
+    }
+
     try {
       // Step 1: get a signed upload URL from our server (tiny request — no body size limit)
-      const urlRes = await fetch(`/api/hub/social/upload-url?name=${encodeURIComponent(file.name)}`);
+      const urlRes = await fetch(`/api/hub/social/upload-url?name=${encodeURIComponent(fileToUpload.name)}`);
       let urlJson: { signedUrl?: string; publicUrl?: string; error?: string } = {};
       try { urlJson = await urlRes.json(); } catch {}
       if (!urlRes.ok || !urlJson.signedUrl || !urlJson.publicUrl) {
@@ -48,9 +125,9 @@ export function MediaUploadInput({
       // Step 2: upload the file directly to Supabase — bypasses Vercel entirely
       const uploadRes = await fetch(urlJson.signedUrl, {
         method: "PUT",
-        body: file,
+        body: fileToUpload,
         headers: {
-          "Content-Type": file.type || "application/octet-stream",
+          "Content-Type": fileToUpload.type || "application/octet-stream",
           "x-upsert": "false",
           "cache-control": "max-age=0",
         },
@@ -217,7 +294,9 @@ export function MediaUploadInput({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Uploading…
+              {compressionStep
+                ? `${compressionStep}${compressionPct > 0 ? ` ${compressionPct}%` : ""}`
+                : "Uploading…"}
             </>
           ) : (
             <>
