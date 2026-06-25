@@ -204,7 +204,7 @@ export function SocialCalendarClient({ month, year, posts, externalPosts, pages,
   };
 
   const selectAll = () => { setCheckedIds(new Set(allPageIds)); pushFilter([]); };
-  const clearFilter = () => { setCheckedIds(new Set(allPageIds)); pushFilter([]); };
+  const clearFilter = () => { setCheckedIds(new Set()); };
 
   const handleClose = useCallback(() => setModalOpen(false), []);
   const handleSuccess = useCallback(() => router.refresh(), [router]);
