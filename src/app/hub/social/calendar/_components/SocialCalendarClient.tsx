@@ -361,7 +361,7 @@ export function SocialCalendarClient({ month, year, posts, externalPosts, pages,
         defaultTime="09:00"
         clients={clients}
         pages={pageOptions}
-        preselectedPageIds={selectedPageIds.length > 0 ? selectedPageIds : pages.map((p) => p.id)}
+        preselectedPageIds={checkedIds.size > 0 ? [...checkedIds] : pages.map((p) => p.id)}
         createPost={createPost}
       />
     </>
