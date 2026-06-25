@@ -36,22 +36,26 @@ export function MediaUploadInput({
 
     setErr("");
     setUploading(true);
-    const fd = new FormData();
-    fd.append("file", file);
     try {
-      const res = await fetch("/api/hub/social/upload", { method: "POST", body: fd });
-      let json: { url?: string; error?: string } = {};
-      try {
-        json = await res.json();
-      } catch {
-        json = {
-          error: res.status === 413
-            ? "Video file is too large to upload directly. Paste a public video URL instead."
-            : `Upload failed (HTTP ${res.status}). For large videos, paste a public URL instead.`,
-        };
+      // Step 1: get a signed upload URL from our server (tiny request — no body size limit)
+      const urlRes = await fetch(`/api/hub/social/upload-url?name=${encodeURIComponent(file.name)}`);
+      let urlJson: { signedUrl?: string; publicUrl?: string; error?: string } = {};
+      try { urlJson = await urlRes.json(); } catch {}
+      if (!urlRes.ok || !urlJson.signedUrl || !urlJson.publicUrl) {
+        throw new Error(urlJson.error ?? "Could not prepare upload");
       }
-      if (!res.ok || !json.url) throw new Error(json.error ?? "Upload failed");
-      setUrls((prev) => [...prev, json.url!]);
+
+      // Step 2: upload the file directly to Supabase — bypasses Vercel entirely
+      const uploadRes = await fetch(urlJson.signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!uploadRes.ok) {
+        throw new Error(`Upload failed (${uploadRes.status})`);
+      }
+
+      setUrls((prev) => [...prev, urlJson.publicUrl!]);
       setType(detectedType);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Upload failed");
