@@ -141,7 +141,7 @@ function DayDetailModal({
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-(--hub-text) line-clamp-2">{post.caption}</p>
                 <p className="mt-1 text-xs text-(--hub-muted)">
-                  {new Date(post.scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" })} · {post.pageName}
+                  {new Date(post.publishedAt ?? post.scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" })} · {post.pageName}
                   <span className={`ml-2 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${post.status === "SCHEDULED" ? "bg-amber-100 text-amber-700" : post.status === "PUBLISHED" ? "bg-green-100 text-green-700" : "bg-black/5 text-black/50"}`}>
                     {post.status.toLowerCase()}
                   </span>
@@ -327,7 +327,7 @@ export function SocialCalendarClient({ month, year, posts, externalPosts, pages,
                       >
                         <span className="line-clamp-1">{(data as CalendarPost).caption.slice(0, 40)}{(data as CalendarPost).caption.length > 40 ? "…" : ""}</span>
                         <span className="mt-0.5 block text-[10px] text-(--hub-muted)">
-                          {new Date((data as CalendarPost).scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" })} · {data.pageName}
+                          {new Date((data as CalendarPost).publishedAt ?? (data as CalendarPost).scheduledFor).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" })} · {data.pageName}
                         </span>
                       </Link>
                     ) : (
