@@ -113,6 +113,30 @@ export default async function PostDetailPage({ params }: PageProps) {
         </div>
       ) : (
         <div className="mt-6 rounded-xl border border-(--hub-border-light) bg-white p-6 shadow-sm">
+          {/* Media preview */}
+          {post.media.length > 0 && (() => {
+            const isVideo = post.media[0].mediaType === "VIDEO";
+            return isVideo ? (
+              <video
+                src={post.media[0].mediaUrl}
+                controls
+                className="mb-4 w-full max-h-[480px] rounded-lg object-contain bg-black"
+              />
+            ) : (
+              <div className={`mb-4 grid gap-2 ${post.media.length === 1 ? "grid-cols-1" : post.media.length === 2 ? "grid-cols-2" : post.media.length >= 3 ? "grid-cols-3" : ""}`}>
+                {post.media.map((m, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={m.mediaUrl}
+                    alt={`media ${i + 1}`}
+                    className="w-full rounded-lg object-cover aspect-square"
+                  />
+                ))}
+              </div>
+            );
+          })()}
+
           <div className="whitespace-pre-wrap text-sm">{post.caption}</div>
           {post.scheduledFor && (
             <p className="mt-4 text-sm text-black/60">
