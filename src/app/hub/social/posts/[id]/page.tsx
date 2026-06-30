@@ -58,9 +58,14 @@ export default async function PostDetailPage({ params }: PageProps) {
   return (
     <section className="py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/hub/social" className="text-sm text-(--hub-muted) hover:text-(--hub-text)">
-          ← Content Planner
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/hub/social" className="text-sm text-(--hub-muted) hover:text-(--hub-text)">
+            ← Content Planner
+          </Link>
+          <Link href="/hub/social/calendar" className="text-sm text-(--hub-muted) hover:text-(--hub-text)">
+            ← Calendar
+          </Link>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {canEdit && post.socialPageId && <PublishNowButton postId={id} />}
           {canEdit && <CancelPostButton postId={id} />}
