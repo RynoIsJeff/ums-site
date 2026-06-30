@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getPageProfile, getPageInstagramAccountId, publishPageFeedPost, publishPageMultiPhotoPost, publishPageVideoPost, deleteFacebookPost } from "@/lib/facebook";
+import { getPageProfile, getPageInstagramAccountId, publishPageFeedPost, publishPageMultiPhotoPost, publishPageReelPost, deleteFacebookPost } from "@/lib/facebook";
 import { publishInstagramPost } from "@/lib/instagram";
 
 // SAST = UTC+2, no DST. datetime-local inputs send no timezone; treat them as SAST.
@@ -712,7 +712,7 @@ export async function publishPostNow(postId: string): Promise<{ error?: string }
       post.caption,
     );
   } else if (videoMedia.length > 0) {
-    result = await publishPageVideoPost(
+    result = await publishPageReelPost(
       page.pageExternalId,
       page.pageAccessTokenEncrypted,
       videoMedia[0].mediaUrl,

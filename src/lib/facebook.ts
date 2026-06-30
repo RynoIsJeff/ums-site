@@ -208,7 +208,7 @@ export async function publishPagePhotoPost(
 /**
  * Publish a video post to a Facebook Page using a public video URL.
  * Uses /{page-id}/videos with `file_url` + `description`.
- * For reels, Facebook may surface certain videos as reels depending on the Page setup.
+ * @deprecated Prefer publishPageReelPost for better algorithmic distribution.
  */
 export async function publishPageVideoPost(
   pageId: string,
@@ -250,6 +250,112 @@ export async function publishPageVideoPost(
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     return { ok: false, error: message };
+  }
+}
+
+/**
+ * Publish a video as a Facebook Reel on a Page.
+ *
+ * Uses the Reels Publishing API (/{page-id}/video_reels) which gives better
+ * algorithmic distribution than the plain /videos endpoint.
+ *
+ * Flow:
+ *   1. POST start phase with file_url — Facebook fetches the video itself.
+ *   2. If Facebook returns an upload_url instead (file_url not accepted),
+ *      fall back to fetching the video server-side and doing a binary upload.
+ *   3. POST finish phase with video_state=PUBLISHED.
+ */
+export async function publishPageReelPost(
+  pageId: string,
+  pageAccessToken: string,
+  videoUrl: string,
+  caption: string,
+): Promise<PublishResult> {
+  try {
+    // ── Step 1: start upload session ────────────────────────────────────────
+    const startBody = new URLSearchParams({
+      upload_phase: "start",
+      file_url: videoUrl,
+      access_token: pageAccessToken,
+    });
+
+    const startRes = await fetch(`${GRAPH_BASE}/${pageId}/video_reels`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: startBody.toString(),
+    });
+    const startData = (await startRes.json()) as {
+      video_id?: string;
+      upload_url?: string;
+      error?: { message: string; code: number };
+    };
+
+    if (!startRes.ok || !startData.video_id) {
+      return {
+        ok: false,
+        error: startData?.error?.message ?? `Failed to start Reel upload (${startRes.status})`,
+        code: startData?.error?.code,
+      };
+    }
+
+    const videoId = startData.video_id;
+
+    // ── Step 2: binary upload (fallback when file_url wasn't accepted) ───────
+    if (startData.upload_url) {
+      const videoRes = await fetch(videoUrl);
+      if (!videoRes.ok) {
+        return { ok: false, error: `Could not fetch video from storage (${videoRes.status})` };
+      }
+      const videoBuffer = await videoRes.arrayBuffer();
+
+      const uploadRes = await fetch(startData.upload_url, {
+        method: "POST",
+        headers: {
+          Authorization: `OAuth ${pageAccessToken}`,
+          offset: "0",
+          file_size: String(videoBuffer.byteLength),
+          "Content-Type": "application/octet-stream",
+        },
+        body: videoBuffer,
+      });
+
+      if (!uploadRes.ok) {
+        const errData = (await uploadRes.json().catch(() => ({}))) as { error?: { message: string } };
+        return { ok: false, error: errData?.error?.message ?? `Reel binary upload failed (${uploadRes.status})` };
+      }
+    }
+
+    // ── Step 3: publish ──────────────────────────────────────────────────────
+    const finishBody = new URLSearchParams({
+      upload_phase: "finish",
+      video_id: videoId,
+      video_state: "PUBLISHED",
+      description: caption,
+      access_token: pageAccessToken,
+    });
+
+    const finishRes = await fetch(`${GRAPH_BASE}/${pageId}/video_reels`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: finishBody.toString(),
+    });
+    const finishData = (await finishRes.json()) as {
+      video_id?: string;
+      success?: boolean;
+      error?: { message: string; code: number };
+    };
+
+    if (!finishRes.ok) {
+      return {
+        ok: false,
+        error: finishData?.error?.message ?? `Failed to publish Reel (${finishRes.status})`,
+        code: finishData?.error?.code,
+      };
+    }
+
+    return { ok: true, postId: String(finishData.video_id ?? videoId) };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
   }
 }
 

@@ -11,6 +11,7 @@ type CalendarPost = {
   caption: string;
   status: string;
   scheduledFor: string;
+  publishedAt?: string | null;
   clientName: string;
   clientId: string;
   pageId: string;
@@ -77,6 +78,24 @@ function formatDetailDate(iso: string) {
   return new Date(iso + "T12:00:00").toLocaleDateString("en-ZA", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
+// External posts returned from the FB feed use pageId_postId format, but video/photo endpoints
+// return just the video/photo ID. Fall back to page + time proximity (±15 min) when IDs differ.
+function isAlreadyInUms(
+  ext: ExternalPost,
+  umsExternalIds: Set<string>,
+  posts: CalendarPost[],
+): boolean {
+  if (umsExternalIds.has(ext.id)) return true;
+  const extMs = new Date(ext.createdTime).getTime();
+  return posts.some(
+    (p) =>
+      p.status === "PUBLISHED" &&
+      p.pageId === ext.pageId &&
+      p.publishedAt != null &&
+      Math.abs(new Date(p.publishedAt).getTime() - extMs) <= 15 * 60 * 1000,
+  );
+}
+
 // Day detail modal — shows all posts for a day regardless of the calendar cell cap
 function DayDetailModal({
   iso, posts, externalPosts, umsExternalIds, onClose, onSchedule,
@@ -89,7 +108,7 @@ function DayDetailModal({
   onSchedule: () => void;
 }) {
   const dayPosts = posts.filter((p) => toIsoDay(p.scheduledFor) === iso);
-  const dayExternal = externalPosts.filter((p) => toIsoDay(p.createdTime) === iso && !umsExternalIds.has(p.id));
+  const dayExternal = externalPosts.filter((p) => toIsoDay(p.createdTime) === iso && !isAlreadyInUms(p, umsExternalIds, posts));
   const total = dayPosts.length + dayExternal.length;
 
   return (
@@ -254,7 +273,7 @@ export function SocialCalendarClient({ month, year, posts, externalPosts, pages,
         <div className="grid grid-cols-7">
           {cells.map((cell, idx) => {
             const dayPosts = posts.filter((p) => toIsoDay(p.scheduledFor) === cell.iso);
-            const dayExternal = externalPosts.filter((p) => toIsoDay(p.createdTime) === cell.iso && !umsExternalIds.has(p.id));
+            const dayExternal = externalPosts.filter((p) => toIsoDay(p.createdTime) === cell.iso && !isAlreadyInUms(p, umsExternalIds, posts));
             const isToday = cell.iso === todayIso;
             const allItems = [
               ...dayPosts.map((p) => ({ type: "ums" as const, data: p })),

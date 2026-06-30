@@ -151,6 +151,7 @@ async function SocialCalendarPageInner({ searchParams }: PageProps) {
             caption: p.caption,
             status: p.status,
             scheduledFor: p.scheduledFor!.toISOString(),
+            publishedAt: p.publishedAt?.toISOString() ?? null,
             clientName: p.client.companyName,
             clientId: p.client.id,
             pageId: p.socialPage?.id ?? "",
