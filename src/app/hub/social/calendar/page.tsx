@@ -32,14 +32,22 @@ async function SocialCalendarPageInner({ searchParams }: PageProps) {
   const startOfMonth = new Date(year, month - 1, 1, 0, 0, 0);
   const endOfMonth = new Date(year, month, 0, 23, 59, 59);
 
+  // Extend range to cover the full 6-week calendar grid (overflow days from prev/next month)
+  const gridStart = new Date(startOfMonth);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay()); // back to the Sunday that starts the grid
+  gridStart.setHours(0, 0, 0, 0);
+  const gridEnd = new Date(gridStart);
+  gridEnd.setDate(gridStart.getDate() + 41); // 42 cells (0–41)
+  gridEnd.setHours(23, 59, 59, 999);
+
   const [posts, pages, clients] = await Promise.all([
     prisma.socialPost.findMany({
       where: {
         ...clientIdWhere(scope),
         status: { in: ["DRAFT", "SCHEDULED", "PUBLISHED", "FAILED"] },
         scheduledFor: {
-          gte: startOfMonth,
-          lte: endOfMonth,
+          gte: gridStart,
+          lte: gridEnd,
         },
         ...(selectedPageIds.length > 0 ? { socialPageId: { in: selectedPageIds } } : {}),
       },
@@ -78,8 +86,8 @@ async function SocialCalendarPageInner({ searchParams }: PageProps) {
         const result = await getPageFeedPosts(
           p.pageExternalId,
           p.pageAccessTokenEncrypted!,
-          startOfMonth,
-          endOfMonth,
+          gridStart,
+          gridEnd,
         );
         if (!result.ok) return [] as { id: string; message?: string; picture?: string; createdTime: string; permalink?: string; pageId: string; pageName: string }[];
         return result.posts.map((post) => ({ ...post, pageId: p.id, pageName: p.pageName }));
