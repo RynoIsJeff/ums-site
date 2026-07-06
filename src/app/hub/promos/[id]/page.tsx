@@ -39,8 +39,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">{promo.title}</h1>
           <p className="mt-1 text-sm text-(--hub-muted)">
-            {promo.client.companyName}
-            {promo.store && <> · {promo.store.name}</>}
+            {promo.store && <>{promo.store.name} · </>}
             {" · "}
             {promo.promoDateFrom.toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
             {" – "}
@@ -89,6 +88,8 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
                 productVariant={item.product.variant}
                 productPrice={toNum(item.product.price)}
                 productImageData={item.product.imageData}
+                priceOverride={item.priceOverride != null ? toNum(item.priceOverride) : undefined}
+                originalPrice={item.originalPrice != null ? toNum(item.originalPrice) : undefined}
                 filename={`${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`}
               />
             ))}

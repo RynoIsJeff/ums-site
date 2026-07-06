@@ -21,7 +21,14 @@ export default async function NewPromoPage() {
     orderBy: { companyName: "asc" },
     select: { id: true, companyName: true },
   });
-  const defaultClient = clients[0];
+
+  // Default to the client that actually has promo stores (the Build It client),
+  // not whichever client is first alphabetically.
+  const firstStore = await prisma.promoStore.findFirst({
+    where: clientIdWhere(scope),
+    select: { clientId: true },
+  });
+  const defaultClient = (firstStore ? clients.find((c) => c.id === firstStore.clientId) : null) ?? clients[0];
 
   const [products, stores] = defaultClient
     ? await Promise.all([
@@ -121,7 +128,7 @@ export default async function NewPromoPage() {
             </div>
           </div>
 
-          <ImageUploadInput name="headerImageData" label="Promo header image" />
+          <ImageUploadInput name="headerImageData" label="Promo header image" acceptPdf />
 
           <div className="border-t border-black/10 pt-6">
             <ProductSelector products={productsForForm} />

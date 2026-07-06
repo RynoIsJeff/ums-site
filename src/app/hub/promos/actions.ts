@@ -165,7 +165,16 @@ export async function createPromo(formData: FormData) {
       promoDateTo: new Date(promoDateToStr),
       storeId: storeId || null,
       items: {
-        create: productIds.map((pid, i) => ({ productId: pid, sortOrder: i })),
+        create: productIds.map((pid, i) => {
+          const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
+          const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
+          return {
+            productId: pid,
+            sortOrder: i,
+            priceOverride: isNaN(override) ? null : override,
+            originalPrice: isNaN(original) || original <= 0 ? null : original,
+          };
+        }),
       },
     },
   });
@@ -203,7 +212,16 @@ export async function updatePromo(id: string, formData: FormData) {
         promoDateTo: new Date(promoDateToStr),
         storeId: storeId || null,
         items: {
-          create: productIds.map((pid, i) => ({ productId: pid, sortOrder: i })),
+          create: productIds.map((pid, i) => {
+            const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
+            const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
+            return {
+              productId: pid,
+              sortOrder: i,
+              priceOverride: isNaN(override) ? null : override,
+              originalPrice: isNaN(original) || original <= 0 ? null : original,
+            };
+          }),
         },
       },
     }),

@@ -622,13 +622,15 @@ model Promo {
 }
 
 model PromoItem {
-  id        String       @id @default(cuid())
-  promoId   String
-  productId String
-  sortOrder Int          @default(0)
-  createdAt DateTime     @default(now())
-  promo     Promo        @relation(fields: [promoId], references: [id], onDelete: Cascade)
-  product   PromoProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+  id            String       @id @default(cuid())
+  promoId       String
+  productId     String
+  priceOverride   Decimal?   @db.Decimal(10, 2)
+  originalPrice   Decimal?   @db.Decimal(10, 2)
+  sortOrder       Int        @default(0)
+  createdAt     DateTime     @default(now())
+  promo         Promo        @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  product       PromoProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@unique([promoId, productId])
   @@index([promoId])

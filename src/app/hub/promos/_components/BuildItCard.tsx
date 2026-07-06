@@ -45,6 +45,8 @@ type Props = {
   productVariant?: string | null;
   productPrice: number | Decimal;
   productImageData: string | null;
+  priceOverride?: number | Decimal | null;
+  originalPrice?: number | Decimal | null;
 };
 
 export function BuildItCard({
@@ -58,8 +60,11 @@ export function BuildItCard({
   productVariant,
   productPrice,
   productImageData,
+  priceOverride,
+  originalPrice,
 }: Props) {
-  const price = toNum(productPrice);
+  const price = priceOverride != null ? toNum(priceOverride) : toNum(productPrice);
+  const wasPrice = originalPrice != null ? toNum(originalPrice) : null;
   const dateStr = `Promotion valid ${formatDate(promoDateFrom)} – ${formatDate(promoDateTo, true)} · While stocks last. Ts & Cs apply.`;
   const hasStoreInfo = !!(storeName || storeNumber || storeAddress);
 
@@ -200,6 +205,14 @@ export function BuildItCard({
               </div>
             )}
           </div>
+          {wasPrice != null && (
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+              <span style={{ fontSize: 11, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>WAS</span>
+              <span style={{ fontSize: 16, color: "#9ca3af", textDecoration: "line-through", fontWeight: 700 }}>
+                R {wasPrice.toFixed(2)}
+              </span>
+            </div>
+          )}
           <PriceDisplay price={price} />
         </div>
       </div>

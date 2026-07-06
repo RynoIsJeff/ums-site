@@ -41,6 +41,12 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
   ]);
 
   const selectedProductIds = promo.items.map((i) => i.productId);
+  const defaultPriceOverrides: Record<string, string> = {};
+  const defaultOriginalPrices: Record<string, string> = {};
+  for (const item of promo.items) {
+    if (item.priceOverride != null) defaultPriceOverrides[item.productId] = String(item.priceOverride);
+    if (item.originalPrice != null) defaultOriginalPrices[item.productId] = String(item.originalPrice);
+  }
 
   const productsForForm = products.map((p) => ({
     id: p.id,
@@ -123,10 +129,16 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
           label="Promo header image"
           currentImageData={promo.headerImageData}
           clearInputName="clearHeader"
+          acceptPdf
         />
 
         <div className="border-t border-black/10 pt-6">
-          <ProductSelector products={productsForForm} defaultSelected={selectedProductIds} />
+          <ProductSelector
+            products={productsForForm}
+            defaultSelected={selectedProductIds}
+            defaultPriceOverrides={defaultPriceOverrides}
+            defaultOriginalPrices={defaultOriginalPrices}
+          />
         </div>
 
         <div className="flex gap-3 pt-2">

@@ -30,7 +30,7 @@ export default async function PromosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">Promos</h1>
           <p className="mt-2 text-sm text-(--hub-muted)">
-            Build product promotion cards for your clients.
+            Build product promotion cards for your stores.
           </p>
         </div>
         <div className="flex gap-2">
@@ -79,7 +79,6 @@ export default async function PromosPage() {
                     <p className="font-semibold text-(--hub-text) truncate group-hover:underline">
                       {p.title}
                     </p>
-                    <p className="text-sm text-(--hub-muted) mt-0.5">{p.client.companyName}</p>
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
