@@ -157,7 +157,7 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
-const PDF_HEADER_CROP = 0.38;
+const PDF_HEADER_CROP = 0.43;
 
 async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");

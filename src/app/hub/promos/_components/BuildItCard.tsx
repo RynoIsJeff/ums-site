@@ -4,11 +4,11 @@ import { toNum } from "@/lib/utils";
 const RED = "#C8102E";
 const DARK = "#1e1e1e";
 const CARD_W = 540;
-const HEADER_H = 210;
-const BANNER_H = 33;
-const PRODUCT_H = 213;
+const HEADER_H = 200;
+const BANNER_H = 28;
+const PRODUCT_H = 228;
 const FOOTER_H = 84;
-const IMG_W = 220;
+const IMG_W = 242;
 
 function formatDate(d: Date, withYear = false) {
   const day = d.getDate();
@@ -30,34 +30,34 @@ function PriceBlock({ price, wasPrice }: { price: number; wasPrice: number | nul
     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
       {was && (
         <>
-          <span style={{ fontSize: 14, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+          <span style={{ fontSize: 15, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
             WAS
           </span>
-          <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 4 }}>
-            <span style={{ fontSize: 30, fontWeight: 900, color: "#999", lineHeight: 0.9, textDecoration: "line-through" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 5 }}>
+            <span style={{ fontSize: 38, fontWeight: 900, color: "#999", lineHeight: 0.9, textDecoration: "line-through" }}>
               {was.whole}
             </span>
             <div style={{ display: "flex", flexDirection: "column", marginTop: 2, marginLeft: 1 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#999", lineHeight: 1, textDecoration: "line-through" }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: "#999", lineHeight: 1, textDecoration: "line-through" }}>
                 {was.cents}
               </span>
-              <span style={{ fontSize: 8.5, color: "#bbb", marginTop: 1 }}>each</span>
+              <span style={{ fontSize: 9, color: "#bbb", marginTop: 1 }}>each</span>
             </div>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+          <span style={{ fontSize: 15, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
             NOW
           </span>
         </>
       )}
       <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
-        <span style={{ fontSize: 66, fontWeight: 900, color: "#111", lineHeight: 0.88 }}>
+        <span style={{ fontSize: 90, fontWeight: 900, color: "#111", lineHeight: 0.88 }}>
           {now.whole}
         </span>
-        <div style={{ display: "flex", flexDirection: "column", marginTop: 4, marginLeft: 2 }}>
-          <span style={{ fontSize: 23, fontWeight: 800, color: "#111", lineHeight: 1 }}>
+        <div style={{ display: "flex", flexDirection: "column", marginTop: 5, marginLeft: 3 }}>
+          <span style={{ fontSize: 30, fontWeight: 800, color: "#111", lineHeight: 1 }}>
             {now.cents}
           </span>
-          <span style={{ fontSize: 10, color: "#555", marginTop: 2, lineHeight: 1 }}>each</span>
+          <span style={{ fontSize: 12, color: "#555", marginTop: 2, lineHeight: 1 }}>each</span>
         </div>
       </div>
     </div>
@@ -205,7 +205,7 @@ export function BuildItCard({
           padding: "0 14px",
         }}
       >
-        <span style={{ color: "#fff", fontSize: 10, fontWeight: 700, textAlign: "center", letterSpacing: "0.025em", lineHeight: 1 }}>
+        <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, textAlign: "center", letterSpacing: "0.025em", lineHeight: 1 }}>
           {dateStr}
         </span>
       </div>
@@ -243,11 +243,11 @@ export function BuildItCard({
           }}
         >
           <div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#111", lineHeight: 1.1, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "#111", lineHeight: 1.1, letterSpacing: "-0.01em" }}>
               {productName}
             </div>
             {productVariant && (
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 5, lineHeight: 1.45, whiteSpace: "pre-line" }}>
+              <div style={{ fontSize: 13, color: "#6b7280", marginTop: 5, lineHeight: 1.4, whiteSpace: "pre-line" }}>
                 {productVariant}
               </div>
             )}
