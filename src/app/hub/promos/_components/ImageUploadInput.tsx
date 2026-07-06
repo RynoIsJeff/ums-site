@@ -159,7 +159,7 @@ async function extractPdfHeader(file: File): Promise<string> {
 
   const ctx = canvas.getContext("2d")!;
   // Render the full page into the undersized canvas — content below cropHeight is clipped
-  await page.render({ canvasContext: ctx, viewport }).promise;
+  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
 
   return canvas.toDataURL("image/jpeg", 0.92);
 }
