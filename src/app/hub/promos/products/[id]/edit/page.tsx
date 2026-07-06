@@ -50,13 +50,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
         <div>
           <label htmlFor="variant" className="block text-sm font-medium">Variant / description</label>
-          <input
+          <textarea
             id="variant"
             name="variant"
-            type="text"
+            rows={3}
             defaultValue={product.variant ?? ""}
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm resize-y"
           />
+          <p className="mt-1 text-xs text-(--hub-muted)">Each line prints separately on the card.</p>
         </div>
 
         <div>

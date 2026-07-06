@@ -52,13 +52,14 @@ export default async function NewProductPage() {
 
           <div>
             <label htmlFor="variant" className="block text-sm font-medium">Variant / description</label>
-            <input
+            <textarea
               id="variant"
               name="variant"
-              type="text"
-              placeholder="e.g. 25kg bag · Grey"
-              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              rows={3}
+              placeholder={"e.g. 20L\nCream"}
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm resize-y"
             />
+            <p className="mt-1 text-xs text-(--hub-muted)">Each line prints separately on the card.</p>
           </div>
 
           <div>
