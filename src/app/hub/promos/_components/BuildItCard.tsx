@@ -299,7 +299,7 @@ export function BuildItCard({
             )}
           </div>
 
-          <div style={{ marginTop: wasPrice == null ? 10 : "auto" }}>
+          <div style={{ marginTop: wasPrice == null ? 10 : 8 }}>
             <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
           </div>
         </div>
