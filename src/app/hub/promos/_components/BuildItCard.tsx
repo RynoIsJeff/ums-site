@@ -49,7 +49,9 @@ function computeSizes(
     : score <= 7 ? 0.75
     : 0.67;
 
-  const nowSize = Math.round(Math.min(100, 90 * digitMult * denseMult));
+  // When no WAS, boost price to fill the freed vertical space
+  const noWasBoost = hasWas ? 1.0 : 1.3;
+  const nowSize = Math.round(Math.min(hasWas ? 100 : 130, 90 * digitMult * denseMult * noWasBoost));
   const centsSize = Math.round(nowSize * 0.33);
   const eachSize = Math.round(nowSize * 0.13);
 
@@ -270,6 +272,7 @@ export function BuildItCard({
             padding: "13px 14px 11px 11px",
             display: "flex",
             flexDirection: "column",
+            justifyContent: wasPrice == null ? "center" : "flex-start",
             overflow: "hidden",
           }}
         >
@@ -284,7 +287,7 @@ export function BuildItCard({
             )}
           </div>
 
-          <div style={{ marginTop: "auto" }}>
+          <div style={{ marginTop: wasPrice == null ? 10 : "auto" }}>
             <PriceBlock price={price} wasPrice={wasPrice} sizes={sizes} />
           </div>
         </div>
