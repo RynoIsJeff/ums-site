@@ -359,7 +359,7 @@ export function BuildItCard({
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/client-logo/buildit.png" alt="Build It" style={{ height: 34, objectFit: "contain" }} crossOrigin="anonymous" />
+              <img src="/client-logo/buildit-white.png" alt="Build It" style={{ height: 34, objectFit: "contain" }} crossOrigin="anonymous" />
               {storeName && (
                 <span style={{ color: "#fff", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1 }}>
                   {storeName}
@@ -369,7 +369,7 @@ export function BuildItCard({
           </>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/client-logo/buildit.png" alt="Build It" style={{ height: 44, objectFit: "contain" }} crossOrigin="anonymous" />
+          <img src="/client-logo/buildit-white.png" alt="Build It" style={{ height: 44, objectFit: "contain" }} crossOrigin="anonymous" />
         )}
       </div>
     </div>

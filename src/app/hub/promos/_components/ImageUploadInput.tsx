@@ -157,8 +157,6 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
-const PDF_HEADER_CROP = 0.43;
-
 async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -170,7 +168,12 @@ async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
 
   const scale = 2;
   const viewport = page.getViewport({ scale });
-  const cropHeight = Math.round(viewport.height * PDF_HEADER_CROP);
+
+  // A4 portrait PDFs (aspect < 0.85) contain a full promo layout — only the top
+  // ~33% is the "Say Yes / Build It" header band. Wider/square PDFs use ~44%.
+  const aspectRatio = viewport.width / viewport.height;
+  const cropRatio = aspectRatio < 0.85 ? 0.33 : 0.44;
+  const cropHeight = Math.round(viewport.height * cropRatio);
 
   const canvas = document.createElement("canvas");
   canvas.width = viewport.width;
