@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -18,6 +19,28 @@ export type AuthScope = {
   assignedClientIds: string[] | null;
 };
 
+// Cache the DB user lookup per email for 60 seconds so repeated server action
+// calls (e.g. saving multiple products) don't each pay a full round-trip.
+function fetchAppUser(email: string) {
+  return unstable_cache(
+    () =>
+      prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          twoFactorEnabled: true,
+          assignedClients: { select: { clientId: true } },
+        },
+      }),
+    ["hub-app-user", email],
+    { revalidate: 60 },
+  )();
+}
+
 /** Use getClaims() in proxy/middleware; use this in Server Components / Actions to get authenticated app user with RBAC scope. */
 export async function getSession() {
   const supabase = await createClient();
@@ -27,18 +50,7 @@ export async function getSession() {
 
   if (!user?.email) return { user: null as AppUser | null };
 
-  const appUser = await prisma.user.findUnique({
-    where: { email: user.email.trim().toLowerCase() },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      isActive: true,
-      twoFactorEnabled: true,
-      assignedClients: { select: { clientId: true } },
-    },
-  });
+  const appUser = await fetchAppUser(user.email.trim().toLowerCase());
 
   if (!appUser || !appUser.isActive)
     return { user: null as AppUser | null };

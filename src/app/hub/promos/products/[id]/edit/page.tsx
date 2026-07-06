@@ -104,7 +104,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           label="Product image"
           currentImageData={product.imageData}
           clearInputName="clearImage"
-          maxPx={600}
+          maxPx={480}
           quality={0.75}
         />
 

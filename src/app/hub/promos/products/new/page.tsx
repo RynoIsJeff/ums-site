@@ -100,7 +100,7 @@ export default async function NewProductPage() {
             />
           </div>
 
-          <ImageUploadInput name="imageData" label="Product image" maxPx={600} quality={0.75} />
+          <ImageUploadInput name="imageData" label="Product image" maxPx={480} quality={0.75} />
 
           <div className="flex gap-3 pt-2">
             <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
