@@ -22,7 +22,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
   const promo = await prisma.promo.findFirst({
     where: { id, ...scopeWhere },
     include: {
-      items: { select: { productId: true } },
+      items: { select: { productId: true, priceOverride: true, originalPrice: true } },
     },
   });
   if (!promo) notFound();
