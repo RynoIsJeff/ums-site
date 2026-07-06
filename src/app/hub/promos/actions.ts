@@ -67,6 +67,7 @@ export async function createProduct(formData: FormData) {
   if (!user) redirect("/hub");
 
   const clientId = formData.get("clientId") as string;
+  const code = (formData.get("code") as string)?.trim() || null;
   const name = (formData.get("name") as string)?.trim();
   const variant = (formData.get("variant") as string)?.trim() || null;
   const priceStr = formData.get("price") as string;
@@ -80,7 +81,7 @@ export async function createProduct(formData: FormData) {
   const where = clientIdWhere(scope);
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
-  await prisma.promoProduct.create({ data: { clientId, name, variant, price, imageData } });
+  await prisma.promoProduct.create({ data: { clientId, code, name, variant, price, imageData } });
   revalidatePath("/hub/promos/products");
   redirect("/hub/promos/products");
 }
@@ -89,6 +90,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
+  const code = (formData.get("code") as string)?.trim() || null;
   const name = (formData.get("name") as string)?.trim();
   const variant = (formData.get("variant") as string)?.trim() || null;
   const priceStr = formData.get("price") as string;
@@ -107,6 +109,7 @@ export async function updateProduct(id: string, formData: FormData) {
   await prisma.promoProduct.update({
     where: { id },
     data: {
+      code,
       name,
       variant,
       price,

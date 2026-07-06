@@ -37,6 +37,19 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
       <form action={boundAction} className="mt-6 space-y-4">
         <div>
+          <label htmlFor="code" className="block text-sm font-medium">Product code</label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            defaultValue={product.code ?? ""}
+            placeholder="e.g. CEM-001"
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm font-mono"
+          />
+          <p className="mt-1 text-xs text-(--hub-muted)">Optional. Used to quickly find this product later.</p>
+        </div>
+
+        <div>
           <label htmlFor="name" className="block text-sm font-medium">Product name *</label>
           <input
             id="name"

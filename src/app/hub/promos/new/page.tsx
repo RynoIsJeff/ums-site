@@ -35,7 +35,7 @@ export default async function NewPromoPage() {
         prisma.promoProduct.findMany({
           where: { clientId: defaultClient.id, isActive: true },
           orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-          select: { id: true, name: true, variant: true, price: true, imageData: true },
+          select: { id: true, code: true, name: true, variant: true, price: true, imageData: true },
         }),
         prisma.promoStore.findMany({
           where: { clientId: defaultClient.id },
@@ -47,6 +47,7 @@ export default async function NewPromoPage() {
 
   const productsForForm = products.map((p) => ({
     id: p.id,
+    code: p.code,
     name: p.name,
     variant: p.variant,
     price: toNum(p.price).toFixed(2),

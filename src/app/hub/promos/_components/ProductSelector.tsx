@@ -4,6 +4,7 @@ import { useState } from "react";
 
 type Product = {
   id: string;
+  code?: string | null;
   name: string;
   variant?: string | null;
   price: string;
@@ -36,6 +37,18 @@ export function ProductSelector({
     }
     return init;
   });
+  const [filter, setFilter] = useState("");
+
+  const filtered = filter.trim()
+    ? products.filter((p) => {
+        const q = filter.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          (p.code ?? "").toLowerCase().includes(q) ||
+          (p.variant ?? "").toLowerCase().includes(q)
+        );
+      })
+    : products;
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -64,6 +77,16 @@ export function ProductSelector({
         </div>
       </div>
 
+      {products.length > 5 && (
+        <input
+          type="search"
+          placeholder="Filter by name or code…"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="mb-3 w-full rounded-md border border-black/15 px-3 py-1.5 text-sm"
+        />
+      )}
+
       {products.length === 0 ? (
         <p className="text-sm text-(--hub-muted) py-2">
           No products in library yet.{" "}
@@ -71,7 +94,7 @@ export function ProductSelector({
         </p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
-          {products.map((p) => {
+          {filtered.map((p) => {
             const isOn = selected.has(p.id);
             const ps = prices[p.id] ?? { promo: p.price, original: "" };
             return (
@@ -100,6 +123,7 @@ export function ProductSelector({
                     />
                   )}
                   <div className="min-w-0 flex-1">
+                    {p.code && <p className="text-[10px] font-mono text-black/40 leading-none mb-0.5">{p.code}</p>}
                     <p className="text-sm font-medium truncate">{p.name}</p>
                     {p.variant && <p className="text-xs text-(--hub-muted) truncate">{p.variant}</p>}
                     <p className="text-xs text-black/40 mt-0.5">Library: R {parseFloat(p.price).toFixed(2)}</p>

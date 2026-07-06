@@ -1,22 +1,42 @@
 import Link from "next/link";
 import { Package, Plus, Pencil } from "lucide-react";
+import { Suspense } from "react";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { DeleteProductButton } from "./_components/DeleteProductButton";
+import { ProductSearchBar } from "./_components/ProductSearchBar";
 
 export const metadata = { title: "Product Library | UMS Hub" };
 
-export default async function PromoProductsPage() {
+export default async function PromoProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const { user } = await getSession();
   if (!user) return null;
+
+  const { q } = await searchParams;
+  const search = q?.trim() ?? "";
 
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
 
   const products = await prisma.promoProduct.findMany({
-    where: scopeWhere,
+    where: {
+      ...scopeWhere,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { code: { contains: search, mode: "insensitive" } },
+              { variant: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     orderBy: [{ clientId: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
     include: {
       _count: { select: { promoItems: true } },
@@ -47,11 +67,20 @@ export default async function PromoProductsPage() {
         </Link>
       </div>
 
+      <div className="mt-4 max-w-sm">
+        <Suspense>
+          <ProductSearchBar defaultValue={search} />
+        </Suspense>
+      </div>
+
       <div className="mt-4">
         {products.length === 0 ? (
           <div className="rounded-xl border border-(--hub-border-light) bg-white p-8 text-center text-sm text-(--hub-muted)">
-            No products yet.{" "}
-            <Link href="/hub/promos/products/new" className="underline">Add your first product</Link>
+            {search ? (
+              <>No products match &ldquo;{search}&rdquo;.</>
+            ) : (
+              <>No products yet.{" "}<Link href="/hub/promos/products/new" className="underline">Add your first product</Link></>
+            )}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -69,6 +98,9 @@ export default async function PromoProductsPage() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
+                  {p.code && (
+                    <p className="text-[11px] font-mono text-(--hub-muted) leading-none mb-0.5">{p.code}</p>
+                  )}
                   <p className="font-medium text-(--hub-text) truncate">{p.name}</p>
                   {p.variant && <p className="text-xs text-(--hub-muted) truncate">{p.variant}</p>}
                   <p className="text-sm font-semibold text-red-700 mt-1">
