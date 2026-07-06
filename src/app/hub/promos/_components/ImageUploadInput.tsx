@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Props = {
   name: string;
@@ -27,11 +27,11 @@ export function ImageUploadInput({
   const [processing, setProcessing] = useState(false);
   const [sizeKb, setSizeKb] = useState<number | null>(null);
   const [err, setErr] = useState("");
+  // Flashes briefly when a paste is received so the user gets visual feedback
+  const [pasted, setPasted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  async function processFile(file: File) {
     setErr("");
     setProcessing(true);
     setSizeKb(null);
@@ -55,6 +55,12 @@ export function ImageUploadInput({
     }
   }
 
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
+  }
+
   function handleClear() {
     setDataValue("");
     setPreview(null);
@@ -63,11 +69,54 @@ export function ImageUploadInput({
     setErr("");
   }
 
+  function extractImageFromClipboard(e: ClipboardEvent): File | null {
+    const items = Array.from(e.clipboardData?.items ?? []);
+    const item = items.find((i) => i.type.startsWith("image/"));
+    return item ? item.getAsFile() : null;
+  }
+
+  // Global paste listener — fires when no text input is focused
+  useEffect(() => {
+    async function handleDocPaste(e: ClipboardEvent) {
+      const active = document.activeElement;
+      const isTextInput =
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        (active instanceof HTMLElement && active.isContentEditable);
+      if (isTextInput) return;
+      if (preview && !cleared) return; // already have an image
+
+      const file = extractImageFromClipboard(e);
+      if (!file) return;
+
+      e.preventDefault();
+      setPasted(true);
+      setTimeout(() => setPasted(false), 1200);
+      await processFile(file);
+    }
+
+    document.addEventListener("paste", handleDocPaste);
+    return () => document.removeEventListener("paste", handleDocPaste);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview, cleared]);
+
+  // Paste directly on the upload zone (user can also click zone then Ctrl+V)
+  async function handleZonePaste(e: React.ClipboardEvent) {
+    const file = extractImageFromClipboard(e.nativeEvent);
+    if (!file) return;
+    e.preventDefault();
+    setPasted(true);
+    setTimeout(() => setPasted(false), 1200);
+    await processFile(file);
+  }
+
   const accept = acceptPdf ? "image/*,application/pdf" : "image/*";
-  const uploadLabel = acceptPdf ? "Click to upload image or PDF" : "Click to upload image";
+  const uploadLabel = acceptPdf
+    ? "Click to upload image or PDF · or paste (Ctrl+V)"
+    : "Click to upload · or paste image (Ctrl+V)";
 
   return (
-    <div>
+    <div ref={containerRef}>
       <label className="block text-sm font-medium mb-1">{label}</label>
 
       {/* Controlled hidden inputs — value driven by React state, always in sync */}
@@ -99,7 +148,15 @@ export function ImageUploadInput({
           )}
         </div>
       ) : (
-        <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-black/20 px-4 py-3 text-sm text-(--hub-muted) hover:border-black/40">
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+        <label
+          className={`flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm transition-colors ${
+            pasted
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-black/20 text-(--hub-muted) hover:border-black/40"
+          }`}
+          onPaste={handleZonePaste}
+        >
           {processing ? (
             <>
               <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -108,6 +165,8 @@ export function ImageUploadInput({
               </svg>
               <span>{acceptPdf ? "Extracting header from PDF…" : "Processing…"}</span>
             </>
+          ) : pasted ? (
+            <span>Image pasted ✓</span>
           ) : (
             <span>{uploadLabel}</span>
           )}
