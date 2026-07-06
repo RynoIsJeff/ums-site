@@ -170,9 +170,10 @@ async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const viewport = page.getViewport({ scale });
 
   // A4 portrait PDFs (aspect < 0.85) contain a full promo layout — only the top
-  // ~33% is the "Say Yes / Build It" header band. Wider/square PDFs use ~44%.
+  // ~28% is the "Say Yes / Build It" header band (stops before the PDF's own
+  // date bar at ~29-33%). Wider/square PDFs use ~44%.
   const aspectRatio = viewport.width / viewport.height;
-  const cropRatio = aspectRatio < 0.85 ? 0.33 : 0.44;
+  const cropRatio = aspectRatio < 0.85 ? 0.28 : 0.44;
   const cropHeight = Math.round(viewport.height * cropRatio);
 
   const canvas = document.createElement("canvas");
