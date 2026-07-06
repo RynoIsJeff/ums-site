@@ -173,7 +173,7 @@ async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   // ~28% is the "Say Yes / Build It" header band (stops before the PDF's own
   // date bar at ~29-33%). Wider/square PDFs use ~44%.
   const aspectRatio = viewport.width / viewport.height;
-  const cropRatio = aspectRatio < 0.85 ? 0.28 : 0.44;
+  const cropRatio = aspectRatio < 0.85 ? 0.30 : 0.44;
   const cropHeight = Math.round(viewport.height * cropRatio);
 
   const canvas = document.createElement("canvas");
