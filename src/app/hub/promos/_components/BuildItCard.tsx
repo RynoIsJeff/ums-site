@@ -7,8 +7,8 @@ const CARD_W = 540;
 const HEADER_H = 196;
 const BANNER_H = 26;
 const PRODUCT_H = 234;
-const FOOTER_H = 84;
-const IMG_W = 121;
+const FOOTER_H = 62;
+const IMG_W = 270;
 
 function splitPrice(price: number) {
   const whole = Math.floor(price);
