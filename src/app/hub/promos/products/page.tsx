@@ -19,7 +19,6 @@ export default async function PromoProductsPage() {
     where: scopeWhere,
     orderBy: [{ clientId: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
     include: {
-      client: { select: { companyName: true } },
       _count: { select: { promoItems: true } },
     },
   });
@@ -75,7 +74,6 @@ export default async function PromoProductsPage() {
                   <p className="text-sm font-semibold text-red-700 mt-1">
                     R {toNum(p.price).toFixed(2)}
                   </p>
-                  <p className="text-xs text-(--hub-muted) mt-0.5">{p.client.companyName}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <Link
                       href={`/hub/promos/products/${p.id}/edit`}
