@@ -9,9 +9,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverActionsBodySizeLimit: "4mb",
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "platform-lookaside.fbsbx.com", pathname: "/**" },
