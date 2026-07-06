@@ -62,6 +62,19 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         </div>
 
         <div>
+          <label htmlFor="unit" className="block text-sm font-medium">Price unit</label>
+          <input
+            id="unit"
+            name="unit"
+            type="text"
+            defaultValue={product.unit}
+            placeholder="each"
+            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-(--hub-muted)">Shown below the price, e.g. each, per roll, per m.</p>
+        </div>
+
+        <div>
           <label htmlFor="variant" className="block text-sm font-medium">Variant / description</label>
           <textarea
             id="variant"

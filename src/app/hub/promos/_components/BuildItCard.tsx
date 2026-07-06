@@ -84,10 +84,12 @@ function computeSizes(
 function PriceBlock({
   price,
   wasPrice,
+  unit,
   sizes,
 }: {
   price: number;
   wasPrice: number | null;
+  unit: string;
   sizes: ReturnType<typeof computeSizes>;
 }) {
   const now = splitPrice(price);
@@ -109,7 +111,7 @@ function PriceBlock({
               <span style={{ fontSize: wasCentsSize, fontWeight: 800, color: "#999", lineHeight: 1, textDecoration: "line-through" }}>
                 {was.cents}
               </span>
-              <span style={{ fontSize: 8, color: "#bbb", marginTop: 1 }}>each</span>
+              <span style={{ fontSize: 8, color: "#bbb", marginTop: 1 }}>{unit}</span>
             </div>
           </div>
           <span style={{ fontSize: 14, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
@@ -125,7 +127,7 @@ function PriceBlock({
           <span style={{ fontSize: centsSize, fontWeight: 800, color: "#111", lineHeight: 1 }}>
             {now.cents}
           </span>
-          <span style={{ fontSize: eachSize, color: "#555", marginTop: 2, lineHeight: 1 }}>each</span>
+          <span style={{ fontSize: eachSize, color: "#555", marginTop: 2, lineHeight: 1 }}>{unit}</span>
         </div>
       </div>
     </div>
@@ -157,6 +159,7 @@ type Props = {
   storeAddress?: string | null;
   storePhone?: string | null;
   productName: string;
+  productUnit?: string | null;
   productVariant?: string | null;
   productPrice: number | Decimal;
   productImageData: string | null;
@@ -173,6 +176,7 @@ export function BuildItCard({
   storeAddress,
   storePhone,
   productName,
+  productUnit,
   productVariant,
   productPrice,
   productImageData,
@@ -296,7 +300,7 @@ export function BuildItCard({
           </div>
 
           <div style={{ marginTop: wasPrice == null ? 10 : "auto" }}>
-            <PriceBlock price={price} wasPrice={wasPrice} sizes={sizes} />
+            <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
           </div>
         </div>
       </div>

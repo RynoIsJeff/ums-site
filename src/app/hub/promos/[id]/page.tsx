@@ -86,6 +86,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
                 storeAddress={promo.store?.address}
                 storePhone={promo.store?.phone}
                 productName={item.product.name}
+                productUnit={item.product.unit}
                 productVariant={item.product.variant}
                 productPrice={toNum(item.product.price)}
                 productImageData={item.product.imageData}

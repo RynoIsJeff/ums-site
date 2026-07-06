@@ -589,6 +589,7 @@ model PromoProduct {
   clientId   String
   code       String?
   name       String
+  unit       String   @default("each")
   variant    String?
   price      Decimal     @db.Decimal(10, 2)
   imageData  String?     @db.Text
