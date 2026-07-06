@@ -7,14 +7,24 @@ type Props = {
   label: string;
   currentImageData?: string | null;
   clearInputName?: string;
-  // When true, also accepts PDFs and extracts the top 30% of page 1 as the header image
   acceptPdf?: boolean;
+  maxPx?: number;
+  quality?: number;
 };
 
-export function ImageUploadInput({ name, label, currentImageData, clearInputName, acceptPdf }: Props) {
+export function ImageUploadInput({
+  name,
+  label,
+  currentImageData,
+  clearInputName,
+  acceptPdf,
+  maxPx = 1080,
+  quality = 0.82,
+}: Props) {
   const [preview, setPreview] = useState<string | null>(currentImageData ?? null);
   const [cleared, setCleared] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [sizeKb, setSizeKb] = useState<number | null>(null);
   const [err, setErr] = useState("");
   const hiddenRef = useRef<HTMLInputElement>(null);
   const clearRef = useRef<HTMLInputElement>(null);
@@ -25,12 +35,16 @@ export function ImageUploadInput({ name, label, currentImageData, clearInputName
 
     setErr("");
     setProcessing(true);
+    setSizeKb(null);
 
     try {
       const dataUrl =
         file.type === "application/pdf"
-          ? await extractPdfHeader(file)
-          : await compressImage(file, 1200, 0.85);
+          ? await extractPdfHeader(file, maxPx)
+          : await compressImage(file, maxPx, quality);
+
+      const b64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+      setSizeKb(Math.round((b64.length * 3) / 4 / 1024));
 
       setPreview(dataUrl);
       setCleared(false);
@@ -46,6 +60,7 @@ export function ImageUploadInput({ name, label, currentImageData, clearInputName
   function handleClear() {
     setPreview(null);
     setCleared(true);
+    setSizeKb(null);
     setErr("");
     if (hiddenRef.current) hiddenRef.current.value = "";
     if (clearRef.current) clearRef.current.value = "1";
@@ -63,16 +78,26 @@ export function ImageUploadInput({ name, label, currentImageData, clearInputName
       )}
 
       {preview && !cleared ? (
-        <div className="relative inline-block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={preview} alt="preview" className="h-32 w-auto rounded border border-black/10 object-contain" />
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white text-xs hover:bg-black"
-          >
-            ✕
-          </button>
+        <div className="space-y-1">
+          <div className="relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="preview" className="h-32 w-auto rounded border border-black/10 object-contain" />
+            <button
+              type="button"
+              onClick={handleClear}
+              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white text-xs hover:bg-black"
+            >
+              ✕
+            </button>
+          </div>
+          {sizeKb !== null && (
+            <p className="text-xs text-(--hub-muted)">
+              Compressed to ~{sizeKb} KB
+              {sizeKb > 800 && (
+                <span className="text-amber-600"> — large, save may be slow</span>
+              )}
+            </p>
+          )}
         </div>
       ) : (
         <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-black/20 px-4 py-3 text-sm text-(--hub-muted) hover:border-black/40">
@@ -133,14 +158,10 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
-// Fraction of page 1's height to capture as the header image.
-// The Build It "Say Yes to Great Deals" banner occupies ~28% of the A4 page.
 const PDF_HEADER_CROP = 0.28;
 
-async function extractPdfHeader(file: File): Promise<string> {
+async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
-
-  // Load worker from CDN — avoids bundling the heavy worker into the app chunk
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -148,7 +169,6 @@ async function extractPdfHeader(file: File): Promise<string> {
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
   const page = await pdf.getPage(1);
 
-  // Render at 2× for crisp output; canvas height is cropped to header area only
   const scale = 2;
   const viewport = page.getViewport({ scale });
   const cropHeight = Math.round(viewport.height * PDF_HEADER_CROP);
@@ -158,8 +178,17 @@ async function extractPdfHeader(file: File): Promise<string> {
   canvas.height = cropHeight;
 
   const ctx = canvas.getContext("2d")!;
-  // Render the full page into the undersized canvas — content below cropHeight is clipped
   await page.render({ canvasContext: ctx, canvas, viewport }).promise;
 
-  return canvas.toDataURL("image/jpeg", 0.92);
+  // Scale down to maxPx wide if needed (keeps save size manageable)
+  if (viewport.width > maxPx) {
+    const out = document.createElement("canvas");
+    const ratio = maxPx / viewport.width;
+    out.width = maxPx;
+    out.height = Math.round(cropHeight * ratio);
+    out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
+    return out.toDataURL("image/jpeg", 0.88);
+  }
+
+  return canvas.toDataURL("image/jpeg", 0.88);
 }

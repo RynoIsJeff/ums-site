@@ -5,6 +5,7 @@ import { clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
+import { SaveProgress } from "@/app/hub/_components/SaveProgress";
 import { ImageUploadInput } from "../../../_components/ImageUploadInput";
 import { updateProduct } from "../../../actions";
 
@@ -19,7 +20,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const scopeWhere = clientIdWhere(scope);
   const product = await prisma.promoProduct.findFirst({
     where: { id, ...scopeWhere },
-    include: { client: { select: { companyName: true } } },
   });
   if (!product) notFound();
 
@@ -28,7 +28,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   return (
     <section className="py-10 max-w-lg">
       <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">Edit product</h1>
-      <p className="mt-1 text-sm text-(--hub-muted)">{product.client.companyName}</p>
 
       <div className="mt-4">
         <Link href="/hub/promos/products" className="text-sm text-(--hub-muted) hover:underline">
@@ -78,6 +77,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           label="Product image"
           currentImageData={product.imageData}
           clearInputName="clearImage"
+          maxPx={600}
+          quality={0.75}
         />
 
         <div className="flex gap-3 pt-2">
@@ -88,6 +89,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             Cancel
           </Link>
         </div>
+        <SaveProgress />
       </form>
     </section>
   );

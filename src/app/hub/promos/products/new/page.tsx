@@ -3,6 +3,7 @@ import { getSession, toAuthScope } from "@/lib/auth";
 import { clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
+import { SaveProgress } from "@/app/hub/_components/SaveProgress";
 import { ImageUploadInput } from "../../_components/ImageUploadInput";
 import { createProduct } from "../../actions";
 
@@ -73,7 +74,7 @@ export default async function NewProductPage() {
             />
           </div>
 
-          <ImageUploadInput name="imageData" label="Product image" />
+          <ImageUploadInput name="imageData" label="Product image" maxPx={600} quality={0.75} />
 
           <div className="flex gap-3 pt-2">
             <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
@@ -83,6 +84,7 @@ export default async function NewProductPage() {
               Cancel
             </Link>
           </div>
+          <SaveProgress />
         </form>
       )}
     </section>
