@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 type Props = {
   name: string;
@@ -21,13 +21,12 @@ export function ImageUploadInput({
   maxPx = 1080,
   quality = 0.82,
 }: Props) {
+  const [dataValue, setDataValue] = useState<string>(currentImageData ?? "");
   const [preview, setPreview] = useState<string | null>(currentImageData ?? null);
   const [cleared, setCleared] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [sizeKb, setSizeKb] = useState<number | null>(null);
   const [err, setErr] = useState("");
-  const hiddenRef = useRef<HTMLInputElement>(null);
-  const clearRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -46,10 +45,9 @@ export function ImageUploadInput({
       const b64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
       setSizeKb(Math.round((b64.length * 3) / 4 / 1024));
 
+      setDataValue(dataUrl);
       setPreview(dataUrl);
       setCleared(false);
-      if (hiddenRef.current) hiddenRef.current.value = dataUrl;
-      if (clearRef.current) clearRef.current.value = "0";
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to process file");
     } finally {
@@ -58,12 +56,11 @@ export function ImageUploadInput({
   }
 
   function handleClear() {
+    setDataValue("");
     setPreview(null);
     setCleared(true);
     setSizeKb(null);
     setErr("");
-    if (hiddenRef.current) hiddenRef.current.value = "";
-    if (clearRef.current) clearRef.current.value = "1";
   }
 
   const accept = acceptPdf ? "image/*,application/pdf" : "image/*";
@@ -72,9 +69,11 @@ export function ImageUploadInput({
   return (
     <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <input type="hidden" name={name} ref={hiddenRef} defaultValue={currentImageData ?? ""} />
+
+      {/* Controlled hidden inputs — value driven by React state, always in sync */}
+      <input type="hidden" name={name} value={dataValue} onChange={() => {}} />
       {clearInputName && (
-        <input type="hidden" name={clearInputName} ref={clearRef} defaultValue={cleared ? "1" : "0"} />
+        <input type="hidden" name={clearInputName} value={cleared ? "1" : "0"} onChange={() => {}} />
       )}
 
       {preview && !cleared ? (
@@ -180,7 +179,6 @@ async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const ctx = canvas.getContext("2d")!;
   await page.render({ canvasContext: ctx, canvas, viewport }).promise;
 
-  // Scale down to maxPx wide if needed (keeps save size manageable)
   if (viewport.width > maxPx) {
     const out = document.createElement("canvas");
     const ratio = maxPx / viewport.width;
