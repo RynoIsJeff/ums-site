@@ -9,6 +9,10 @@ const BANNER_H = 26;
 const PRODUCT_H = 234;
 const FOOTER_H = 62;
 const IMG_W = 270;
+// Usable width of the text panel (card - image - left/right padding)
+const TEXT_PANEL_W = CARD_W - IMG_W - 25;
+// Approximate width ratio of a Helvetica bold digit relative to font size
+const DIGIT_W_RATIO = 0.60;
 
 function splitPrice(price: number) {
   const whole = Math.floor(price);
@@ -51,7 +55,11 @@ function computeSizes(
 
   // When no WAS, boost price to fill the freed vertical space
   const noWasBoost = hasWas ? 1.0 : 1.3;
-  const nowSize = Math.round(Math.min(hasWas ? 100 : 130, 90 * digitMult * denseMult * noWasBoost));
+
+  // Hard width cap: digits × charWidth + reserve for cents superscript must fit panel
+  const widthCap = Math.floor((TEXT_PANEL_W - 44) / (digits * DIGIT_W_RATIO));
+  const sizeCap = Math.min(hasWas ? 100 : 130, widthCap);
+  const nowSize = Math.round(Math.min(sizeCap, 90 * digitMult * denseMult * noWasBoost));
   const centsSize = Math.round(nowSize * 0.33);
   const eachSize = Math.round(nowSize * 0.13);
 
