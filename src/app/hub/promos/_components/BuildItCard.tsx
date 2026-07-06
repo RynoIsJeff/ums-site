@@ -236,7 +236,7 @@ export function BuildItCard({
       style={{
         width: CARD_W,
         height: CARD_W,
-        fontFamily: "Arial, Helvetica, sans-serif",
+        fontFamily: "Helvetica, Arial, sans-serif",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
