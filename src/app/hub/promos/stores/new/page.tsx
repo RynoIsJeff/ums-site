@@ -71,6 +71,17 @@ export default async function NewStorePage() {
             />
           </div>
 
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium">Phone number</label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="e.g. 034 413 1234"
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            />
+          </div>
+
           <div className="flex gap-3 pt-2">
             <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
               Save store

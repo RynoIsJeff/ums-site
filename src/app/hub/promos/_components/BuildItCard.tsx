@@ -122,65 +122,19 @@ function PriceBlock({
   );
 }
 
-function ServiceIcons() {
-  const wrap: React.CSSProperties = {
-    width: 36, height: 36, borderRadius: "50%",
-    background: "rgba(0,0,0,0.30)",
-    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  };
+function LocationIcon() {
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-      {/* Masonry / brickwork */}
-      <div style={wrap}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="0.5" y="1.5" width="8" height="4" rx="0.6" fill="white"/>
-          <rect x="10.5" y="1.5" width="9" height="4" rx="0.6" fill="white"/>
-          <rect x="0.5" y="7.5" width="4.5" height="4" rx="0.6" fill="white"/>
-          <rect x="7" y="7.5" width="6" height="4" rx="0.6" fill="white"/>
-          <rect x="15" y="7.5" width="4.5" height="4" rx="0.6" fill="white"/>
-          <rect x="0.5" y="13.5" width="8" height="4" rx="0.6" fill="white"/>
-          <rect x="10.5" y="13.5" width="9" height="4" rx="0.6" fill="white"/>
-        </svg>
-      </div>
-      {/* Painting / paint roller */}
-      <div style={wrap}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          {/* Roller frame */}
-          <rect x="1" y="5.5" width="11" height="5" rx="1.2" stroke="white" strokeWidth="1.6" fill="none"/>
-          {/* Roller texture */}
-          <rect x="2.5" y="7" width="8" height="2" rx="0.4" fill="white" opacity="0.45"/>
-          {/* Arm right + down */}
-          <line x1="12" y1="8" x2="15.5" y2="8" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-          <line x1="15.5" y1="8" x2="15.5" y2="13.5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-          {/* Handle */}
-          <rect x="13.5" y="13.5" width="4" height="5" rx="1" fill="white"/>
-        </svg>
-      </div>
-      {/* Plumbing / hex nut + spanner */}
-      <div style={wrap}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          {/* Outer hex */}
-          <polygon points="10,1.5 16.5,5.25 16.5,12.75 10,16.5 3.5,12.75 3.5,5.25" stroke="white" strokeWidth="1.7" fill="none"/>
-          {/* Inner circle (hole) */}
-          <circle cx="10" cy="9" r="3" stroke="white" strokeWidth="1.5" fill="none"/>
-        </svg>
-      </div>
-      {/* Electrical / lightning bolt */}
-      <div style={wrap}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <polygon points="12,1 4.5,10.5 9.5,10.5 8,19 15.5,9 10.5,9 12,1" fill="white"/>
-        </svg>
-      </div>
-      {/* Tiling / floor tiles */}
-      <div style={wrap}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="1" y="1" width="8" height="8" rx="0.8" fill="white"/>
-          <rect x="11" y="1" width="8" height="8" rx="0.8" fill="white"/>
-          <rect x="1" y="11" width="8" height="8" rx="0.8" fill="white"/>
-          <rect x="11" y="11" width="8" height="8" rx="0.8" fill="white"/>
-        </svg>
-      </div>
-    </div>
+    <svg width="13" height="13" viewBox="0 0 14 18" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+      <path d="M7 0C4.24 0 2 2.24 2 5c0 3.75 5 11 5 11s5-7.25 5-11c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 7 3.5a1.5 1.5 0 0 1 0 3z" fill="white"/>
+    </svg>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+      <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z" fill="white"/>
+    </svg>
   );
 }
 
@@ -191,6 +145,7 @@ type Props = {
   storeName?: string | null;
   storeNumber?: string | null;
   storeAddress?: string | null;
+  storePhone?: string | null;
   productName: string;
   productVariant?: string | null;
   productPrice: number | Decimal;
@@ -206,6 +161,7 @@ export function BuildItCard({
   storeName,
   storeNumber,
   storeAddress,
+  storePhone,
   productName,
   productVariant,
   productPrice,
@@ -215,7 +171,7 @@ export function BuildItCard({
 }: Props) {
   const price = priceOverride != null ? toNum(priceOverride) : toNum(productPrice);
   const wasPrice = originalPrice != null ? toNum(originalPrice) : null;
-  const hasStoreInfo = !!(storeName || storeNumber || storeAddress);
+  const hasStoreInfo = !!(storeName || storeNumber || storeAddress || storePhone);
 
   const fromDay = promoDateFrom.getDate();
   const toDay = promoDateTo.getDate();
@@ -349,12 +305,22 @@ export function BuildItCard({
       >
         {hasStoreInfo ? (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: 5, justifyContent: "center" }}>
-              <ServiceIcons />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, justifyContent: "center" }}>
               {storeAddress && (
-                <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 8.5, lineHeight: 1.3, maxWidth: 240 }}>
-                  {storeAddress}
-                </span>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 5 }}>
+                  <LocationIcon />
+                  <span style={{ color: "rgba(255,255,255,0.90)", fontSize: 11, lineHeight: 1.35, maxWidth: 220 }}>
+                    {storeAddress}
+                  </span>
+                </div>
+              )}
+              {storePhone && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 5 }}>
+                  <PhoneIcon />
+                  <span style={{ color: "rgba(255,255,255,0.90)", fontSize: 11, lineHeight: 1.35 }}>
+                    {storePhone}
+                  </span>
+                </div>
               )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>

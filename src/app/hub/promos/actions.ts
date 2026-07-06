@@ -16,13 +16,14 @@ export async function createStore(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
+  const phone = (formData.get("phone") as string)?.trim() || null;
   if (!clientId || !name) redirect("/hub/promos/stores/new");
 
   const scope = toAuthScope(user);
   const where = clientIdWhere(scope);
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
-  await prisma.promoStore.create({ data: { clientId, name, number, address } });
+  await prisma.promoStore.create({ data: { clientId, name, number, address, phone } });
   revalidatePath("/hub/promos/stores");
   redirect("/hub/promos/stores");
 }
@@ -34,6 +35,7 @@ export async function updateStore(id: string, formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
+  const phone = (formData.get("phone") as string)?.trim() || null;
   if (!name) redirect(`/hub/promos/stores/${id}/edit`);
 
   const scope = toAuthScope(user);
@@ -41,7 +43,7 @@ export async function updateStore(id: string, formData: FormData) {
   const store = await prisma.promoStore.findFirst({ where: { id, ...scopeWhere } });
   if (!store) redirect("/hub/promos/stores");
 
-  await prisma.promoStore.update({ where: { id }, data: { name, number, address } });
+  await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone } });
   revalidatePath("/hub/promos/stores");
   redirect("/hub/promos/stores");
 }

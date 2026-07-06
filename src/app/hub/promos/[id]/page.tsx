@@ -22,7 +22,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
     where: { id, ...scopeWhere },
     include: {
       client: { select: { companyName: true } },
-      store: { select: { name: true, number: true, address: true } },
+      store: { select: { name: true, number: true, address: true, phone: true } },
       items: {
         orderBy: { sortOrder: "asc" },
         include: { product: true },
@@ -84,6 +84,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
                 storeName={promo.store?.name}
                 storeNumber={promo.store?.number}
                 storeAddress={promo.store?.address}
+                storePhone={promo.store?.phone}
                 productName={item.product.name}
                 productVariant={item.product.variant}
                 productPrice={toNum(item.product.price)}
