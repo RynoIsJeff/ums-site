@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 type CardVariant = { label: string; promoPrice: number; originalPrice: number | null };
@@ -44,7 +43,7 @@ export async function createStore(formData: FormData) {
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
   await prisma.promoStore.create({ data: { clientId, name, number, address, phone } });
-  revalidatePath("/hub/promos/stores");
+
   redirect("/hub/promos/stores");
 }
 
@@ -64,7 +63,7 @@ export async function updateStore(id: string, formData: FormData) {
   if (!store) redirect("/hub/promos/stores");
 
   await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone } });
-  revalidatePath("/hub/promos/stores");
+
   redirect("/hub/promos/stores");
 }
 
@@ -78,7 +77,7 @@ export async function deleteStore(id: string): Promise<{ error?: string }> {
   if (!store) return { error: "Not found." };
 
   await prisma.promoStore.delete({ where: { id } });
-  revalidatePath("/hub/promos/stores");
+
   return {};
 }
 
@@ -110,7 +109,7 @@ export async function createProduct(formData: FormData) {
     console.error("[createProduct]", err);
     redirect("/hub/promos/products/new?error=1");
   }
-  revalidatePath("/hub/promos/products");
+
   redirect("/hub/promos/products");
 }
 
@@ -146,7 +145,7 @@ export async function updateProduct(id: string, formData: FormData) {
       imageData: clearImage ? null : (imageData || product.imageData),
     },
   });
-  revalidatePath("/hub/promos/products");
+
   redirect("/hub/promos/products");
 }
 
@@ -164,7 +163,7 @@ export async function deleteProduct(id: string): Promise<{ error?: string }> {
   if (product._count.promoItems > 0) return { error: "Cannot delete a product used in a promo." };
 
   await prisma.promoProduct.delete({ where: { id } });
-  revalidatePath("/hub/promos/products");
+
   return {};
 }
 
@@ -264,7 +263,6 @@ export async function updatePromo(id: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/hub/promos/${id}`);
   redirect(`/hub/promos/${id}`);
 }
 
@@ -278,6 +276,5 @@ export async function deletePromo(id: string): Promise<{ error?: string }> {
   if (!promo) return { error: "Not found." };
 
   await prisma.promo.delete({ where: { id } });
-  revalidatePath("/hub/promos");
   return {};
 }
