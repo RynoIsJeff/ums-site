@@ -18,7 +18,6 @@ export default async function PromosPage() {
     where: scopeWhere,
     orderBy: { createdAt: "desc" },
     include: {
-      client: { select: { id: true, companyName: true } },
       store: { select: { name: true } },
       _count: { select: { items: true } },
     },
