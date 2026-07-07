@@ -6,13 +6,19 @@ const DARK = "#1e1e1e";
 const CARD_W = 540;
 const HEADER_H = 196;
 const BANNER_H = 26;
-const PRODUCT_H = 234;
+const PRODUCT_H = 256;
 const FOOTER_H = 62;
 const IMG_W = 270;
 // Usable width of the text panel (card - image - left/right padding)
 const TEXT_PANEL_W = CARD_W - IMG_W - 25;
 // Approximate width ratio of a Helvetica bold digit relative to font size
 const DIGIT_W_RATIO = 0.60;
+
+export type CardVariant = {
+  label: string;
+  promoPrice: number;
+  originalPrice?: number | null;
+};
 
 function splitPrice(price: number) {
   const whole = Math.floor(price);
@@ -81,6 +87,29 @@ function computeSizes(
   return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize };
 }
 
+function computeMultiVariantSizes(
+  variantCount: number,
+  hasAnyWas: boolean,
+  maxDigits: number,
+) {
+  const countScale = variantCount <= 2 ? 1.0 : variantCount === 3 ? 0.75 : 0.62;
+  const wasScale = hasAnyWas ? 0.62 : 1.0;
+  const digitScale =
+    maxDigits <= 2 ? 1.12
+    : maxDigits === 3 ? 1.0
+    : maxDigits === 4 ? 0.88
+    : 0.77;
+
+  const nowSize = Math.round(56 * countScale * wasScale * digitScale);
+  const centsSize = Math.round(nowSize * 0.37);
+  const eachSize = Math.max(8, Math.round(nowSize * 0.18));
+  const wasSize = Math.round(nowSize * 0.70);
+  const wasCentsSize = Math.round(wasSize * 0.40);
+  const labelSize = variantCount <= 2 ? 13 : 11;
+
+  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize };
+}
+
 function PriceBlock({
   price,
   wasPrice,
@@ -134,6 +163,86 @@ function PriceBlock({
   );
 }
 
+function VariantPriceRow({
+  variant,
+  unit,
+  sizes,
+  isLast,
+}: {
+  variant: CardVariant;
+  unit: string;
+  sizes: ReturnType<typeof computeMultiVariantSizes>;
+  isLast: boolean;
+}) {
+  const now = splitPrice(variant.promoPrice);
+  const was =
+    variant.originalPrice != null && variant.originalPrice > 0
+      ? splitPrice(variant.originalPrice)
+      : null;
+  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize } = sizes;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flex: "1 1 0",
+        paddingBottom: isLast ? 0 : 6,
+        marginBottom: isLast ? 0 : 6,
+        borderBottom: isLast ? undefined : "1px solid rgba(0,0,0,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <span
+        style={{
+          fontSize: labelSize,
+          fontWeight: 700,
+          color: "#333",
+          lineHeight: 1.2,
+          flexShrink: 0,
+          maxWidth: "42%",
+          overflow: "hidden",
+        }}
+      >
+        {variant.label}
+      </span>
+
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+        {was && (
+          <>
+            <span style={{ fontSize: 10, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+              WAS
+            </span>
+            <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 2 }}>
+              <span style={{ fontSize: wasSize, fontWeight: 900, color: "#999", lineHeight: 0.9, textDecoration: "line-through" }}>
+                {was.whole}
+              </span>
+              <span style={{ fontSize: wasCentsSize, fontWeight: 800, color: "#999", lineHeight: 1, textDecoration: "line-through", marginTop: 1, marginLeft: 1 }}>
+                {was.cents}
+              </span>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+              NOW
+            </span>
+          </>
+        )}
+        <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
+          <span style={{ fontSize: nowSize, fontWeight: 900, color: "#111", lineHeight: 0.88 }}>
+            {now.whole}
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", marginTop: Math.round(nowSize * 0.05), marginLeft: 2 }}>
+            <span style={{ fontSize: centsSize, fontWeight: 800, color: "#111", lineHeight: 1 }}>
+              {now.cents}
+            </span>
+            <span style={{ fontSize: eachSize, color: "#555", marginTop: 1, lineHeight: 1 }}>{unit}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LocationIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 14 18" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
@@ -161,6 +270,7 @@ type Props = {
   productName: string;
   productUnit?: string | null;
   productVariant?: string | null;
+  productVariants?: CardVariant[] | null;
   productPrice: number | Decimal;
   productImageData: string | null;
   priceOverride?: number | Decimal | null;
@@ -178,6 +288,7 @@ export function BuildItCard({
   productName,
   productUnit,
   productVariant,
+  productVariants,
   productPrice,
   productImageData,
   priceOverride,
@@ -197,9 +308,23 @@ export function BuildItCard({
       ? `Promotion valid from ${fromDay} - ${toDay} ${toMon} ${toYear}. T's and C's apply.`
       : `Promotion valid from ${fromDay} ${fromMon} - ${toDay} ${toMon} ${toYear}. T's and C's apply.`;
 
+  const isMultiVariant = productVariants != null && productVariants.length >= 2;
+
   const { whole: nowWhole } = splitPrice(price);
   const wasWhole = wasPrice != null ? splitPrice(wasPrice).whole : null;
   const sizes = computeSizes(productName, productVariant, nowWhole, wasWhole);
+
+  const mvSizes = isMultiVariant
+    ? computeMultiVariantSizes(
+        productVariants.length,
+        productVariants.some((v) => v.originalPrice != null && v.originalPrice > 0),
+        Math.max(...productVariants.map((v) => String(Math.floor(v.promoPrice)).length)),
+      )
+    : null;
+
+  const nameSize = isMultiVariant
+    ? (productName.length <= 14 ? 24 : productName.length <= 22 ? 21 : productName.length <= 32 ? 18 : 15)
+    : sizes.nameSize;
 
   return (
     <div
@@ -284,24 +409,46 @@ export function BuildItCard({
             padding: "13px 14px 11px 11px",
             display: "flex",
             flexDirection: "column",
-            justifyContent: wasPrice == null ? "center" : "flex-start",
+            justifyContent: isMultiVariant || wasPrice !== null ? "flex-start" : "center",
             overflow: "hidden",
           }}
         >
-          <div>
-            <div style={{ fontSize: sizes.nameSize, fontWeight: 900, color: "#111", lineHeight: 1.1, letterSpacing: "-0.01em" }}>
-              {productName}
-            </div>
-            {productVariant && (
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4, whiteSpace: "pre-line" }}>
-                {productVariant}
-              </div>
-            )}
+          <div style={{ fontSize: nameSize, fontWeight: 900, color: "#111", lineHeight: 1.1, letterSpacing: "-0.01em" }}>
+            {productName}
           </div>
 
-          <div style={{ marginTop: wasPrice == null ? 10 : 8 }}>
-            <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
-          </div>
+          {isMultiVariant ? (
+            <div
+              style={{
+                marginTop: 8,
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                overflow: "hidden",
+              }}
+            >
+              {productVariants.map((v, i) => (
+                <VariantPriceRow
+                  key={i}
+                  variant={v}
+                  unit={productUnit ?? "each"}
+                  sizes={mvSizes!}
+                  isLast={i === productVariants.length - 1}
+                />
+              ))}
+            </div>
+          ) : (
+            <>
+              {productVariant && (
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4, whiteSpace: "pre-line" }}>
+                  {productVariant}
+                </div>
+              )}
+              <div style={{ marginTop: wasPrice == null ? 10 : 8 }}>
+                <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
+              </div>
+            </>
+          )}
         </div>
       </div>
 

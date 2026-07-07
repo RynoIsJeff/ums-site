@@ -631,6 +631,8 @@ model PromoItem {
   productId     String
   priceOverride   Decimal?   @db.Decimal(10, 2)
   originalPrice   Decimal?   @db.Decimal(10, 2)
+  /// Multi-variant pricing: [{label,promoPrice,originalPrice?}]. When set, priceOverride/originalPrice are ignored.
+  variants        Json?
   sortOrder       Int        @default(0)
   createdAt     DateTime     @default(now())
   promo         Promo        @relation(fields: [promoId], references: [id], onDelete: Cascade)

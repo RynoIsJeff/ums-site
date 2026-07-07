@@ -5,7 +5,7 @@ import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
-import { PromoCardExport } from "../_components/PromoCardExport";
+import { PromoCardsSection } from "../_components/PromoCardsSection";
 import { DeletePromoButton } from "./_components/DeletePromoButton";
 
 export const metadata = { title: "Promo Cards | UMS Hub" };
@@ -70,33 +70,30 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
           <Link href={`/hub/promos/${id}/edit`} className="underline">Edit to add products</Link>
         </div>
       ) : (
-        <div className="mt-8">
-          <p className="mb-6 text-sm text-(--hub-muted)">
-            {promo.items.length} card{promo.items.length !== 1 ? "s" : ""} — click Export PNG on each card to download at 1080×1080px.
-          </p>
-          <div className="flex flex-wrap gap-8">
-            {promo.items.map((item) => (
-              <PromoCardExport
-                key={item.id}
-                headerImageData={promo.headerImageData}
-                promoDateFrom={promo.promoDateFrom}
-                promoDateTo={promo.promoDateTo}
-                storeName={promo.store?.name}
-                storeNumber={promo.store?.number}
-                storeAddress={promo.store?.address}
-                storePhone={promo.store?.phone}
-                productName={item.product.name}
-                productUnit={item.product.unit}
-                productVariant={item.product.variant}
-                productPrice={toNum(item.product.price)}
-                productImageData={item.product.imageData}
-                priceOverride={item.priceOverride != null ? toNum(item.priceOverride) : undefined}
-                originalPrice={item.originalPrice != null ? toNum(item.originalPrice) : undefined}
-                filename={`${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`}
-              />
-            ))}
-          </div>
-        </div>
+        <PromoCardsSection
+          items={promo.items.map((item) => ({
+            id: item.id,
+            filename: `${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`,
+            headerImageData: promo.headerImageData,
+            promoDateFrom: promo.promoDateFrom,
+            promoDateTo: promo.promoDateTo,
+            storeName: promo.store?.name,
+            storeNumber: promo.store?.number,
+            storeAddress: promo.store?.address,
+            storePhone: promo.store?.phone,
+            productName: item.product.name,
+            productUnit: item.product.unit,
+            productVariant: item.product.variant,
+            productVariants:
+              Array.isArray(item.variants) && item.variants.length >= 2
+                ? (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[])
+                : null,
+            productPrice: toNum(item.product.price),
+            productImageData: item.product.imageData,
+            priceOverride: item.priceOverride != null ? toNum(item.priceOverride) : null,
+            originalPrice: item.originalPrice != null ? toNum(item.originalPrice) : null,
+          }))}
+        />
       )}
     </section>
   );

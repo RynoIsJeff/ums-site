@@ -22,7 +22,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
   const promo = await prisma.promo.findFirst({
     where: { id, ...scopeWhere },
     include: {
-      items: { select: { productId: true, priceOverride: true, originalPrice: true } },
+      items: { select: { productId: true, priceOverride: true, originalPrice: true, variants: true } },
     },
   });
   if (!promo) notFound();
@@ -43,9 +43,17 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
   const selectedProductIds = promo.items.map((i) => i.productId);
   const defaultPriceOverrides: Record<string, string> = {};
   const defaultOriginalPrices: Record<string, string> = {};
+  const defaultVariants: Record<string, { label: string; promoPrice: string; originalPrice: string }[]> = {};
   for (const item of promo.items) {
     if (item.priceOverride != null) defaultPriceOverrides[item.productId] = String(item.priceOverride);
     if (item.originalPrice != null) defaultOriginalPrices[item.productId] = String(item.originalPrice);
+    if (Array.isArray(item.variants) && item.variants.length >= 2) {
+      defaultVariants[item.productId] = (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[]).map((v) => ({
+        label: v.label,
+        promoPrice: String(v.promoPrice),
+        originalPrice: v.originalPrice != null ? String(v.originalPrice) : "",
+      }));
+    }
   }
 
   const productsForForm = products.map((p) => ({
@@ -139,6 +147,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
             defaultSelected={selectedProductIds}
             defaultPriceOverrides={defaultPriceOverrides}
             defaultOriginalPrices={defaultOriginalPrices}
+            defaultVariants={defaultVariants}
           />
         </div>
 

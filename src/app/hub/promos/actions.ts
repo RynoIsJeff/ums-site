@@ -1,10 +1,30 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+type CardVariant = { label: string; promoPrice: number; originalPrice: number | null };
+
+function parseItemVariants(formData: FormData, pid: string): CardVariant[] | null {
+  const mode = formData.get(`variantMode_${pid}`);
+  if (mode !== "multi") return null;
+  const count = parseInt(formData.get(`variantCount_${pid}`) as string, 10);
+  if (isNaN(count) || count < 2) return null;
+  const rows: CardVariant[] = [];
+  for (let i = 0; i < count; i++) {
+    const label = (formData.get(`variantLabel_${pid}_${i}`) as string)?.trim() ?? "";
+    const promoPrice = parseFloat(formData.get(`variantPromoPrice_${pid}_${i}`) as string);
+    const originalPrice = parseFloat(formData.get(`variantOriginalPrice_${pid}_${i}`) as string);
+    if (label && !isNaN(promoPrice)) {
+      rows.push({ label, promoPrice, originalPrice: isNaN(originalPrice) || originalPrice <= 0 ? null : originalPrice });
+    }
+  }
+  return rows.length >= 2 ? rows : null;
+}
 
 // ─── Stores ──────────────────────────────────────────────────────────────────
 
@@ -173,14 +193,16 @@ export async function createPromo(formData: FormData) {
       promoDateTo: new Date(promoDateToStr),
       storeId: storeId || null,
       items: {
-        create: productIds.map((pid, i) => {
+        create: productIds.map((pid, i): Prisma.PromoItemUncheckedCreateWithoutPromoInput => {
+          const variants = parseItemVariants(formData, pid);
           const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
           const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
           return {
             productId: pid,
             sortOrder: i,
-            priceOverride: isNaN(override) ? null : override,
-            originalPrice: isNaN(original) || original <= 0 ? null : original,
+            variants: variants !== null ? (variants as unknown as Prisma.InputJsonValue) : undefined,
+            priceOverride: variants !== null ? null : (isNaN(override) ? null : override),
+            originalPrice: variants !== null ? null : (isNaN(original) || original <= 0 ? null : original),
           };
         }),
       },
@@ -220,14 +242,16 @@ export async function updatePromo(id: string, formData: FormData) {
         promoDateTo: new Date(promoDateToStr),
         storeId: storeId || null,
         items: {
-          create: productIds.map((pid, i) => {
+          create: productIds.map((pid, i): Prisma.PromoItemUncheckedCreateWithoutPromoInput => {
+            const variants = parseItemVariants(formData, pid);
             const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
             const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
             return {
               productId: pid,
               sortOrder: i,
-              priceOverride: isNaN(override) ? null : override,
-              originalPrice: isNaN(original) || original <= 0 ? null : original,
+              variants: variants !== null ? (variants as unknown as Prisma.InputJsonValue) : undefined,
+              priceOverride: variants !== null ? null : (isNaN(override) ? null : override),
+              originalPrice: variants !== null ? null : (isNaN(original) || original <= 0 ? null : original),
             };
           }),
         },
