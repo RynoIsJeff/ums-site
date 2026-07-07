@@ -146,7 +146,8 @@ export function ProductSelector({
         </p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
-          {filtered.map((p) => {
+          {products.map((p) => {
+            const isVisible = filtered.includes(p);
             const isOn = selected.has(p.id);
             const ps = prices[p.id] ?? { promo: p.price, original: "" };
             const mode = modes[p.id] ?? "single";
@@ -154,6 +155,7 @@ export function ProductSelector({
             return (
               <div
                 key={p.id}
+                style={isVisible ? undefined : { display: "none" }}
                 className={`rounded-lg border transition-colors ${
                   isOn ? "border-black bg-black/4" : "border-black/10"
                 }`}
@@ -312,6 +314,9 @@ export function ProductSelector({
               </div>
             );
           })}
+          {filtered.length === 0 && (
+            <p className="col-span-2 text-sm text-(--hub-muted) py-2">No products match your search.</p>
+          )}
         </div>
       )}
     </div>
