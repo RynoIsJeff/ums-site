@@ -11,8 +11,8 @@ const FOOTER_H = 62;
 const IMG_W = 270;
 // Usable width of the text panel (card - image - left/right padding)
 const TEXT_PANEL_W = CARD_W - IMG_W - 25;
-// Approximate width ratio of a Helvetica bold digit relative to font size
-const DIGIT_W_RATIO = 0.60;
+// Helvetica Bold digit width ratio — empirically ~0.65 of font size
+const DIGIT_W_RATIO = 0.65;
 
 export type CardVariant = {
   label: string;
@@ -63,7 +63,8 @@ function computeSizes(
   const noWasBoost = hasWas ? 1.0 : 1.3;
 
   // Hard width cap: digits × charWidth + reserve for cents superscript must fit panel
-  const widthCap = Math.floor((TEXT_PANEL_W - 44) / (digits * DIGIT_W_RATIO));
+  // Reserve 2px for marginLeft + account for cents column (≈2 chars × 0.33 of nowSize)
+  const widthCap = Math.floor((TEXT_PANEL_W - 2) / ((digits + 0.66) * DIGIT_W_RATIO));
   const sizeCap = Math.min(hasWas ? 100 : 130, widthCap);
   const nowSize = Math.round(Math.min(sizeCap, 90 * digitMult * denseMult * noWasBoost));
   const centsSize = Math.round(nowSize * 0.33);
