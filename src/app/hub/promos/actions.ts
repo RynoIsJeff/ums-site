@@ -27,7 +27,12 @@ function parseItemVariants(formData: FormData, pid: string): CardVariant[] | nul
 
 // ─── Stores ──────────────────────────────────────────────────────────────────
 
-export async function createStore(formData: FormData) {
+export type StoreActionResult = { ok: true } | { ok: false; error: string };
+
+export async function createStore(
+  _prev: StoreActionResult | null,
+  formData: FormData,
+): Promise<StoreActionResult> {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
@@ -36,18 +41,26 @@ export async function createStore(formData: FormData) {
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
-  if (!clientId || !name) redirect("/hub/promos/stores/new");
+  if (!clientId || !name) return { ok: false, error: "Name is required." };
 
   const scope = toAuthScope(user);
   const where = clientIdWhere(scope);
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
-  await prisma.promoStore.create({ data: { clientId, name, number, address, phone } });
-
-  redirect("/hub/promos/stores");
+  try {
+    await prisma.promoStore.create({ data: { clientId, name, number, address, phone } });
+    return { ok: true };
+  } catch (err) {
+    console.error("[createStore]", err);
+    return { ok: false, error: "Failed to save store. Please try again." };
+  }
 }
 
-export async function updateStore(id: string, formData: FormData) {
+export async function updateStore(
+  id: string,
+  _prev: StoreActionResult | null,
+  formData: FormData,
+): Promise<StoreActionResult> {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
@@ -55,16 +68,20 @@ export async function updateStore(id: string, formData: FormData) {
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
-  if (!name) redirect(`/hub/promos/stores/${id}/edit`);
+  if (!name) return { ok: false, error: "Name is required." };
 
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
   const store = await prisma.promoStore.findFirst({ where: { id, ...scopeWhere } });
   if (!store) redirect("/hub/promos/stores");
 
-  await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone } });
-
-  redirect("/hub/promos/stores");
+  try {
+    await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone } });
+    return { ok: true };
+  } catch (err) {
+    console.error("[updateStore]", err);
+    return { ok: false, error: "Failed to save store. Please try again." };
+  }
 }
 
 export async function deleteStore(id: string): Promise<{ error?: string }> {
@@ -117,7 +134,13 @@ export async function createProduct(
   }
 }
 
-export async function updateProduct(id: string, formData: FormData) {
+export type UpdateProductResult = { ok: true } | { ok: false; error: string };
+
+export async function updateProduct(
+  id: string,
+  _prev: UpdateProductResult | null,
+  formData: FormData,
+): Promise<UpdateProductResult> {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
@@ -129,28 +152,32 @@ export async function updateProduct(id: string, formData: FormData) {
   const imageData = (formData.get("imageData") as string) || null;
   const clearImage = formData.get("clearImage") === "1";
 
-  if (!name || !priceStr) redirect(`/hub/promos/products/${id}/edit`);
+  if (!name || !priceStr) return { ok: false, error: "Name and price are required." };
   const price = parseFloat(priceStr);
-  if (isNaN(price) || price < 0) redirect(`/hub/promos/products/${id}/edit`);
+  if (isNaN(price) || price < 0) return { ok: false, error: "Invalid price." };
 
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
   const product = await prisma.promoProduct.findFirst({ where: { id, ...scopeWhere } });
   if (!product) redirect("/hub/promos/products");
 
-  await prisma.promoProduct.update({
-    where: { id },
-    data: {
-      code,
-      name,
-      unit,
-      variant,
-      price,
-      imageData: clearImage ? null : (imageData || product.imageData),
-    },
-  });
-
-  redirect("/hub/promos/products");
+  try {
+    await prisma.promoProduct.update({
+      where: { id },
+      data: {
+        code,
+        name,
+        unit,
+        variant,
+        price,
+        imageData: clearImage ? null : (imageData || product.imageData),
+      },
+    });
+    return { ok: true };
+  } catch (err) {
+    console.error("[updateProduct]", err);
+    return { ok: false, error: "Failed to save changes. Please try again." };
+  }
 }
 
 export async function deleteProduct(id: string): Promise<{ error?: string }> {
