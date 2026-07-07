@@ -104,7 +104,12 @@ export async function createProduct(formData: FormData) {
   const where = clientIdWhere(scope);
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
-  await prisma.promoProduct.create({ data: { clientId, code, name, unit, variant, price, imageData } });
+  try {
+    await prisma.promoProduct.create({ data: { clientId, code, name, unit, variant, price, imageData } });
+  } catch (err) {
+    console.error("[createProduct]", err);
+    redirect("/hub/promos/products/new?error=1");
+  }
   revalidatePath("/hub/promos/products");
   redirect("/hub/promos/products");
 }

@@ -9,7 +9,8 @@ import { createProduct } from "../../actions";
 
 export const metadata = { title: "Add Product | UMS Hub" };
 
-export default async function NewProductPage() {
+export default async function NewProductPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   const { user } = await getSession();
   if (!user) return null;
 
@@ -35,6 +36,12 @@ export default async function NewProductPage() {
       {!defaultClient ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
+        <>
+        {error && (
+          <div className="mt-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            Failed to save product — please try again. If this keeps happening, check the product details and contact support.
+          </div>
+        )}
         <form action={createProduct} className="mt-6 space-y-4">
           <input type="hidden" name="clientId" value={defaultClient.id} />
 
@@ -112,6 +119,7 @@ export default async function NewProductPage() {
           </div>
           <SaveProgress />
         </form>
+        </>
       )}
     </section>
   );
