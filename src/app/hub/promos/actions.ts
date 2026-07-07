@@ -83,7 +83,12 @@ export async function deleteStore(id: string): Promise<{ error?: string }> {
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
-export async function createProduct(formData: FormData) {
+export type CreateProductResult = { ok: true } | { ok: false; error: string };
+
+export async function createProduct(
+  _prev: CreateProductResult | null,
+  formData: FormData,
+): Promise<CreateProductResult> {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
@@ -95,9 +100,9 @@ export async function createProduct(formData: FormData) {
   const priceStr = formData.get("price") as string;
   const imageData = (formData.get("imageData") as string) || null;
 
-  if (!clientId || !name || !priceStr) redirect("/hub/promos/products/new");
+  if (!clientId || !name || !priceStr) return { ok: false, error: "Missing required fields." };
   const price = parseFloat(priceStr);
-  if (isNaN(price) || price < 0) redirect("/hub/promos/products/new");
+  if (isNaN(price) || price < 0) return { ok: false, error: "Invalid price." };
 
   const scope = toAuthScope(user);
   const where = clientIdWhere(scope);
@@ -105,12 +110,11 @@ export async function createProduct(formData: FormData) {
 
   try {
     await prisma.promoProduct.create({ data: { clientId, code, name, unit, variant, price, imageData } });
+    return { ok: true };
   } catch (err) {
     console.error("[createProduct]", err);
-    redirect("/hub/promos/products/new?error=1");
+    return { ok: false, error: "Failed to save product. Please try again." };
   }
-
-  redirect("/hub/promos/products");
 }
 
 export async function updateProduct(id: string, formData: FormData) {
