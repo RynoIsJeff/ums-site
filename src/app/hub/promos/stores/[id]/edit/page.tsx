@@ -35,7 +35,6 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
         submitLabel="Save changes"
         defaults={{
           name: store.name,
-          number: store.number ?? "",
           address: store.address ?? "",
           phone: store.phone ?? "",
         }}

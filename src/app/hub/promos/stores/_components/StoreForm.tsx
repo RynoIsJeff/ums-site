@@ -10,7 +10,7 @@ type Props = {
   action: (prev: StoreActionResult | null, formData: FormData) => Promise<StoreActionResult>;
   submitLabel: string;
   clientId?: string;
-  defaults?: { name?: string; number?: string; address?: string; phone?: string };
+  defaults?: { name?: string; address?: string; phone?: string };
 };
 
 export function StoreForm({ action, submitLabel, clientId, defaults = {} }: Props) {
@@ -45,18 +45,6 @@ export function StoreForm({ action, submitLabel, clientId, defaults = {} }: Prop
             className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
           <p className="mt-1 text-xs text-(--hub-muted)">The location name shown under the Build It logo on cards.</p>
-        </div>
-
-        <div>
-          <label htmlFor="number" className="block text-sm font-medium">Store number</label>
-          <input
-            id="number"
-            name="number"
-            type="text"
-            defaultValue={defaults.number}
-            placeholder="e.g. RU 05 05"
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-          />
         </div>
 
         <div>
