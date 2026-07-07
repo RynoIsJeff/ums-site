@@ -1,12 +1,9 @@
-import Link from "next/link";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientWhere, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
-import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
-import { ImageUploadInput } from "../_components/ImageUploadInput";
-import { ProductSelector } from "../_components/ProductSelector";
 import { createPromo } from "../actions";
+import { PromoForm } from "../_components/PromoForm";
 
 export const metadata = { title: "New Promo | UMS Hub" };
 
@@ -22,8 +19,6 @@ export default async function NewPromoPage() {
     select: { id: true, companyName: true },
   });
 
-  // Default to the client that actually has promo stores (the Build It client),
-  // not whichever client is first alphabetically.
   const firstStore = await prisma.promoStore.findFirst({
     where: clientIdWhere(scope),
     select: { clientId: true },
@@ -61,89 +56,18 @@ export default async function NewPromoPage() {
         Set up a promotion and select products to generate promo cards.
       </p>
 
-      <div className="mt-4">
-        <Link href="/hub/promos" className="text-sm text-(--hub-muted) hover:underline">
-          ← Back to promos
-        </Link>
-      </div>
-
       {!defaultClient ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
-        <form action={createPromo} className="mt-6 space-y-6">
-          <input type="hidden" name="clientId" value={defaultClient.id} />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label htmlFor="title" className="block text-sm font-medium">Promo title *</label>
-              <input
-                id="title"
-                name="title"
-                type="text"
-                required
-                placeholder="e.g. June 2025 Promo"
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="promoDateFrom" className="block text-sm font-medium">From date *</label>
-              <input
-                id="promoDateFrom"
-                name="promoDateFrom"
-                type="date"
-                required
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="promoDateTo" className="block text-sm font-medium">To date *</label>
-              <input
-                id="promoDateTo"
-                name="promoDateTo"
-                type="date"
-                required
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label htmlFor="storeId" className="block text-sm font-medium">Store location (optional)</label>
-              <select
-                id="storeId"
-                name="storeId"
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-              >
-                <option value="">No specific store</option>
-                {stores.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              {stores.length === 0 && (
-                <p className="mt-1 text-xs text-(--hub-muted)">
-                  No stores yet.{" "}
-                  <Link href="/hub/promos/stores/new" className="underline">Add a store</Link>
-                </p>
-              )}
-            </div>
-          </div>
-
-          <ImageUploadInput name="headerImageData" label="Promo header image" acceptPdf />
-
-          <div className="border-t border-black/10 pt-6">
-            <ProductSelector products={productsForForm} />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
-              Create promo
-            </PendingSubmitButton>
-            <Link href="/hub/promos" className="rounded-md border border-black/15 px-4 py-2 text-sm hover:bg-black/5">
-              Cancel
-            </Link>
-          </div>
-        </form>
+        <PromoForm
+          action={createPromo}
+          backHref="/hub/promos"
+          submitLabel="Create promo"
+          cancelHref="/hub/promos"
+          clientId={defaultClient.id}
+          stores={stores}
+          products={productsForForm}
+        />
       )}
     </section>
   );

@@ -173,7 +173,12 @@ export async function deleteProduct(id: string): Promise<{ error?: string }> {
 
 // ─── Promos ───────────────────────────────────────────────────────────────────
 
-export async function createPromo(formData: FormData) {
+export type PromoActionResult = { ok: true; redirectTo: string } | { ok: false; error: string };
+
+export async function createPromo(
+  _prev: PromoActionResult | null,
+  formData: FormData,
+): Promise<PromoActionResult> {
   const { user } = await getSession();
   if (!user) redirect("/hub");
 
@@ -185,67 +190,20 @@ export async function createPromo(formData: FormData) {
   const headerImageData = (formData.get("headerImageData") as string) || null;
   const productIds = formData.getAll("productIds[]") as string[];
 
-  if (!clientId || !title || !promoDateFromStr || !promoDateToStr) redirect("/hub/promos/new");
+  if (!clientId || !title || !promoDateFromStr || !promoDateToStr)
+    return { ok: false, error: "Missing required fields." };
 
   const scope = toAuthScope(user);
   const where = clientIdWhere(scope);
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
-  const promo = await prisma.promo.create({
-    data: {
-      clientId,
-      createdById: user.id,
-      title,
-      headerImageData,
-      promoDateFrom: new Date(promoDateFromStr),
-      promoDateTo: new Date(promoDateToStr),
-      storeId: storeId || null,
-      items: {
-        create: productIds.map((pid, i): Prisma.PromoItemUncheckedCreateWithoutPromoInput => {
-          const variants = parseItemVariants(formData, pid);
-          const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
-          const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
-          return {
-            productId: pid,
-            sortOrder: i,
-            variants: variants !== null ? (variants as unknown as Prisma.InputJsonValue) : undefined,
-            priceOverride: variants !== null ? null : (isNaN(override) ? null : override),
-            originalPrice: variants !== null ? null : (isNaN(original) || original <= 0 ? null : original),
-          };
-        }),
-      },
-    },
-  });
-
-  redirect(`/hub/promos/${promo.id}`);
-}
-
-export async function updatePromo(id: string, formData: FormData) {
-  const { user } = await getSession();
-  if (!user) redirect("/hub");
-
-  const title = (formData.get("title") as string)?.trim();
-  const promoDateFromStr = formData.get("promoDateFrom") as string;
-  const promoDateToStr = formData.get("promoDateTo") as string;
-  const storeId = (formData.get("storeId") as string) || null;
-  const headerImageData = (formData.get("headerImageData") as string) || null;
-  const clearHeader = formData.get("clearHeader") === "1";
-  const productIds = formData.getAll("productIds[]") as string[];
-
-  if (!title || !promoDateFromStr || !promoDateToStr) redirect(`/hub/promos/${id}/edit`);
-
-  const scope = toAuthScope(user);
-  const scopeWhere = clientIdWhere(scope);
-  const existing = await prisma.promo.findFirst({ where: { id, ...scopeWhere } });
-  if (!existing) redirect("/hub/promos");
-
-  await prisma.$transaction([
-    prisma.promoItem.deleteMany({ where: { promoId: id } }),
-    prisma.promo.update({
-      where: { id },
+  try {
+    const promo = await prisma.promo.create({
       data: {
+        clientId,
+        createdById: user.id,
         title,
-        headerImageData: clearHeader ? null : (headerImageData || existing.headerImageData),
+        headerImageData,
         promoDateFrom: new Date(promoDateFromStr),
         promoDateTo: new Date(promoDateToStr),
         storeId: storeId || null,
@@ -264,10 +222,71 @@ export async function updatePromo(id: string, formData: FormData) {
           }),
         },
       },
-    }),
-  ]);
+    });
+    return { ok: true, redirectTo: `/hub/promos/${promo.id}` };
+  } catch (err) {
+    console.error("[createPromo]", err);
+    return { ok: false, error: "Failed to save promo. Please try again." };
+  }
+}
 
-  redirect(`/hub/promos/${id}`);
+export async function updatePromo(
+  id: string,
+  _prev: PromoActionResult | null,
+  formData: FormData,
+): Promise<PromoActionResult> {
+  const { user } = await getSession();
+  if (!user) redirect("/hub");
+
+  const title = (formData.get("title") as string)?.trim();
+  const promoDateFromStr = formData.get("promoDateFrom") as string;
+  const promoDateToStr = formData.get("promoDateTo") as string;
+  const storeId = (formData.get("storeId") as string) || null;
+  const headerImageData = (formData.get("headerImageData") as string) || null;
+  const clearHeader = formData.get("clearHeader") === "1";
+  const productIds = formData.getAll("productIds[]") as string[];
+
+  if (!title || !promoDateFromStr || !promoDateToStr)
+    return { ok: false, error: "Missing required fields." };
+
+  const scope = toAuthScope(user);
+  const scopeWhere = clientIdWhere(scope);
+  const existing = await prisma.promo.findFirst({ where: { id, ...scopeWhere } });
+  if (!existing) redirect("/hub/promos");
+
+  try {
+    await prisma.$transaction([
+      prisma.promoItem.deleteMany({ where: { promoId: id } }),
+      prisma.promo.update({
+        where: { id },
+        data: {
+          title,
+          headerImageData: clearHeader ? null : (headerImageData || existing.headerImageData),
+          promoDateFrom: new Date(promoDateFromStr),
+          promoDateTo: new Date(promoDateToStr),
+          storeId: storeId || null,
+          items: {
+            create: productIds.map((pid, i): Prisma.PromoItemUncheckedCreateWithoutPromoInput => {
+              const variants = parseItemVariants(formData, pid);
+              const override = parseFloat(formData.get(`priceOverride_${pid}`) as string);
+              const original = parseFloat(formData.get(`originalPrice_${pid}`) as string);
+              return {
+                productId: pid,
+                sortOrder: i,
+                variants: variants !== null ? (variants as unknown as Prisma.InputJsonValue) : undefined,
+                priceOverride: variants !== null ? null : (isNaN(override) ? null : override),
+                originalPrice: variants !== null ? null : (isNaN(original) || original <= 0 ? null : original),
+              };
+            }),
+          },
+        },
+      }),
+    ]);
+    return { ok: true, redirectTo: `/hub/promos/${id}` };
+  } catch (err) {
+    console.error("[updatePromo]", err);
+    return { ok: false, error: "Failed to save changes. Please try again." };
+  }
 }
 
 export async function deletePromo(id: string): Promise<{ error?: string }> {
