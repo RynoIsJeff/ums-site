@@ -46,6 +46,36 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
   }
 
   async function handleExportAll() {
+    const { toPng } = await import("html-to-image");
+
+    // Chrome / Edge: open a folder-picker so the user chooses where to save
+    if ("showDirectoryPicker" in window) {
+      let dirHandle: FileSystemDirectoryHandle;
+      try {
+        dirHandle = await (window as Window & typeof globalThis & { showDirectoryPicker: (o?: object) => Promise<FileSystemDirectoryHandle> })
+          .showDirectoryPicker({ mode: "readwrite", startIn: "downloads" });
+      } catch {
+        return; // user cancelled the picker
+      }
+      setExportingAll(true);
+      try {
+        for (const item of items) {
+          const el = cardRefs.current.get(item.id);
+          if (!el) continue;
+          const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
+          const blob = await (await fetch(dataUrl)).blob();
+          const fileHandle = await dirHandle.getFileHandle(item.filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        }
+      } finally {
+        setExportingAll(false);
+      }
+      return;
+    }
+
+    // Fallback for Firefox / Safari: download one by one to the default Downloads folder
     setExportingAll(true);
     try {
       for (const item of items) {
