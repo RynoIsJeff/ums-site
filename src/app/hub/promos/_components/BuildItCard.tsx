@@ -57,7 +57,8 @@ function computeSizes(
     : score <= 3 ? 0.92
     : score <= 5 ? 0.83
     : score <= 7 ? 0.75
-    : 0.67;
+    : score <= 9 ? 0.65
+    : 0.52;
 
   // When no WAS, boost price to fill the freed vertical space
   const noWasBoost = hasWas ? 1.0 : 1.3;
@@ -76,23 +77,32 @@ function computeSizes(
     : wasDigits === 3 ? 1.0
     : wasDigits === 4 ? 0.88
     : 0.77;
-  const wasSize = Math.round(90 * wasDigitMult * 0.44);
+  const wasScale = score > 9 ? 0.33 : 0.44;
+  const wasSize = Math.round(90 * wasDigitMult * wasScale);
   const wasCentsSize = Math.round(wasSize * 0.37);
 
-  const nameSize =
+  const baseNameSize =
     name.length <= 14 ? 27
     : name.length <= 22 ? 24
     : name.length <= 32 ? 21
     : 18;
+  // Reduce name size when many variant lines are present to reclaim vertical space
+  const nameSize =
+    variantLines >= 5 ? Math.max(14, baseNameSize - 5)
+    : variantLines >= 3 ? Math.max(16, baseNameSize - 2)
+    : baseNameSize;
 
   const variantSize =
     variantLines <= 2 ? 12
-    : variantLines <= 4 ? 11
-    : variantLines <= 6 ? 10
-    : variantLines <= 8 ? 9
-    : 8;
+    : variantLines <= 4 ? 10
+    : variantLines <= 6 ? 9
+    : variantLines <= 8 ? 8
+    : 7;
 
-  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize, variantSize, variantLines };
+  // WAS/NOW label size: shrink at high density to reclaim vertical space
+  const labelSize = score > 9 ? 10 : score > 6 ? 12 : 14;
+
+  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize, variantSize, variantLines, labelSize };
 }
 
 function computeMultiVariantSizes(
@@ -131,13 +141,13 @@ function PriceBlock({
 }) {
   const now = splitPrice(price);
   const was = wasPrice != null ? splitPrice(wasPrice) : null;
-  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize } = sizes;
+  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize } = sizes;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
       {was && (
         <>
-          <span style={{ fontSize: 14, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+          <span style={{ fontSize: labelSize, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
             WAS
           </span>
           <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 4 }}>
@@ -151,7 +161,7 @@ function PriceBlock({
               <span style={{ fontSize: 8, color: "#bbb", marginTop: 1 }}>{unit}</span>
             </div>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+          <span style={{ fontSize: labelSize, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
             NOW
           </span>
         </>
@@ -452,7 +462,7 @@ export function BuildItCard({
                   {productVariant}
                 </div>
               )}
-              <div style={{ marginTop: sizes.variantLines > 4 ? 4 : (wasPrice == null ? 10 : 8) }}>
+              <div style={{ marginTop: sizes.variantLines > 4 ? 2 : (wasPrice == null ? 10 : 8) }}>
                 <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
               </div>
             </>
