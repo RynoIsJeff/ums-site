@@ -85,7 +85,14 @@ function computeSizes(
     : name.length <= 32 ? 21
     : 18;
 
-  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize };
+  const variantSize =
+    variantLines <= 2 ? 12
+    : variantLines <= 4 ? 11
+    : variantLines <= 6 ? 10
+    : variantLines <= 8 ? 9
+    : 8;
+
+  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize, variantSize, variantLines };
 }
 
 function computeMultiVariantSizes(
@@ -441,11 +448,11 @@ export function BuildItCard({
           ) : (
             <>
               {productVariant && (
-                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, lineHeight: 1.4, whiteSpace: "pre-line" }}>
+                <div style={{ fontSize: sizes.variantSize, color: "#6b7280", marginTop: 4, lineHeight: 1.4, whiteSpace: "pre-line" }}>
                   {productVariant}
                 </div>
               )}
-              <div style={{ marginTop: wasPrice == null ? 10 : 8 }}>
+              <div style={{ marginTop: sizes.variantLines > 4 ? 4 : (wasPrice == null ? 10 : 8) }}>
                 <PriceBlock price={price} wasPrice={wasPrice} unit={productUnit ?? "each"} sizes={sizes} />
               </div>
             </>
