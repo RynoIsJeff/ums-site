@@ -368,6 +368,7 @@ model SocialPage {
   socialAccount               SocialAccount  @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
   posts                       SocialPost[]
   messengerConversations      MessengerConversation[]
+  promoStores                 PromoStore[]
 
   @@unique([provider, pageExternalId])
   @@index([socialAccountId])
@@ -570,16 +571,18 @@ enum PromoStatus {
 }
 
 model PromoStore {
-  id        String   @id @default(cuid())
-  clientId  String
-  name      String
-  number    String?
-  address   String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  promos    Promo[]
+  id           String      @id @default(cuid())
+  clientId     String
+  socialPageId String?
+  name         String
+  number       String?
+  address      String?
+  phone        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  client       Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  socialPage   SocialPage? @relation(fields: [socialPageId], references: [id], onDelete: SetNull)
+  promos       Promo[]
 
   @@index([clientId])
 }

@@ -18,6 +18,13 @@ export default async function NewStorePage() {
     select: { id: true, companyName: true },
   });
   const defaultClient = clients[0];
+  const socialPages = defaultClient
+    ? await prisma.socialPage.findMany({
+        where: { socialAccount: { clientId: defaultClient.id } },
+        select: { id: true, pageName: true },
+        orderBy: { pageName: "asc" },
+      })
+    : [];
 
   return (
     <section className="py-10 max-w-md">
@@ -33,7 +40,7 @@ export default async function NewStorePage() {
       {!defaultClient ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
-        <StoreForm action={createStore} submitLabel="Save store" clientId={defaultClient.id} />
+        <StoreForm action={createStore} submitLabel="Save store" clientId={defaultClient.id} socialPages={socialPages} />
       )}
     </section>
   );

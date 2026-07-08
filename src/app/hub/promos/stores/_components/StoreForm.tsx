@@ -10,10 +10,11 @@ type Props = {
   action: (prev: StoreActionResult | null, formData: FormData) => Promise<StoreActionResult>;
   submitLabel: string;
   clientId?: string;
-  defaults?: { name?: string; address?: string; phone?: string };
+  socialPages?: { id: string; pageName: string }[];
+  defaults?: { name?: string; address?: string; phone?: string; socialPageId?: string };
 };
 
-export function StoreForm({ action, submitLabel, clientId, defaults = {} }: Props) {
+export function StoreForm({ action, submitLabel, clientId, socialPages, defaults = {} }: Props) {
   const router = useRouter();
   const [state, formAction] = useActionState(action, null);
 
@@ -70,6 +71,24 @@ export function StoreForm({ action, submitLabel, clientId, defaults = {} }: Prop
             className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
         </div>
+
+        {socialPages && socialPages.length > 0 && (
+          <div>
+            <label htmlFor="socialPageId" className="block text-sm font-medium">Default Facebook page</label>
+            <select
+              id="socialPageId"
+              name="socialPageId"
+              defaultValue={defaults.socialPageId ?? ""}
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            >
+              <option value="">None</option>
+              {socialPages.map((p) => (
+                <option key={p.id} value={p.id}>{p.pageName}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-(--hub-muted)">Pre-selects this page when scheduling posts for this store.</p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <PendingSubmitButton className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { PromoCardsSection } from "../_components/PromoCardsSection";
 import { DeletePromoButton } from "./_components/DeletePromoButton";
+import { PostToSocialsClient } from "./_components/PostToSocialsClient";
 
 export const metadata = { title: "Promo Cards | UMS Hub" };
 
@@ -22,7 +23,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
     where: { id, ...scopeWhere },
     include: {
       client: { select: { companyName: true } },
-      store: { select: { name: true, number: true, address: true, phone: true } },
+      store: { select: { name: true, number: true, address: true, phone: true, socialPageId: true } },
       items: {
         orderBy: { sortOrder: "asc" },
         include: { product: true },
@@ -31,7 +32,36 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
   });
   if (!promo) notFound();
 
+  const socialPages = await prisma.socialPage.findMany({
+    where: { socialAccount: { clientId: promo.clientId } },
+    select: { id: true, pageName: true },
+    orderBy: { pageName: "asc" },
+  });
+
   const slugTitle = promo.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  const cardItems = promo.items.map((item) => ({
+    id: item.id,
+    filename: `${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`,
+    headerImageData: promo.headerImageData,
+    promoDateFrom: promo.promoDateFrom,
+    promoDateTo: promo.promoDateTo,
+    storeName: promo.store?.name,
+    storeNumber: promo.store?.number,
+    storeAddress: promo.store?.address,
+    storePhone: promo.store?.phone,
+    productName: item.product.name,
+    productUnit: item.product.unit,
+    productVariant: item.product.variant,
+    productVariants:
+      Array.isArray(item.variants) && item.variants.length >= 2
+        ? (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[])
+        : null,
+    productPrice: toNum(item.product.price),
+    productImageData: item.product.imageData,
+    priceOverride: item.priceOverride != null ? toNum(item.priceOverride) : null,
+    originalPrice: item.originalPrice != null ? toNum(item.originalPrice) : null,
+  }));
 
   return (
     <section className="py-10">
@@ -54,6 +84,14 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
             <Pencil className="h-4 w-4" />
             Edit
           </Link>
+          {cardItems.length > 0 && (
+            <PostToSocialsClient
+              clientId={promo.clientId}
+              socialPages={socialPages}
+              defaultPageId={promo.store?.socialPageId ?? null}
+              items={cardItems}
+            />
+          )}
           <DeletePromoButton promoId={id} />
         </div>
       </div>
@@ -64,36 +102,13 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
         </Link>
       </div>
 
-      {promo.items.length === 0 ? (
+      {cardItems.length === 0 ? (
         <div className="mt-8 rounded-xl border border-(--hub-border-light) bg-white p-8 text-center text-sm text-(--hub-muted)">
           No products in this promo yet.{" "}
           <Link href={`/hub/promos/${id}/edit`} className="underline">Edit to add products</Link>
         </div>
       ) : (
-        <PromoCardsSection
-          items={promo.items.map((item) => ({
-            id: item.id,
-            filename: `${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`,
-            headerImageData: promo.headerImageData,
-            promoDateFrom: promo.promoDateFrom,
-            promoDateTo: promo.promoDateTo,
-            storeName: promo.store?.name,
-            storeNumber: promo.store?.number,
-            storeAddress: promo.store?.address,
-            storePhone: promo.store?.phone,
-            productName: item.product.name,
-            productUnit: item.product.unit,
-            productVariant: item.product.variant,
-            productVariants:
-              Array.isArray(item.variants) && item.variants.length >= 2
-                ? (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[])
-                : null,
-            productPrice: toNum(item.product.price),
-            productImageData: item.product.imageData,
-            priceOverride: item.priceOverride != null ? toNum(item.priceOverride) : null,
-            originalPrice: item.originalPrice != null ? toNum(item.originalPrice) : null,
-          }))}
-        />
+        <PromoCardsSection items={cardItems} />
       )}
     </section>
   );

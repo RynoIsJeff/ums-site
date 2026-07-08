@@ -1,10 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { getSession, toAuthScope } from "@/lib/auth";
-import { clientIdWhere } from "@/lib/rbac";
-import { redirect } from "next/navigation";
+import { getSession, toAuthScope, requireHubAuth } from "@/lib/auth";
+import { clientIdWhere, canAccessClient } from "@/lib/rbac";
 
 type CardVariant = { label: string; promoPrice: number; originalPrice: number | null };
 
@@ -41,6 +42,7 @@ export async function createStore(
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
+  const socialPageId = (formData.get("socialPageId") as string)?.trim() || null;
   if (!clientId || !name) return { ok: false, error: "Name is required." };
 
   const scope = toAuthScope(user);
@@ -48,7 +50,7 @@ export async function createStore(
   if (where.clientId && where.clientId !== clientId) redirect("/hub");
 
   try {
-    await prisma.promoStore.create({ data: { clientId, name, number, address, phone } });
+    await prisma.promoStore.create({ data: { clientId, name, number, address, phone, socialPageId } });
     return { ok: true };
   } catch (err) {
     console.error("[createStore]", err);
@@ -68,6 +70,7 @@ export async function updateStore(
   const number = (formData.get("number") as string)?.trim() || null;
   const address = (formData.get("address") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
+  const socialPageId = (formData.get("socialPageId") as string)?.trim() || null;
   if (!name) return { ok: false, error: "Name is required." };
 
   const scope = toAuthScope(user);
@@ -76,7 +79,7 @@ export async function updateStore(
   if (!store) redirect("/hub/promos/stores");
 
   try {
-    await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone } });
+    await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone, socialPageId } });
     return { ok: true };
   } catch (err) {
     console.error("[updateStore]", err);
@@ -327,4 +330,73 @@ export async function deletePromo(id: string): Promise<{ error?: string }> {
 
   await prisma.promo.delete({ where: { id } });
   return {};
+}
+
+// ─── Social Scheduling ────────────────────────────────────────────────────────
+
+export async function schedulePromoPost(
+  clientId: string,
+  socialPageIds: string[],
+  caption: string,
+  scheduledFor: string, // "YYYY-MM-DDTHH:mm" — treated as SAST (UTC+2)
+  mediaUrls: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  const { scope, user } = await requireHubAuth();
+
+  if (!canAccessClient(scope, clientId)) {
+    return { ok: false, error: "Access denied." };
+  }
+  if (!socialPageIds.length) {
+    return { ok: false, error: "Select at least one Facebook page." };
+  }
+  if (!caption.trim()) {
+    return { ok: false, error: "Caption is required." };
+  }
+
+  const pages = await prisma.socialPage.findMany({
+    where: { id: { in: socialPageIds }, socialAccount: { clientId } },
+  });
+  if (pages.length !== socialPageIds.length) {
+    return { ok: false, error: "One or more pages are invalid for this client." };
+  }
+
+  // Treat bare datetime string as SAST (UTC+2, no DST)
+  const hasTimezone = scheduledFor.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(scheduledFor);
+  const scheduledAt = new Date(hasTimezone ? scheduledFor : `${scheduledFor}+02:00`);
+
+  try {
+    await Promise.all(
+      pages.map(async (page) => {
+        const post = await prisma.socialPost.create({
+          data: {
+            clientId,
+            socialPageId: page.id,
+            provider: "META",
+            status: "SCHEDULED",
+            caption: caption.trim(),
+            scheduledFor: scheduledAt,
+            createdById: user.id,
+          },
+        });
+
+        if (mediaUrls.length > 0) {
+          await prisma.socialPostMedia.createMany({
+            data: mediaUrls.map((url, i) => ({
+              socialPostId: post.id,
+              mediaType: "IMAGE" as const,
+              mediaUrl: url,
+              sortOrder: i,
+            })),
+          });
+        }
+      }),
+    );
+
+    revalidatePath("/hub/social");
+    revalidatePath("/hub/social/calendar");
+    return { ok: true };
+  } catch (err) {
+    console.error("[schedulePromoPost]", err);
+    return { ok: false, error: "Failed to schedule post. Please try again." };
+  }
 }

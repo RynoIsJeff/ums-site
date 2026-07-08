@@ -18,6 +18,12 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
   const store = await prisma.promoStore.findFirst({ where: { id, ...scopeWhere } });
   if (!store) notFound();
 
+  const socialPages = await prisma.socialPage.findMany({
+    where: { socialAccount: { clientId: store.clientId } },
+    select: { id: true, pageName: true },
+    orderBy: { pageName: "asc" },
+  });
+
   const boundAction = updateStore.bind(null, id);
 
   return (
@@ -33,10 +39,12 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
       <StoreForm
         action={boundAction}
         submitLabel="Save changes"
+        socialPages={socialPages}
         defaults={{
           name: store.name,
           address: store.address ?? "",
           phone: store.phone ?? "",
+          socialPageId: store.socialPageId ?? "",
         }}
       />
     </section>
