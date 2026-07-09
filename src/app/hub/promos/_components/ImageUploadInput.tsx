@@ -216,6 +216,57 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
+/**
+ * Scan the rendered page to find where the header ends. Build It PDFs have a
+ * dark, uniform "Promotion valid from…" date bar that separates the header
+ * image from the product grid. We look for that band (dark + uniform across
+ * the width) and crop just before it. Falls back to an aspect-ratio heuristic
+ * for PDFs that don't have a detectable dark band.
+ */
+function detectHeaderCropRatio(canvas: HTMLCanvasElement): number {
+  const W = canvas.width;
+  const H = canvas.height;
+  const { data } = canvas.getContext("2d")!.getImageData(0, 0, W, H);
+
+  // Sample 8 evenly-spaced columns across the page width
+  const sampleXs = Array.from({ length: 8 }, (_, i) => Math.floor(W * (i + 1) / 9));
+
+  // Only scan the middle portion to avoid edge cases at the very top/bottom
+  const minY = Math.floor(H * 0.12);
+  const maxY = Math.floor(H * 0.65);
+  // The band must be sustained for at least 1.5% of the page height
+  const minBandRows = Math.max(3, Math.floor(H * 0.015));
+
+  let bandStartY = -1;
+  let consecutiveDarkUniformRows = 0;
+
+  for (let y = minY; y < maxY; y++) {
+    const brightnesses = sampleXs.map((x) => {
+      const i = (y * W + x) * 4;
+      return (data[i] + data[i + 1] + data[i + 2]) / 3;
+    });
+    const avg = brightnesses.reduce((a, b) => a + b, 0) / brightnesses.length;
+    const variance = brightnesses.reduce((s, b) => s + Math.abs(b - avg), 0) / brightnesses.length;
+
+    // Dark (<80) AND uniform across the width (<25 variance) = date bar signature
+    if (avg < 80 && variance < 25) {
+      if (bandStartY < 0) bandStartY = y;
+      consecutiveDarkUniformRows++;
+      if (consecutiveDarkUniformRows >= minBandRows) {
+        // Crop just before the band starts
+        return Math.max(0.12, (bandStartY - 2) / H);
+      }
+    } else {
+      bandStartY = -1;
+      consecutiveDarkUniformRows = 0;
+    }
+  }
+
+  // Fallback: use aspect ratio heuristic
+  const aspectRatio = W / H;
+  return aspectRatio < 0.85 ? 0.29 : 0.44;
+}
+
 async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -228,19 +279,21 @@ async function extractPdfHeader(file: File, maxPx: number): Promise<string> {
   const scale = 2;
   const viewport = page.getViewport({ scale });
 
-  // A4 portrait PDFs (aspect < 0.85) contain a full promo layout — only the top
-  // ~28% is the "Say Yes / Build It" header band (stops before the PDF's own
-  // date bar at ~29-33%). Wider/square PDFs use ~44%.
-  const aspectRatio = viewport.width / viewport.height;
-  const cropRatio = aspectRatio < 0.85 ? 0.29 : 0.44;
+  // Render the full page so we can scan for the dark date bar
+  const fullCanvas = document.createElement("canvas");
+  fullCanvas.width = viewport.width;
+  fullCanvas.height = viewport.height;
+  await page.render({ canvasContext: fullCanvas.getContext("2d")!, canvas: fullCanvas, viewport }).promise;
+
+  // Auto-detect crop boundary from pixel content
+  const cropRatio = detectHeaderCropRatio(fullCanvas);
   const cropHeight = Math.round(viewport.height * cropRatio);
 
+  // Crop to just the header portion
   const canvas = document.createElement("canvas");
   canvas.width = viewport.width;
   canvas.height = cropHeight;
-
-  const ctx = canvas.getContext("2d")!;
-  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+  canvas.getContext("2d")!.drawImage(fullCanvas, 0, 0);
 
   if (viewport.width > maxPx) {
     const out = document.createElement("canvas");
