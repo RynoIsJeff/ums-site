@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NavigationProgress } from "./NavigationProgress";
 import "./globals.css";
 
@@ -30,7 +31,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body suppressHydrationWarning className="antialiased bg-white">
-        <NavigationProgress />
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>
