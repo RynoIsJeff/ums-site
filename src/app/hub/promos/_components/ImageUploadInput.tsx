@@ -217,11 +217,10 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
 /**
- * Scan the rendered page to find where the product grid starts (the first
- * sustained bright/white region). Cropping just before that point excludes the
- * product images regardless of what the date bar or header image look like.
- * The date bar itself (dark text band) may be included in the crop — that's
- * fine because BuildItCard renders its own date bar on top.
+ * Scan the rendered page to find where the product grid starts (first sustained
+ * bright/white region), then back off by ~5% of page height to land above the
+ * dark "Promotion valid from…" date bar that separates the header from the grid.
+ * BuildItCard renders its own date bar, so the PDF's date bar must be excluded.
  */
 function detectHeaderCropRatio(canvas: HTMLCanvasElement): number {
   const W = canvas.width;
@@ -233,8 +232,8 @@ function detectHeaderCropRatio(canvas: HTMLCanvasElement): number {
 
   const minY = Math.floor(H * 0.15);
   const maxY = Math.floor(H * 0.72);
-  // Require brightness to be sustained for at least 2.5% of page height
-  // to avoid false positives from bright tile grout lines in the header image
+  // The white area must be sustained for ≥ 2.5% of page height to avoid false
+  // positives from bright areas inside the header image (light tiles, grout lines)
   const minBrightRows = Math.max(5, Math.floor(H * 0.025));
 
   let brightStartY = -1;
@@ -246,18 +245,17 @@ function detectHeaderCropRatio(canvas: HTMLCanvasElement): number {
       return (data[i] + data[i + 1] + data[i + 2]) / 3;
     });
 
-    // Count how many sample columns are very bright (white/near-white ≥ 200)
+    // Require ≥ 70% of sampled columns to be near-white (≥ 200) — robust
+    // against product images that overlap some sample columns
     const brightCount = brightnesses.filter((b) => b >= 200).length;
-    // Require at least 70% of columns to be bright — robust against product
-    // images that overlap some sample columns
-    const majorityBright = brightCount >= Math.ceil(sampleXs.length * 0.7);
-
-    if (majorityBright) {
+    if (brightCount >= Math.ceil(sampleXs.length * 0.7)) {
       if (brightStartY < 0) brightStartY = y;
       consecutiveBrightRows++;
       if (consecutiveBrightRows >= minBrightRows) {
-        // Found the product area — crop just before it starts
-        return Math.max(0.12, (brightStartY - 2) / H);
+        // Found the product area. Back off ~5% of page height to land above
+        // the dark date bar that sits between the header image and the grid.
+        const dateBarOffset = Math.round(H * 0.05);
+        return Math.max(0.12, (brightStartY - dateBarOffset) / H);
       }
     } else {
       brightStartY = -1;
