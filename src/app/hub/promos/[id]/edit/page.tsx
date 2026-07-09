@@ -40,13 +40,14 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
   const selectedProductIds = promo.items.map((i) => i.productId);
   const defaultPriceOverrides: Record<string, string> = {};
   const defaultOriginalPrices: Record<string, string> = {};
-  const defaultVariants: Record<string, { label: string; promoPrice: string; originalPrice: string }[]> = {};
+  const defaultVariants: Record<string, { label: string; description?: string; promoPrice: string; originalPrice: string }[]> = {};
   for (const item of promo.items) {
     if (item.priceOverride != null) defaultPriceOverrides[item.productId] = String(item.priceOverride);
     if (item.originalPrice != null) defaultOriginalPrices[item.productId] = String(item.originalPrice);
     if (Array.isArray(item.variants) && item.variants.length >= 2) {
-      defaultVariants[item.productId] = (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[]).map((v) => ({
+      defaultVariants[item.productId] = (item.variants as { label: string; description?: string | null; promoPrice: number; originalPrice?: number | null }[]).map((v) => ({
         label: v.label,
+        description: v.description ?? "",
         promoPrice: String(v.promoPrice),
         originalPrice: v.originalPrice != null ? String(v.originalPrice) : "",
       }));

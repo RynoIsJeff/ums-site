@@ -16,6 +16,7 @@ const DIGIT_W_RATIO = 0.65;
 
 export type CardVariant = {
   label: string;
+  description?: string | null;
   promoPrice: number;
   originalPrice?: number | null;
 };
@@ -109,23 +110,26 @@ function computeMultiVariantSizes(
   variantCount: number,
   hasAnyWas: boolean,
   maxDigits: number,
+  hasAnyDescription: boolean,
 ) {
   const countScale = variantCount <= 2 ? 1.0 : variantCount === 3 ? 0.75 : 0.62;
   const wasScale = hasAnyWas ? 0.62 : 1.0;
+  const descScale = hasAnyDescription ? 0.88 : 1.0;
   const digitScale =
     maxDigits <= 2 ? 1.12
     : maxDigits === 3 ? 1.0
     : maxDigits === 4 ? 0.88
     : 0.77;
 
-  const nowSize = Math.round(56 * countScale * wasScale * digitScale);
+  const nowSize = Math.round(56 * countScale * wasScale * descScale * digitScale);
   const centsSize = Math.round(nowSize * 0.37);
   const eachSize = Math.max(8, Math.round(nowSize * 0.18));
   const wasSize = Math.round(nowSize * 0.70);
   const wasCentsSize = Math.round(wasSize * 0.40);
-  const labelSize = variantCount <= 2 ? 13 : 11;
+  const labelSize = variantCount <= 2 ? (hasAnyDescription ? 11 : 13) : (hasAnyDescription ? 9 : 11);
+  const descSize = variantCount <= 2 ? 9 : 8;
 
-  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize };
+  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize, descSize };
 }
 
 function PriceBlock({
@@ -197,7 +201,7 @@ function VariantPriceRow({
     variant.originalPrice != null && variant.originalPrice > 0
       ? splitPrice(variant.originalPrice)
       : null;
-  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize } = sizes;
+  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize, descSize } = sizes;
 
   return (
     <div
@@ -224,6 +228,11 @@ function VariantPriceRow({
         }}
       >
         {variant.label}
+        {variant.description && (
+          <span style={{ display: "block", fontSize: descSize, fontWeight: 400, color: "#6b7280", lineHeight: 1.3, marginTop: 1 }}>
+            {variant.description}
+          </span>
+        )}
       </span>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
@@ -337,6 +346,7 @@ export function BuildItCard({
         productVariants.length,
         productVariants.some((v) => v.originalPrice != null && v.originalPrice > 0),
         Math.max(...productVariants.map((v) => String(Math.floor(v.promoPrice)).length)),
+        productVariants.some((v) => !!v.description),
       )
     : null;
 

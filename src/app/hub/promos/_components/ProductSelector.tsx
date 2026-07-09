@@ -12,7 +12,7 @@ type Product = {
 };
 
 type PriceState = { promo: string; original: string };
-type VariantRow = { label: string; promoPrice: string; originalPrice: string };
+type VariantRow = { label: string; description?: string; promoPrice: string; originalPrice: string };
 
 type Props = {
   products: Product[];
@@ -51,17 +51,24 @@ export function ProductSelector({
     const init: Record<string, VariantRow[]> = {};
     for (const p of products) {
       if (defaultVariants[p.id]?.length >= 2) {
-        init[p.id] = defaultVariants[p.id];
+        init[p.id] = defaultVariants[p.id].map((v) => ({ ...v, description: v.description ?? "" }));
       } else {
         init[p.id] = [
-          { label: "", promoPrice: defaultPriceOverrides[p.id] ?? p.price, originalPrice: defaultOriginalPrices[p.id] ?? "" },
-          { label: "", promoPrice: "", originalPrice: "" },
+          { label: "", description: "", promoPrice: defaultPriceOverrides[p.id] ?? p.price, originalPrice: defaultOriginalPrices[p.id] ?? "" },
+          { label: "", description: "", promoPrice: "", originalPrice: "" },
         ];
       }
     }
     return init;
   });
   const [filter, setFilter] = useState("");
+
+  const sortedProducts = filter.trim()
+    ? products
+    : [
+        ...products.filter((p) => selected.has(p.id)),
+        ...products.filter((p) => !selected.has(p.id)),
+      ];
 
   const filtered = filter.trim()
     ? products.filter((p) => {
@@ -102,7 +109,7 @@ export function ProductSelector({
   function addVariantRow(pid: string) {
     setVariantRows((prev) => ({
       ...prev,
-      [pid]: [...(prev[pid] ?? []), { label: "", promoPrice: "", originalPrice: "" }],
+      [pid]: [...(prev[pid] ?? []), { label: "", description: "", promoPrice: "", originalPrice: "" }],
     }));
   }
 
@@ -146,7 +153,7 @@ export function ProductSelector({
         </p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
-          {products.map((p) => {
+          {sortedProducts.map((p) => {
             const isVisible = filtered.includes(p);
             const isOn = selected.has(p.id);
             const ps = prices[p.id] ?? { promo: p.price, original: "" };
@@ -271,6 +278,14 @@ export function ProductSelector({
                                 </button>
                               )}
                             </div>
+                            <input
+                              type="text"
+                              placeholder="Description (optional, e.g. 16L / Galvanised)"
+                              name={`variantDescription_${p.id}_${i}`}
+                              value={row.description ?? ""}
+                              onChange={(e) => setVariantRow(p.id, i, "description", e.target.value)}
+                              className="w-full rounded border border-black/15 px-2 py-1 text-xs text-black/60"
+                            />
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="block text-[11px] font-medium text-black/60 mb-1">Promo price (R) *</label>

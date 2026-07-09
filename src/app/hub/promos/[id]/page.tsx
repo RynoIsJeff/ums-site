@@ -55,7 +55,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
     productVariant: item.product.variant,
     productVariants:
       Array.isArray(item.variants) && item.variants.length >= 2
-        ? (item.variants as { label: string; promoPrice: number; originalPrice?: number | null }[])
+        ? (item.variants as { label: string; description?: string | null; promoPrice: number; originalPrice?: number | null }[])
         : null,
     productPrice: toNum(item.product.price),
     productImageData: item.product.imageData,

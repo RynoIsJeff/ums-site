@@ -7,7 +7,7 @@ import type { Prisma } from "@prisma/client";
 import { getSession, toAuthScope, requireHubAuth } from "@/lib/auth";
 import { clientIdWhere, canAccessClient } from "@/lib/rbac";
 
-type CardVariant = { label: string; promoPrice: number; originalPrice: number | null };
+type CardVariant = { label: string; description?: string | null; promoPrice: number; originalPrice: number | null };
 
 function parseItemVariants(formData: FormData, pid: string): CardVariant[] | null {
   const mode = formData.get(`variantMode_${pid}`);
@@ -17,10 +17,11 @@ function parseItemVariants(formData: FormData, pid: string): CardVariant[] | nul
   const rows: CardVariant[] = [];
   for (let i = 0; i < count; i++) {
     const label = (formData.get(`variantLabel_${pid}_${i}`) as string)?.trim() ?? "";
+    const description = (formData.get(`variantDescription_${pid}_${i}`) as string)?.trim() || null;
     const promoPrice = parseFloat(formData.get(`variantPromoPrice_${pid}_${i}`) as string);
     const originalPrice = parseFloat(formData.get(`variantOriginalPrice_${pid}_${i}`) as string);
     if (label && !isNaN(promoPrice)) {
-      rows.push({ label, promoPrice, originalPrice: isNaN(originalPrice) || originalPrice <= 0 ? null : originalPrice });
+      rows.push({ label, description, promoPrice, originalPrice: isNaN(originalPrice) || originalPrice <= 0 ? null : originalPrice });
     }
   }
   return rows.length >= 2 ? rows : null;
