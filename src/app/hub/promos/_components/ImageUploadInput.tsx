@@ -217,52 +217,55 @@ function compressImage(file: File, maxPx: number, quality: number): Promise<stri
 // ── PDF header extraction ─────────────────────────────────────────────────────
 
 /**
- * Scan the rendered page to find where the header ends. Build It PDFs have a
- * dark, uniform "Promotion valid from…" date bar that separates the header
- * image from the product grid. We look for that band (dark + uniform across
- * the width) and crop just before it. Falls back to an aspect-ratio heuristic
- * for PDFs that don't have a detectable dark band.
+ * Scan the rendered page to find where the product grid starts (the first
+ * sustained bright/white region). Cropping just before that point excludes the
+ * product images regardless of what the date bar or header image look like.
+ * The date bar itself (dark text band) may be included in the crop — that's
+ * fine because BuildItCard renders its own date bar on top.
  */
 function detectHeaderCropRatio(canvas: HTMLCanvasElement): number {
   const W = canvas.width;
   const H = canvas.height;
   const { data } = canvas.getContext("2d")!.getImageData(0, 0, W, H);
 
-  // Sample 8 evenly-spaced columns across the page width
-  const sampleXs = Array.from({ length: 8 }, (_, i) => Math.floor(W * (i + 1) / 9));
+  // 10 evenly-spaced columns across the full width
+  const sampleXs = Array.from({ length: 10 }, (_, i) => Math.floor(W * (i + 1) / 11));
 
-  // Only scan the middle portion to avoid edge cases at the very top/bottom
-  const minY = Math.floor(H * 0.12);
-  const maxY = Math.floor(H * 0.65);
-  // The band must be sustained for at least 1.5% of the page height
-  const minBandRows = Math.max(3, Math.floor(H * 0.015));
+  const minY = Math.floor(H * 0.15);
+  const maxY = Math.floor(H * 0.72);
+  // Require brightness to be sustained for at least 2.5% of page height
+  // to avoid false positives from bright tile grout lines in the header image
+  const minBrightRows = Math.max(5, Math.floor(H * 0.025));
 
-  let bandStartY = -1;
-  let consecutiveDarkUniformRows = 0;
+  let brightStartY = -1;
+  let consecutiveBrightRows = 0;
 
   for (let y = minY; y < maxY; y++) {
     const brightnesses = sampleXs.map((x) => {
       const i = (y * W + x) * 4;
       return (data[i] + data[i + 1] + data[i + 2]) / 3;
     });
-    const avg = brightnesses.reduce((a, b) => a + b, 0) / brightnesses.length;
-    const variance = brightnesses.reduce((s, b) => s + Math.abs(b - avg), 0) / brightnesses.length;
 
-    // Dark (<80) AND uniform across the width (<25 variance) = date bar signature
-    if (avg < 80 && variance < 25) {
-      if (bandStartY < 0) bandStartY = y;
-      consecutiveDarkUniformRows++;
-      if (consecutiveDarkUniformRows >= minBandRows) {
-        // Crop just before the band starts
-        return Math.max(0.12, (bandStartY - 2) / H);
+    // Count how many sample columns are very bright (white/near-white ≥ 200)
+    const brightCount = brightnesses.filter((b) => b >= 200).length;
+    // Require at least 70% of columns to be bright — robust against product
+    // images that overlap some sample columns
+    const majorityBright = brightCount >= Math.ceil(sampleXs.length * 0.7);
+
+    if (majorityBright) {
+      if (brightStartY < 0) brightStartY = y;
+      consecutiveBrightRows++;
+      if (consecutiveBrightRows >= minBrightRows) {
+        // Found the product area — crop just before it starts
+        return Math.max(0.12, (brightStartY - 2) / H);
       }
     } else {
-      bandStartY = -1;
-      consecutiveDarkUniformRows = 0;
+      brightStartY = -1;
+      consecutiveBrightRows = 0;
     }
   }
 
-  // Fallback: use aspect ratio heuristic
+  // Fallback: aspect-ratio heuristic
   const aspectRatio = W / H;
   return aspectRatio < 0.85 ? 0.29 : 0.44;
 }
