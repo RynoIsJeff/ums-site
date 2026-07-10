@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
+import { MapPin, Plus, Pencil, Facebook } from "lucide-react";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -22,6 +22,7 @@ export default async function PromoStoresPage() {
       name: true,
       phone: true,
       address: true,
+      socialPage: { select: { pageName: true } },
       _count: { select: { promos: true } },
     },
   });
@@ -62,6 +63,7 @@ export default async function PromoStoresPage() {
                   <th>Store name</th>
                   <th>Phone</th>
                   <th>Address</th>
+                  <th>Facebook page</th>
                   <th>Promos</th>
                   <th></th>
                 </tr>
@@ -77,6 +79,21 @@ export default async function PromoStoresPage() {
                     </td>
                     <td className="text-(--hub-muted)">{s.phone ?? <span className="text-black/25">—</span>}</td>
                     <td className="text-(--hub-muted)">{s.address ?? <span className="text-black/25">—</span>}</td>
+                    <td>
+                      {s.socialPage ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-(--hub-text)">
+                          <Facebook className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                          {s.socialPage.pageName}
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/hub/promos/stores/${s.id}/edit`}
+                          className="text-xs text-black/40 hover:text-black hover:underline"
+                        >
+                          + Link page
+                        </Link>
+                      )}
+                    </td>
                     <td className="text-(--hub-muted)">{s._count.promos}</td>
                     <td>
                       <div className="flex items-center gap-3 justify-end">

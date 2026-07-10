@@ -32,8 +32,9 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
   });
   if (!promo) notFound();
 
+  // Scope-aware: admins see all connected pages; staff see only their clients' pages
   const socialPages = await prisma.socialPage.findMany({
-    where: { socialAccount: { clientId: promo.clientId } },
+    where: { socialAccount: clientIdWhere(scope) },
     select: { id: true, pageName: true },
     orderBy: { pageName: "asc" },
   });
