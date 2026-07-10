@@ -19,7 +19,7 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
   if (!store) notFound();
 
   const socialPages = await prisma.socialPage.findMany({
-    where: { socialAccount: { clientId: store.clientId } },
+    where: { socialAccount: clientIdWhere(scope) },
     select: { id: true, pageName: true },
     orderBy: { pageName: "asc" },
   });
