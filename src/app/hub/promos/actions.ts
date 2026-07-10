@@ -398,6 +398,12 @@ export async function schedulePromoPost(
       }),
     );
 
+    // Mark the promo as SCHEDULED so the list badge updates immediately
+    await prisma.promo.update({
+      where: { id: promoId },
+      data: { status: "SCHEDULED" },
+    });
+
     revalidatePath("/hub/social");
     revalidatePath("/hub/social/calendar");
     revalidatePath("/hub/promos");

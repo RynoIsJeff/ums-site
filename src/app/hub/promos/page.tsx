@@ -14,15 +14,12 @@ export default async function PromosPage() {
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
 
-  const now = new Date();
-
   const promos = await prisma.promo.findMany({
     where: scopeWhere,
     orderBy: { createdAt: "desc" },
     include: {
       store: { select: { name: true } },
       _count: { select: { items: true } },
-      socialPosts: { select: { status: true } },
     },
   });
 
@@ -82,33 +79,19 @@ export default async function PromosPage() {
                       {p.title}
                     </p>
                   </div>
-                  {(() => {
-                    const hasPending = p.socialPosts.some(
-                      (s) => s.status === "SCHEDULED" || s.status === "PROCESSING",
-                    );
-                    const hasAnyPost = p.socialPosts.length > 0;
-                    const isExpired = p.promoDateTo < now;
-                    const label = hasPending
-                      ? "SCHEDULED"
-                      : hasAnyPost && isExpired
-                        ? "DONE"
-                        : hasAnyPost
-                          ? "POSTED"
-                          : "DRAFT";
-                    const cls =
-                      label === "SCHEDULED"
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      p.status === "SCHEDULED"
                         ? "bg-blue-100 text-blue-700"
-                        : label === "DONE"
+                        : p.status === "DONE"
                           ? "bg-green-100 text-green-700"
-                          : label === "POSTED"
+                          : p.status === "READY"
                             ? "bg-purple-100 text-purple-700"
-                            : "bg-amber-100 text-amber-700";
-                    return (
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
-                        {label}
-                      </span>
-                    );
-                  })()}
+                            : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {p.status === "READY" ? "POSTED" : p.status}
+                  </span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--hub-muted)">
                   <span>
