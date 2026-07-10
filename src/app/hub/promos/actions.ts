@@ -355,7 +355,7 @@ export async function schedulePromoPost(
   }
 
   const pages = await prisma.socialPage.findMany({
-    where: { id: { in: socialPageIds }, socialAccount: { clientId } },
+    where: { id: { in: socialPageIds }, socialAccount: clientIdWhere(scope) },
   });
   if (pages.length !== socialPageIds.length) {
     return { ok: false, error: "One or more pages are invalid for this client." };
