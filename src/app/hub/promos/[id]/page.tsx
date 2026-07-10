@@ -88,6 +88,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
           {cardItems.length > 0 && (
             <PostToSocialsClient
               clientId={promo.clientId}
+              promoId={id}
               socialPages={socialPages}
               defaultPageId={promo.store?.socialPageId ?? null}
               items={cardItems}

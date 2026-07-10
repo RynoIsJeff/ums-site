@@ -7,12 +7,13 @@ import type { CardItem } from "./PostToSocialsDialog";
 
 type Props = {
   clientId: string;
+  promoId: string;
   socialPages: { id: string; pageName: string }[];
   defaultPageId: string | null;
   items: CardItem[];
 };
 
-export function PostToSocialsClient({ clientId, socialPages, defaultPageId, items }: Props) {
+export function PostToSocialsClient({ clientId, promoId, socialPages, defaultPageId, items }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -30,6 +31,7 @@ export function PostToSocialsClient({ clientId, socialPages, defaultPageId, item
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         clientId={clientId}
+        promoId={promoId}
         socialPages={socialPages}
         defaultPageId={defaultPageId}
         items={items}

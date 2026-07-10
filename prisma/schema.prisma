@@ -378,6 +378,7 @@ model SocialPost {
   id             String            @id @default(cuid())
   clientId       String
   socialPageId   String?
+  promoId        String?
   provider       SocialProvider
   status         SocialPostStatus  @default(DRAFT)
   caption        String
@@ -391,10 +392,12 @@ model SocialPost {
   updatedAt      DateTime          @updatedAt
   client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   socialPage     SocialPage?       @relation(fields: [socialPageId], references: [id], onDelete: SetNull)
+  promo          Promo?            @relation(fields: [promoId], references: [id], onDelete: SetNull)
   createdBy      User?             @relation("SocialPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   media          SocialPostMedia[]
 
   @@index([clientId, status, scheduledFor])
+  @@index([promoId])
 }
 
 model SocialPostMedia {
@@ -623,6 +626,7 @@ model Promo {
   createdBy       User?       @relation("PromoCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   store           PromoStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
   items           PromoItem[]
+  socialPosts     SocialPost[]
 
   @@index([clientId])
   @@index([status])

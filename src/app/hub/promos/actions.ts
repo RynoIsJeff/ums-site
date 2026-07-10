@@ -336,7 +336,8 @@ export async function deletePromo(id: string): Promise<{ error?: string }> {
 // ─── Social Scheduling ────────────────────────────────────────────────────────
 
 export async function schedulePromoPost(
-  clientId: string,
+  promoClientId: string,
+  promoId: string,
   socialPageIds: string[],
   caption: string,
   scheduledFor: string, // "YYYY-MM-DDTHH:mm" — treated as SAST (UTC+2)
@@ -344,7 +345,7 @@ export async function schedulePromoPost(
 ): Promise<{ ok: boolean; error?: string }> {
   const { scope, user } = await requireHubAuth();
 
-  if (!canAccessClient(scope, clientId)) {
+  if (!canAccessClient(scope, promoClientId)) {
     return { ok: false, error: "Access denied." };
   }
   if (!socialPageIds.length) {
@@ -354,8 +355,10 @@ export async function schedulePromoPost(
     return { ok: false, error: "Caption is required." };
   }
 
+  // Include socialAccount so we can use the page's own clientId for correct attribution
   const pages = await prisma.socialPage.findMany({
     where: { id: { in: socialPageIds }, socialAccount: clientIdWhere(scope) },
+    include: { socialAccount: { select: { clientId: true } } },
   });
   if (pages.length !== socialPageIds.length) {
     return { ok: false, error: "One or more pages are invalid for this client." };
@@ -370,7 +373,9 @@ export async function schedulePromoPost(
       pages.map(async (page) => {
         const post = await prisma.socialPost.create({
           data: {
-            clientId,
+            // Use the page's own account clientId so posts appear under the correct client
+            clientId: page.socialAccount.clientId,
+            promoId,
             socialPageId: page.id,
             provider: "META",
             status: "SCHEDULED",
@@ -395,6 +400,7 @@ export async function schedulePromoPost(
 
     revalidatePath("/hub/social");
     revalidatePath("/hub/social/calendar");
+    revalidatePath("/hub/promos");
     return { ok: true };
   } catch (err) {
     console.error("[schedulePromoPost]", err);

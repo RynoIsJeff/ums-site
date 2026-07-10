@@ -39,6 +39,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   clientId: string;
+  promoId: string;
   socialPages: { id: string; pageName: string }[];
   defaultPageId: string | null;
   items: CardItem[];
@@ -52,7 +53,7 @@ function tomorrow() {
 
 let slotCounter = 0;
 
-export function PostToSocialsDialog({ isOpen, onClose, clientId, socialPages, defaultPageId, items }: Props) {
+export function PostToSocialsDialog({ isOpen, onClose, clientId, promoId, socialPages, defaultPageId, items }: Props) {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const initialPageIds = () =>
@@ -156,6 +157,7 @@ export function PostToSocialsDialog({ isOpen, onClose, clientId, socialPages, de
         const slot = dateSlots[i];
         const result = await schedulePromoPost(
           clientId,
+          promoId,
           [...selectedPageIds],
           slot.caption,
           `${slot.date}T${slot.time}`,
