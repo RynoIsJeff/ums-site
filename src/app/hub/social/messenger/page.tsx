@@ -22,16 +22,17 @@ export default async function MessengerPage() {
     },
     include: {
       messengerConversations: {
-        include: { messages: { orderBy: { createdAt: "asc" }, take: 50 } },
+        include: { messages: { orderBy: { createdAt: "asc" }, take: 100 } },
         orderBy: { lastMessageAt: "desc" },
       },
       socialAccount: { select: { client: { select: { companyName: true } } } },
     },
+    orderBy: { pageName: "asc" },
   });
 
-  const webhookUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}` || ""
-    : "https://yoursite.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://yoursite.com");
+  const webhookUrl = `${baseUrl}/api/webhooks/messenger`;
 
   return (
     <section className="py-6">
