@@ -48,8 +48,8 @@ export async function syncPageConversations(
 
     const dbConv = await prisma.messengerConversation.upsert({
       where: { socialPageId_participantPsid: { socialPageId: page.id, participantPsid: participant.id } },
-      create: { socialPageId: page.id, participantPsid: participant.id, participantName: participant.name },
-      update: { participantName: participant.name },
+      create: { socialPageId: page.id, participantPsid: participant.id, participantName: participant.name, isRead: true },
+      update: { participantName: participant.name, isRead: true },
     });
 
     const messages = (conv.messages?.data ?? []).reverse(); // FB returns newest-first; flip for chronological
@@ -125,6 +125,43 @@ export async function sendMessengerReply(
     data: { lastMessageAt: new Date() },
   });
 
+  revalidatePath("/hub/social/messenger");
+  return {};
+}
+
+async function getConvWithAccess(conversationId: string) {
+  const { scope } = await requireHubAuth();
+  const conv = await prisma.messengerConversation.findUnique({
+    where: { id: conversationId },
+    include: { socialPage: { include: { socialAccount: true } } },
+  });
+  if (!conv || !canAccessClient(scope, conv.socialPage.socialAccount.clientId)) return null;
+  return conv;
+}
+
+export async function markConversationRead(conversationId: string): Promise<{ error?: string }> {
+  if (!await getConvWithAccess(conversationId)) return { error: "Not found." };
+  await prisma.messengerConversation.update({ where: { id: conversationId }, data: { isRead: true } });
+  revalidatePath("/hub/social/messenger");
+  return {};
+}
+
+export async function markConversationDone(conversationId: string): Promise<{ error?: string }> {
+  if (!await getConvWithAccess(conversationId)) return { error: "Not found." };
+  await prisma.messengerConversation.update({
+    where: { id: conversationId },
+    data: { status: "DONE", isRead: true },
+  });
+  revalidatePath("/hub/social/messenger");
+  return {};
+}
+
+export async function markConversationOpen(conversationId: string): Promise<{ error?: string }> {
+  if (!await getConvWithAccess(conversationId)) return { error: "Not found." };
+  await prisma.messengerConversation.update({
+    where: { id: conversationId },
+    data: { status: "OPEN" },
+  });
   revalidatePath("/hub/social/messenger");
   return {};
 }

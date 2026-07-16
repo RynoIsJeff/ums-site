@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
             participantPsid: senderId,
             participantName: null,
           },
-          update: { lastMessageAt: new Date() },
+          update: { lastMessageAt: new Date(), isRead: false, status: "OPEN" },
         });
 
         await prisma.messengerMessage.create({

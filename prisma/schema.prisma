@@ -502,6 +502,8 @@ model MessengerConversation {
   participantPsid String              /// Facebook PSID (page-scoped)
   participantName String?
   lastMessageAt   DateTime            @default(now())
+  isRead          Boolean             @default(false)
+  status          String              @default("OPEN")  // OPEN | DONE
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   socialPage      SocialPage          @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
@@ -509,6 +511,7 @@ model MessengerConversation {
 
   @@unique([socialPageId, participantPsid])
   @@index([socialPageId])
+  @@index([socialPageId, status])
 }
 
 model MessengerMessage {
