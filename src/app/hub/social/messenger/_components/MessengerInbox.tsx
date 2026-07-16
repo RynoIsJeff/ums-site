@@ -168,20 +168,30 @@ export function MessengerInbox({ pages }: Props) {
       {/* Page tabs */}
       {pages.length > 1 && (
         <div className="flex items-center gap-1 border-b border-(--hub-border-light) px-3 pt-2 overflow-x-auto shrink-0">
-          {pages.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => { setSelectedPageId(p.id); setSelectedConvId(null); setSyncError(null); setSyncSuccess(null); }}
-              className={`shrink-0 rounded-t px-3 py-1.5 text-xs font-medium transition-colors ${
-                p.id === selectedPageId
-                  ? "border-b-2 border-(--primary) text-(--primary)"
-                  : "text-(--hub-muted) hover:text-(--hub-text)"
-              }`}
-            >
-              {p.pageName}
-            </button>
-          ))}
+          {pages.map((p) => {
+            const pageUnread = p.messengerConversations.filter(
+              (c) => c.status !== "DONE" && !c.isRead && !localRead.has(c.id)
+            ).length;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { setSelectedPageId(p.id); setSelectedConvId(null); setSyncError(null); setSyncSuccess(null); }}
+                className={`relative shrink-0 flex items-center gap-1.5 rounded-t px-3 py-1.5 text-xs font-medium transition-colors ${
+                  p.id === selectedPageId
+                    ? "border-b-2 border-(--primary) text-(--primary)"
+                    : "text-(--hub-muted) hover:text-(--hub-text)"
+                }`}
+              >
+                {p.pageName}
+                {pageUnread > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white leading-none">
+                    {pageUnread > 99 ? "99+" : pageUnread}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
