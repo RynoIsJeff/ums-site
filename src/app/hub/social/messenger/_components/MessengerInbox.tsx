@@ -88,7 +88,7 @@ export function MessengerInbox({ pages }: Props) {
     setSelectedConvId(conv.id);
     if (!conv.isRead && !localRead.has(conv.id)) {
       setLocalRead((prev) => new Set([...prev, conv.id]));
-      startAction(() => markConversationRead(conv.id));
+      startAction(async () => { await markConversationRead(conv.id); });
     }
   }
 
