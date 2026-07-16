@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { HubShell } from "./_components/HubShell";
+import { prisma } from "@/lib/prisma";
 
 export default async function HubLayout({
   children,
@@ -24,5 +25,9 @@ export default async function HubLayout({
     }
   }
 
-  return <HubShell user={user}>{children}</HubShell>;
+  const messengerUnread = await prisma.messengerConversation.count({
+    where: { isRead: false, status: "OPEN" },
+  });
+
+  return <HubShell user={user} messengerUnread={messengerUnread}>{children}</HubShell>;
 }

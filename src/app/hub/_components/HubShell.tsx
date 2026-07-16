@@ -8,9 +8,10 @@ import { HubNav } from "./HubNav";
 type HubShellProps = {
   user: AppUser;
   children: React.ReactNode;
+  messengerUnread?: number;
 };
 
-export function HubShell({ user, children }: HubShellProps) {
+export function HubShell({ user, children, messengerUnread = 0 }: HubShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -38,6 +39,7 @@ export function HubShell({ user, children }: HubShellProps) {
         onToggle={() => setCollapsed((c) => !c)}
         mobileOpen={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
+        messengerUnread={messengerUnread}
       />
       <div className="hub-content">
         <div className="hub-content__inner">{children}</div>

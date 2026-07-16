@@ -50,6 +50,7 @@ type HubNavProps = {
   onToggle: () => void;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  messengerUnread?: number;
 };
 
 function isActive(pathname: string, href: string) {
@@ -57,7 +58,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseMobile }: HubNavProps) {
+export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseMobile, messengerUnread = 0 }: HubNavProps) {
   const pathname = usePathname();
   const scope = {
     role: user.role,
@@ -118,6 +119,8 @@ export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseM
         {links.map((link) => {
           const Icon = link.icon;
           const active = isActive(pathname, link.href);
+          const isSocial = link.href === "/hub/social";
+          const showBadge = isSocial && messengerUnread > 0;
           return (
             <Link
               key={link.href}
@@ -127,8 +130,24 @@ export function HubNav({ user, collapsed, onToggle, mobileOpen = false, onCloseM
               title={collapsed ? link.label : undefined}
               onClick={onCloseMobile}
             >
-              <Icon className="hub-sidebar__link-icon" />
-              {!collapsed && <span>{link.label}</span>}
+              <span className="relative">
+                <Icon className="hub-sidebar__link-icon" />
+                {showBadge && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white leading-none">
+                    {messengerUnread > 9 ? "9+" : messengerUnread}
+                  </span>
+                )}
+              </span>
+              {!collapsed && (
+                <span className="flex items-center gap-2">
+                  {link.label}
+                  {showBadge && (
+                    <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white leading-none">
+                      {messengerUnread > 99 ? "99+" : messengerUnread}
+                    </span>
+                  )}
+                </span>
+              )}
             </Link>
           );
         })}
