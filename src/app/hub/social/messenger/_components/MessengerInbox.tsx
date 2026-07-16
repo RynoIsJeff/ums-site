@@ -11,7 +11,48 @@ import {
   markConversationOpen,
 } from "../actions";
 
-type Message = { id?: string; content: string; direction?: string; createdAt?: Date };
+type Message = { id?: string; content: string; direction?: string; createdAt?: Date | string };
+
+function msgDate(m: Message): Date | null {
+  if (!m.createdAt) return null;
+  return m.createdAt instanceof Date ? m.createdAt : new Date(m.createdAt);
+}
+
+function formatMsgTime(m: Message): string {
+  const d = msgDate(m);
+  if (!d) return "";
+  return d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function dayKey(m: Message): string {
+  const d = msgDate(m);
+  if (!d) return "unknown";
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function formatDaySeparator(key: string): string {
+  if (key === "unknown") return "Unknown date";
+  const d = new Date(`${key}T12:00:00Z`);
+  const today = new Date();
+  const todayKey = today.toISOString().slice(0, 10);
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yKey = yesterday.toISOString().slice(0, 10);
+  if (key === todayKey) return "Today";
+  if (key === yKey) return "Yesterday";
+  return d.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+function groupByDay(messages: Message[]) {
+  const groups: { key: string; messages: Message[] }[] = [];
+  for (const m of messages) {
+    const k = dayKey(m);
+    const last = groups[groups.length - 1];
+    if (last?.key === k) last.messages.push(m);
+    else groups.push({ key: k, messages: [m] });
+  }
+  return groups;
+}
 
 type Conversation = {
   id: string;
@@ -268,18 +309,36 @@ export function MessengerInbox({ pages }: Props) {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {currentConv.messages.map((m, i) => (
-                  <div key={m.id ?? i} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
-                    <p
-                      className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                        m.direction === "OUT"
-                          ? "bg-(--primary) text-white"
-                          : "bg-slate-100 text-(--hub-text)"
-                      }`}
-                    >
-                      {m.content}
-                    </p>
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+                {groupByDay(currentConv.messages).map(({ key, messages }) => (
+                  <div key={key}>
+                    {/* Date separator */}
+                    <div className="flex items-center gap-3 my-4">
+                      <div className="flex-1 h-px bg-(--hub-border-light)" />
+                      <span className="text-xs font-medium text-(--hub-muted) shrink-0">{formatDaySeparator(key)}</span>
+                      <div className="flex-1 h-px bg-(--hub-border-light)" />
+                    </div>
+                    {/* Messages in this day */}
+                    <div className="space-y-1">
+                      {messages.map((m, i) => {
+                        const isOut = m.direction === "OUT";
+                        const time = formatMsgTime(m);
+                        return (
+                          <div key={m.id ?? `${key}-${i}`} className={`flex flex-col ${isOut ? "items-end" : "items-start"}`}>
+                            <p
+                              className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                                isOut ? "bg-(--primary) text-white" : "bg-slate-100 text-(--hub-text)"
+                              }`}
+                            >
+                              {m.content}
+                            </p>
+                            {time && (
+                              <span className="mt-0.5 px-1 text-[10px] text-(--hub-muted)">{time}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ))}
               </div>
