@@ -421,6 +421,34 @@ export async function updatePageProfilePicture(
 }
 
 /**
+ * Send an image attachment via Messenger. Requires pages_messaging.
+ * Uploads the file as multipart/form-data directly to the Send API.
+ */
+export async function sendMessengerImageAttachment(
+  pageAccessToken: string,
+  recipientPsid: string,
+  fileBuffer: ArrayBuffer,
+  mimeType: string,
+  fileName: string,
+): Promise<{ ok: true; messageId: string } | { ok: false; error: string }> {
+  const url = `${GRAPH_BASE}/me/messages`;
+  try {
+    const form = new FormData();
+    form.append("recipient", JSON.stringify({ id: recipientPsid }));
+    form.append("message", JSON.stringify({ attachment: { type: "image", payload: { is_reusable: true } } }));
+    form.append("messaging_type", "RESPONSE");
+    form.append("access_token", pageAccessToken);
+    form.append("filedata", new Blob([fileBuffer], { type: mimeType }), fileName);
+    const res = await fetch(url, { method: "POST", body: form });
+    const data = (await res.json()) as { message_id?: string; error?: { message: string } };
+    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    return { ok: true, messageId: data.message_id ?? "" };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Network error" };
+  }
+}
+
+/**
  * Send a Messenger message (reply to user). Requires pages_messaging.
  */
 export async function sendMessengerMessage(

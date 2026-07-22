@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { sendMessengerMessage } from "@/lib/facebook";
+import { sendMessengerMessage, sendMessengerImageAttachment } from "@/lib/facebook";
 
 const GRAPH_BASE = "https://graph.facebook.com/v22.0";
 
@@ -117,6 +117,50 @@ export async function sendMessengerReply(
       direction: "OUT",
       externalMid: result.messageId,
       content: message,
+    },
+  });
+
+  await prisma.messengerConversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date() },
+  });
+
+  revalidatePath("/hub/social/messenger");
+  return {};
+}
+
+export async function sendMessengerImageReply(
+  conversationId: string,
+  participantPsid: string,
+  pageAccessToken: string,
+  formData: FormData,
+): Promise<{ error?: string }> {
+  const { scope } = await requireHubAuth();
+
+  const conv = await prisma.messengerConversation.findUnique({
+    where: { id: conversationId },
+    include: { socialPage: { include: { socialAccount: true } } },
+  });
+  if (!conv || !canAccessClient(scope, conv.socialPage.socialAccount.clientId)) {
+    return { error: "Conversation not found." };
+  }
+
+  const file = formData.get("image") as File | null;
+  if (!file || file.size === 0) return { error: "No image provided." };
+
+  const token = pageAccessToken || conv.socialPage.pageAccessTokenEncrypted;
+  if (!token) return { error: "Page has no access token." };
+
+  const buffer = await file.arrayBuffer();
+  const result = await sendMessengerImageAttachment(token, participantPsid, buffer, file.type, file.name);
+  if (!result.ok) return { error: result.error };
+
+  await prisma.messengerMessage.create({
+    data: {
+      conversationId,
+      direction: "OUT",
+      externalMid: result.messageId,
+      content: "[image]",
     },
   });
 
