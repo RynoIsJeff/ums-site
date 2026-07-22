@@ -26,8 +26,8 @@ export async function GET(req: Request) {
   for (const page of pages) {
     try {
       const token = page.pageAccessTokenEncrypted!;
-      const fields = "id,participants,messages{id,message,from,created_time}";
-      const url = `${GRAPH_BASE}/${page.pageExternalId}/conversations?platform=messenger&fields=${fields}&limit=25&access_token=${encodeURIComponent(token)}`;
+      const fields = "id,participants,messages.limit(100){id,message,from,created_time}";
+      const url = `${GRAPH_BASE}/${page.pageExternalId}/conversations?platform=messenger&fields=${fields}&limit=50&access_token=${encodeURIComponent(token)}`;
 
       const res = await fetch(url, { cache: "no-store" });
       const data = (await res.json()) as {

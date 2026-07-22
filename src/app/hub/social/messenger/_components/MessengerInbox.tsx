@@ -82,6 +82,7 @@ export function MessengerInbox({ pages }: Props) {
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("open");
   const [localRead, setLocalRead] = useState<Set<string>>(new Set());
+  const [pendingDone, setPendingDone] = useState<Set<string>>(new Set());
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
   const [syncing, startSync] = useTransition();
@@ -148,12 +149,18 @@ export function MessengerInbox({ pages }: Props) {
     });
   }
 
+  function handleQuickDone(convId: string) {
+    setPendingDone((prev) => new Set([...prev, convId]));
+    startAction(async () => {
+      await markConversationDone(convId);
+      setPendingDone((prev) => { const n = new Set(prev); n.delete(convId); return n; });
+      if (selectedConvId === convId) setSelectedConvId(null);
+    });
+  }
+
   function handleMarkDone() {
     if (!selectedConvId) return;
-    startAction(async () => {
-      await markConversationDone(selectedConvId);
-      setSelectedConvId(null);
-    });
+    handleQuickDone(selectedConvId);
   }
 
   function handleMarkOpen() {
@@ -254,14 +261,13 @@ export function MessengerInbox({ pages }: Props) {
                 {visibleConvs.map((c) => {
                   const isUnread = !c.isRead && !localRead.has(c.id);
                   const lastMsg = c.messages[c.messages.length - 1];
+                  const isDonePending = pendingDone.has(c.id);
                   return (
-                    <li key={c.id}>
+                    <li key={c.id} className={`group flex items-stretch border-b border-(--hub-border-light) transition-colors hover:bg-black/3 ${selectedConvId === c.id ? "bg-(--primary)/5" : ""}`}>
                       <button
                         type="button"
                         onClick={() => selectConv(c)}
-                        className={`w-full border-b border-(--hub-border-light) px-3 py-3 text-left transition-colors hover:bg-black/3 ${
-                          selectedConvId === c.id ? "bg-(--primary)/5" : ""
-                        }`}
+                        className="min-w-0 flex-1 px-3 py-3 text-left"
                       >
                         <div className="flex items-center gap-2">
                           {isUnread && (
@@ -275,6 +281,18 @@ export function MessengerInbox({ pages }: Props) {
                           {lastMsg?.content ?? "No messages"}
                         </p>
                       </button>
+                      {filter === "open" && (
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDone(c.id)}
+                          disabled={isDonePending}
+                          title="Mark done"
+                          aria-label="Mark done"
+                          className="flex shrink-0 items-center justify-center px-2.5 text-(--hub-muted) opacity-0 transition-all hover:text-green-600 group-hover:opacity-100 disabled:opacity-40"
+                        >
+                          <CheckCheck className={`h-4 w-4 ${isDonePending ? "animate-pulse" : ""}`} />
+                        </button>
+                      )}
                     </li>
                   );
                 })}

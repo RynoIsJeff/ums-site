@@ -23,8 +23,8 @@ export async function syncPageConversations(
   const token = page.pageAccessTokenEncrypted;
   if (!token) return { ok: false, error: "Page has no access token configured." };
 
-  const fields = "id,participants,messages{id,message,from,created_time}";
-  const url = `${GRAPH_BASE}/${page.pageExternalId}/conversations?platform=messenger&fields=${fields}&limit=25&access_token=${encodeURIComponent(token)}`;
+  const fields = "id,participants,messages.limit(100){id,message,from,created_time}";
+  const url = `${GRAPH_BASE}/${page.pageExternalId}/conversations?platform=messenger&fields=${fields}&limit=50&access_token=${encodeURIComponent(token)}`;
 
   let fbData: { data?: unknown[]; error?: { message: string } };
   try {
