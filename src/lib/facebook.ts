@@ -432,15 +432,25 @@ export async function sendMessengerImageAttachment(
   fileName: string,
 ): Promise<{ ok: true; messageId: string } | { ok: false; error: string }> {
   const url = `${GRAPH_BASE}/me/messages`;
-  try {
+
+  async function attempt(messagingType: string, tag?: string) {
     const form = new FormData();
     form.append("recipient", JSON.stringify({ id: recipientPsid }));
     form.append("message", JSON.stringify({ attachment: { type: "image", payload: { is_reusable: true } } }));
-    form.append("messaging_type", "RESPONSE");
+    form.append("messaging_type", messagingType);
+    if (tag) form.append("tag", tag);
     form.append("access_token", pageAccessToken);
     form.append("filedata", new Blob([fileBuffer], { type: mimeType }), fileName);
     const res = await fetch(url, { method: "POST", body: form });
-    const data = (await res.json()) as { message_id?: string; error?: { message: string } };
+    const data = (await res.json()) as { message_id?: string; error?: { message: string; code?: number } };
+    return { res, data };
+  }
+
+  try {
+    let { res, data } = await attempt("RESPONSE");
+    if (!res.ok && data.error?.code === 10) {
+      ({ res, data } = await attempt("MESSAGE_TAG", "HUMAN_AGENT"));
+    }
     if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
     return { ok: true, messageId: data.message_id ?? "" };
   } catch (e) {
@@ -450,6 +460,8 @@ export async function sendMessengerImageAttachment(
 
 /**
  * Send a Messenger message (reply to user). Requires pages_messaging.
+ * Automatically retries with the HUMAN_AGENT tag if the 24-hour window
+ * has closed (error code 10), extending the window to 7 days.
  */
 export async function sendMessengerMessage(
   pageAccessToken: string,
@@ -457,18 +469,30 @@ export async function sendMessengerMessage(
   message: string
 ): Promise<{ ok: true; messageId: string } | { ok: false; error: string }> {
   const url = `${GRAPH_BASE}/me/messages`;
-  try {
+
+  async function attempt(messagingType: string, tag?: string) {
+    const body: Record<string, unknown> = {
+      recipient: { id: recipientPsid },
+      message: { text: message },
+      messaging_type: messagingType,
+      access_token: pageAccessToken,
+    };
+    if (tag) body.tag = tag;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipient: { id: recipientPsid },
-        message: { text: message },
-        messaging_type: "RESPONSE",
-        access_token: pageAccessToken,
-      }),
+      body: JSON.stringify(body),
     });
-    const data = (await res.json()) as { message_id?: string; error?: { message: string } };
+    const data = (await res.json()) as { message_id?: string; error?: { message: string; code?: number } };
+    return { res, data };
+  }
+
+  try {
+    let { res, data } = await attempt("RESPONSE");
+    // Error code 10 = outside 24-hour window; retry with HUMAN_AGENT (7-day window)
+    if (!res.ok && data.error?.code === 10) {
+      ({ res, data } = await attempt("MESSAGE_TAG", "HUMAN_AGENT"));
+    }
     if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
     return { ok: true, messageId: data.message_id ?? "" };
   } catch (e) {
