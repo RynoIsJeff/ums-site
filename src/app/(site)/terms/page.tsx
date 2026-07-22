@@ -259,8 +259,8 @@ export default function TermsPage() {
             <br />
             Pongola, KwaZulu-Natal, South Africa
             <br />
-            <a href="mailto:info@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
-              info@ultimatemarketingsmash.com
+            <a href="mailto:Manager@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
+              Manager@ultimatemarketingsmash.com
             </a>
             <br />
             <Link href="/contact" className="text-(--primary) hover:underline">

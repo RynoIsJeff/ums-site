@@ -42,8 +42,8 @@ export default function PrivacyPage() {
             <strong>Information Officer:</strong> Ryno van der Walt
             <br />
             <strong>Email:</strong>{" "}
-            <a href="mailto:info@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
-              info@ultimatemarketingsmash.com
+            <a href="mailto:Manager@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
+              Manager@ultimatemarketingsmash.com
             </a>
           </p>
 
@@ -232,8 +232,8 @@ export default function PrivacyPage() {
           </ul>
           <p>
             To exercise any of these rights, please contact us at{" "}
-            <a href="mailto:info@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
-              info@ultimatemarketingsmash.com
+            <a href="mailto:Manager@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
+              Manager@ultimatemarketingsmash.com
             </a>
             . We will respond within a reasonable time, and no later than 30 days.
           </p>
@@ -270,8 +270,8 @@ export default function PrivacyPage() {
             <br />
             Pongola, KwaZulu-Natal, South Africa
             <br />
-            <a href="mailto:info@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
-              info@ultimatemarketingsmash.com
+            <a href="mailto:Manager@ultimatemarketingsmash.com" className="text-(--primary) hover:underline">
+              Manager@ultimatemarketingsmash.com
             </a>
           </p>
         </div>
