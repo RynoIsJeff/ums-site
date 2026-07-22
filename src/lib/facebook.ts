@@ -451,7 +451,13 @@ export async function sendMessengerImageAttachment(
     if (!res.ok && data.error?.code === 10) {
       ({ res, data } = await attempt("MESSAGE_TAG", "HUMAN_AGENT"));
     }
-    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    if (!res.ok) {
+      const code = data.error?.code;
+      if (code === 10 || code === 100) {
+        return { ok: false, error: "WINDOW_CLOSED" };
+      }
+      return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    }
     return { ok: true, messageId: data.message_id ?? "" };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Network error" };
@@ -493,7 +499,13 @@ export async function sendMessengerMessage(
     if (!res.ok && data.error?.code === 10) {
       ({ res, data } = await attempt("MESSAGE_TAG", "HUMAN_AGENT"));
     }
-    if (!res.ok) return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    if (!res.ok) {
+      const code = data.error?.code;
+      if (code === 10 || code === 100) {
+        return { ok: false, error: "WINDOW_CLOSED" };
+      }
+      return { ok: false, error: data?.error?.message ?? `HTTP ${res.status}` };
+    }
     return { ok: true, messageId: data.message_id ?? "" };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Network error" };

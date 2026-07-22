@@ -109,7 +109,12 @@ export async function sendMessengerReply(
   if (!token) return { error: "Page has no access token." };
 
   const result = await sendMessengerMessage(token, participantPsid, message);
-  if (!result.ok) return { error: result.error };
+  if (!result.ok) {
+    if (result.error === "WINDOW_CLOSED") {
+      return { error: "The 24-hour reply window has closed. Apply for Human Agent access in Meta App Dashboard → Messenger → Settings to reply to older conversations." };
+    }
+    return { error: result.error };
+  }
 
   await prisma.messengerMessage.create({
     data: {
@@ -153,7 +158,12 @@ export async function sendMessengerImageReply(
 
   const buffer = await file.arrayBuffer();
   const result = await sendMessengerImageAttachment(token, participantPsid, buffer, file.type, file.name);
-  if (!result.ok) return { error: result.error };
+  if (!result.ok) {
+    if (result.error === "WINDOW_CLOSED") {
+      return { error: "The 24-hour reply window has closed. Apply for Human Agent access in Meta App Dashboard → Messenger → Settings to reply to older conversations." };
+    }
+    return { error: result.error };
+  }
 
   await prisma.messengerMessage.create({
     data: {

@@ -375,15 +375,32 @@ export function MessengerInbox({ pages }: Props) {
                 ))}
               </div>
 
-              {activePage?.pageAccessTokenEncrypted && (
-                <ReplyForm
-                  conversationId={currentConv.id}
-                  participantPsid={currentConv.participantPsid}
-                  token={activePage.pageAccessTokenEncrypted}
-                  action={sendMessengerReply}
-                  imageAction={sendMessengerImageReply}
-                />
-              )}
+              {(() => {
+                const lastCustomerMsg = [...currentConv.messages].reverse().find(m => m.direction === "IN");
+                const windowClosed = lastCustomerMsg
+                  ? Date.now() - new Date(lastCustomerMsg.createdAt ?? 0).getTime() > 24 * 60 * 60 * 1000
+                  : false;
+                return (
+                  <>
+                    {windowClosed && (
+                      <div className="mx-3 mb-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                        <strong>24-hour window closed.</strong> Facebook only allows replies within 24 hours of the customer&apos;s last message. To reply to older conversations, apply for{" "}
+                        <a href="https://developers.facebook.com/docs/messenger-platform/handover-protocol/human-agent" target="_blank" rel="noreferrer" className="underline font-medium">Human Agent access</a>{" "}
+                        in Meta App Dashboard → Messenger → Settings.
+                      </div>
+                    )}
+                    {activePage?.pageAccessTokenEncrypted && (
+                      <ReplyForm
+                        conversationId={currentConv.id}
+                        participantPsid={currentConv.participantPsid}
+                        token={activePage.pageAccessTokenEncrypted}
+                        action={sendMessengerReply}
+                        imageAction={sendMessengerImageReply}
+                      />
+                    )}
+                  </>
+                );
+              })()}
             </>
           ) : (
             <div className="flex flex-1 items-center justify-center text-sm text-(--hub-muted)">
