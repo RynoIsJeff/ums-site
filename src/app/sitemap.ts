@@ -8,5 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/work`, changeFrequency: "monthly" },
     { url: `${base}/about`, changeFrequency: "yearly" },
     { url: `${base}/contact`, changeFrequency: "yearly" },
+    { url: `${base}/privacy`, changeFrequency: "yearly" },
+    { url: `${base}/terms`, changeFrequency: "yearly" },
   ];
 }

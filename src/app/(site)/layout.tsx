@@ -193,7 +193,11 @@ export default function SiteLayout({
             © {new Date().getFullYear()} Ultimate Marketing Smash (Pty) Ltd.
             All rights reserved.
           </p>
-          <p>YOUR SUCCESS IS OUR PRIORITY</p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-black transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-black transition-colors">Terms of Service</Link>
+            <p>YOUR SUCCESS IS OUR PRIORITY</p>
+          </div>
         </div>
       </footer>
     </>
