@@ -170,28 +170,31 @@ export function ImageUploadInput({
           <p className="text-sm font-medium text-(--hub-text)">
             Drag the slider to set where the header ends, then click <strong>Use crop</strong>.
           </p>
-          <div className="relative overflow-hidden rounded border border-black/10 select-none" style={{ maxHeight: 420 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={cropEditor.fullDataUrl}
-              alt="Full PDF page"
-              className="w-full h-auto block"
-              draggable={false}
-            />
-            {/* Dimmed area below crop line */}
-            <div
-              className="absolute left-0 right-0 bottom-0 bg-black/40 pointer-events-none"
-              style={{ top: `${cropEditor.cropRatio * 100}%` }}
-            />
-            {/* Crop line */}
-            <div
-              className="absolute left-0 right-0 pointer-events-none"
-              style={{ top: `${cropEditor.cropRatio * 100}%` }}
-            >
-              <div className="h-0.5 bg-red-500 w-full" />
-              <span className="absolute left-2 -top-5 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
-                crop here
-              </span>
+          {/* Outer div scrolls; inner div is the full-height containing block for overlays */}
+          <div className="overflow-y-auto rounded border border-black/10 select-none" style={{ maxHeight: 420 }}>
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cropEditor.fullDataUrl}
+                alt="Full PDF page"
+                className="w-full h-auto block"
+                draggable={false}
+              />
+              {/* Dimmed area below crop line — % is relative to the inner div = full image height */}
+              <div
+                className="absolute left-0 right-0 bottom-0 bg-black/40 pointer-events-none"
+                style={{ top: `${cropEditor.cropRatio * 100}%` }}
+              />
+              {/* Crop line */}
+              <div
+                className="absolute left-0 right-0 pointer-events-none"
+                style={{ top: `${cropEditor.cropRatio * 100}%` }}
+              >
+                <div className="h-0.5 bg-red-500 w-full" />
+                <span className="absolute left-2 -top-5 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white leading-none">
+                  crop here
+                </span>
+              </div>
             </div>
           </div>
           <div className="space-y-1">
