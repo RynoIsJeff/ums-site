@@ -16,12 +16,15 @@ export default async function PromosPage() {
 
   const promos = await prisma.promo.findMany({
     where: scopeWhere,
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ promoDateTo: "desc" }, { createdAt: "desc" }],
     include: {
       store: { select: { name: true } },
       _count: { select: { items: true } },
     },
   });
+
+  const activePromos = promos.filter((p) => p.status !== "DONE");
+  const donePromos = promos.filter((p) => p.status === "DONE");
 
   return (
     <section className="py-10">
@@ -57,56 +60,86 @@ export default async function PromosPage() {
         </div>
       </div>
 
-      <div className="mt-8">
-        {promos.length === 0 ? (
+      <div className="mt-8 space-y-10">
+        {/* Active promos */}
+        {activePromos.length === 0 && donePromos.length === 0 ? (
           <EmptyState
             icon={Layers}
             title="No promos yet"
             description="Create your first promotion to start generating product cards."
             primaryAction={{ href: "/hub/promos/new", label: "New promo", icon: Plus }}
           />
-        ) : (
+        ) : activePromos.length === 0 ? null : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {promos.map((p) => (
-              <Link
-                key={p.id}
-                href={`/hub/promos/${p.id}`}
-                className="group rounded-xl border border-(--hub-border-light) bg-white p-5 hover:border-black/20 hover:shadow-sm transition-all"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-(--hub-text) truncate group-hover:underline">
-                      {p.title}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                      p.status === "SCHEDULED"
-                        ? "bg-blue-100 text-blue-700"
-                        : p.status === "DONE"
-                          ? "bg-green-100 text-green-700"
-                          : p.status === "READY"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {p.status === "READY" ? "POSTED" : p.status}
-                  </span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--hub-muted)">
-                  <span>
-                    {p.promoDateFrom.toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
-                    {" – "}
-                    {p.promoDateTo.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
-                  </span>
-                  {p.store && <span>{p.store.name}</span>}
-                  <span>{p._count.items} product{p._count.items !== 1 ? "s" : ""}</span>
-                </div>
-              </Link>
+            {activePromos.map((p) => (
+              <PromoCard key={p.id} p={p} />
             ))}
+          </div>
+        )}
+
+        {/* Completed promos */}
+        {donePromos.length > 0 && (
+          <div>
+            <h2 className="mb-4 text-sm font-semibold text-(--hub-muted) uppercase tracking-wider">
+              Completed
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {donePromos.map((p) => (
+                <PromoCard key={p.id} p={p} muted />
+              ))}
+            </div>
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+type PromoRow = {
+  id: string;
+  title: string;
+  status: string;
+  promoDateFrom: Date;
+  promoDateTo: Date;
+  store: { name: string } | null;
+  _count: { items: number };
+};
+
+function PromoCard({ p, muted = false }: { p: PromoRow; muted?: boolean }) {
+  return (
+    <Link
+      href={`/hub/promos/${p.id}`}
+      className={`group rounded-xl border border-(--hub-border-light) bg-white p-5 hover:border-black/20 hover:shadow-sm transition-all ${muted ? "opacity-70 hover:opacity-100" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-semibold text-(--hub-text) truncate group-hover:underline">
+            {p.title}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+            p.status === "SCHEDULED"
+              ? "bg-blue-100 text-blue-700"
+              : p.status === "DONE"
+                ? "bg-green-100 text-green-700"
+                : p.status === "READY"
+                  ? "bg-purple-100 text-purple-700"
+                  : "bg-amber-100 text-amber-700"
+          }`}
+        >
+          {p.status === "READY" ? "POSTED" : p.status}
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--hub-muted)">
+        <span>
+          {p.promoDateFrom.toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+          {" – "}
+          {p.promoDateTo.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+        </span>
+        {p.store && <span>{p.store.name}</span>}
+        <span>{p._count.items} product{p._count.items !== 1 ? "s" : ""}</span>
+      </div>
+    </Link>
   );
 }

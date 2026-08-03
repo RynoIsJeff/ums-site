@@ -136,10 +136,20 @@ async function runWorker(req: Request) {
     }
   }
 
+  // Auto-mark promos as DONE when their end date has passed
+  const autoDone = await prisma.promo.updateMany({
+    where: {
+      status: { in: ["SCHEDULED", "READY"] },
+      promoDateTo: { lt: now },
+    },
+    data: { status: "DONE" },
+  });
+
   return NextResponse.json({
     ok: true,
     processed: results.length,
     results,
+    autoDonePromos: autoDone.count,
   });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
