@@ -278,13 +278,13 @@ export function ProductSelector({
                                 </button>
                               )}
                             </div>
-                            <input
-                              type="text"
+                            <textarea
                               placeholder="Description (optional, e.g. 16L / Galvanised)"
                               name={`variantDescription_${p.id}_${i}`}
                               value={row.description ?? ""}
+                              rows={2}
                               onChange={(e) => setVariantRow(p.id, i, "description", e.target.value)}
-                              className="w-full rounded border border-black/15 px-2 py-1 text-xs text-black/60"
+                              className="w-full rounded border border-black/15 px-2 py-1 text-xs text-black/60 resize-none"
                             />
                             <div className="grid grid-cols-2 gap-2">
                               <div>

@@ -229,7 +229,7 @@ function VariantPriceRow({
       >
         {variant.label}
         {variant.description && (
-          <span style={{ display: "block", fontSize: descSize, fontWeight: 400, color: "#6b7280", lineHeight: 1.3, marginTop: 1 }}>
+          <span style={{ display: "block", fontSize: descSize, fontWeight: 400, color: "#6b7280", lineHeight: 1.3, marginTop: 1, whiteSpace: "pre-line" }}>
             {variant.description}
           </span>
         )}
