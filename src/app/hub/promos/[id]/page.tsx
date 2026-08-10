@@ -43,7 +43,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
 
   const cardItems = promo.items.map((item) => ({
     id: item.id,
-    filename: `${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-")}.png`,
+    filename: `${slugTitle}-${item.product.name.toLowerCase().replace(/\s+/g, "-").replace(/\//g, ".").replace(/[^a-z0-9.-]/g, "")}.png`,
     headerImageData: promo.headerImageData,
     promoDateFrom: promo.promoDateFrom,
     promoDateTo: promo.promoDateTo,
