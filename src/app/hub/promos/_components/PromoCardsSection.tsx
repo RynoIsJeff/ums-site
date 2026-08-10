@@ -27,6 +27,7 @@ type CardItem = {
 export function PromoCardsSection({ items }: { items: CardItem[] }) {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [exportingAll, setExportingAll] = useState(false);
+  const [exportDone, setExportDone] = useState(0);
   const [exportingId, setExportingId] = useState<string | null>(null);
 
   function setRef(id: string, el: HTMLDivElement | null) {
@@ -47,6 +48,7 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
 
   async function handleExportAll() {
     const { toPng } = await import("html-to-image");
+    setExportDone(0);
 
     // Chrome / Edge: open a folder-picker so the user chooses where to save
     if ("showDirectoryPicker" in window) {
@@ -68,6 +70,7 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
           const writable = await fileHandle.createWritable();
           await writable.write(blob);
           await writable.close();
+          setExportDone((n) => n + 1);
         }
       } finally {
         setExportingAll(false);
@@ -80,12 +83,15 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
     try {
       for (const item of items) {
         await exportCard(item.id, item.filename);
+        setExportDone((n) => n + 1);
         await new Promise<void>((r) => setTimeout(r, 300));
       }
     } finally {
       setExportingAll(false);
     }
   }
+
+  const progressPct = items.length > 0 ? Math.round((exportDone / items.length) * 100) : 0;
 
   return (
     <div className="mt-8">
@@ -101,10 +107,31 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
             className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/80 disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
-            {exportingAll ? "Downloading…" : "Download All"}
+            {exportingAll ? `Downloading…` : "Download All"}
           </button>
         )}
       </div>
+
+      {/* Progress bar — shown during Download All */}
+      {exportingAll && (
+        <div className="mb-6 rounded-lg border border-black/10 bg-black/3 p-4">
+          <div className="mb-2 flex items-center justify-between text-sm">
+            <span className="font-medium text-(--hub-text)">
+              Downloading cards…
+            </span>
+            <span className="text-(--hub-muted)">
+              {exportDone} / {items.length}
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">
+            <div
+              className="h-full rounded-full bg-black transition-all duration-300 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-(--hub-muted)">{progressPct}% complete</p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-8">
         {items.map((item) => (
@@ -137,8 +164,20 @@ export function PromoCardsSection({ items }: { items: CardItem[] }) {
               }}
               className="inline-flex items-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-black/80 disabled:opacity-50"
             >
-              <Download className="h-3.5 w-3.5" />
-              {exportingId === item.id ? "Exporting…" : "Export PNG"}
+              {exportingId === item.id ? (
+                <>
+                  <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Exporting…
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  Export PNG
+                </>
+              )}
             </button>
           </div>
         ))}
