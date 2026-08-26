@@ -43,7 +43,7 @@ export function InvoiceForm({
   const rows = Math.max(LINE_ROWS, defaultLineItems.length || 1);
   const lineRows = Array.from({ length: rows }, (_, i) => defaultLineItems[i] ?? { description: "", quantity: 1, unitPrice: 0 });
 
-  const clientStores = stores.filter((s) => s.clientId === selectedClientId);
+  const clientStores = stores;
 
   return (
     <form action={formAction} className="space-y-6">
