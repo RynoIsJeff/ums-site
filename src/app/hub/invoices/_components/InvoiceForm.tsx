@@ -113,25 +113,35 @@ export function InvoiceForm({
           />
         </div>
 
-        {/* Store — only shown when the selected client has stores */}
-        {clientStores.length > 0 && (
+        {/* Store — shown whenever a client is selected */}
+        {selectedClientId && (
           <div className="sm:col-span-2">
             <label htmlFor="storeId" className="mb-1 block text-sm font-medium">
               Store <span className="font-normal text-black/50">(optional — bill a specific branch)</span>
             </label>
-            <select
-              id="storeId"
-              name="storeId"
-              defaultValue={defaultStoreId ?? ""}
-              className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-            >
-              <option value="">No specific store</option>
-              {clientStores.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            {clientStores.length > 0 ? (
+              <select
+                id="storeId"
+                name="storeId"
+                defaultValue={defaultStoreId ?? ""}
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+              >
+                <option value="">No specific store</option>
+                {clientStores.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm text-black/50 py-2">
+                No stores set up for this client.{" "}
+                <a href="/hub/promos/stores" className="underline hover:text-black">
+                  Add a store
+                </a>{" "}
+                first.
+              </p>
+            )}
           </div>
         )}
       </div>
