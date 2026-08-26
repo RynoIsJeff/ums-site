@@ -36,6 +36,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     include: {
       client: { select: { id: true, companyName: true } },
       lineItems: { orderBy: { createdAt: "asc" } },
+      store: { select: { id: true, name: true, address: true, phone: true } },
       allocations: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -106,6 +107,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             <Link href={`/hub/clients/${invoice.client.id}`} className="hover:underline">
               {invoice.client.companyName}
             </Link>
+            {invoice.store && <> · <span>{invoice.store.name}</span></>}
             {" · "}
             Due {invoice.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}
           </p>

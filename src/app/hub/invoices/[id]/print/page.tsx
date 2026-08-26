@@ -19,6 +19,7 @@ export default async function InvoicePrintPage({ params }: PageProps) {
     include: {
       client: true,
       lineItems: { orderBy: { createdAt: "asc" } },
+      store: true,
     },
   });
 
@@ -75,11 +76,20 @@ export default async function InvoicePrintPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* To: Client */}
-        <div className="mb-8">
-          <p className="text-sm font-medium">
-            To: {invoice.client.companyName}
-          </p>
+        {/* Bill To */}
+        <div className="mb-8 space-y-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#0586AD" }}>Bill To</p>
+            <p className="mt-1 text-sm font-semibold">{invoice.client.companyName}</p>
+          </div>
+          {invoice.store && (
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#0586AD" }}>Store</p>
+              <p className="mt-1 text-sm font-semibold">{invoice.store.name}</p>
+              {invoice.store.address && <p className="text-sm text-black/60">{invoice.store.address}</p>}
+              {invoice.store.phone && <p className="text-sm text-black/60">{invoice.store.phone}</p>}
+            </div>
+          )}
         </div>
 
         {/* Line items table: Description | Qty | Unit price | Price */}

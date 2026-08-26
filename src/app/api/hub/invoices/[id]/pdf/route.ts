@@ -28,6 +28,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     include: {
       client: true,
       lineItems: { orderBy: { createdAt: "asc" } },
+      store: true,
     },
   });
 
@@ -243,6 +244,46 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     font: fontBold,
     color: textDark,
   });
+
+  // Store details (if linked)
+  if (invoice.store) {
+    sectionTopY -= 20;
+    page.drawText("STORE", {
+      x: margin,
+      y: sectionTopY,
+      size: 9,
+      font: fontBold,
+      color: primaryBlue,
+    });
+    sectionTopY -= 14;
+    page.drawText(invoice.store.name, {
+      x: margin,
+      y: sectionTopY,
+      size: 11,
+      font: fontBold,
+      color: textDark,
+    });
+    if (invoice.store.address) {
+      sectionTopY -= 13;
+      page.drawText(invoice.store.address, {
+        x: margin,
+        y: sectionTopY,
+        size: 10,
+        font,
+        color: textMuted,
+      });
+    }
+    if (invoice.store.phone) {
+      sectionTopY -= 13;
+      page.drawText(invoice.store.phone, {
+        x: margin,
+        y: sectionTopY,
+        size: 10,
+        font,
+        color: textMuted,
+      });
+    }
+  }
 
   // --- ITEMS TABLE ---
 
