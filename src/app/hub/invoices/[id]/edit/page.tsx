@@ -27,7 +27,7 @@ export default async function EditInvoicePage({ params }: PageProps) {
   if (!user) return null;
 
   const scope = toAuthScope(user);
-  const [invoice, clients] = await Promise.all([
+  const [invoice, clients, stores] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
       include: { lineItems: { orderBy: { createdAt: "asc" } } },
@@ -36,6 +36,11 @@ export default async function EditInvoicePage({ params }: PageProps) {
       where: clientWhere(scope),
       orderBy: { companyName: "asc" },
       select: { id: true, companyName: true },
+    }),
+    prisma.promoStore.findMany({
+      where: { client: clientWhere(scope) },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, clientId: true },
     }),
   ]);
 
@@ -70,12 +75,14 @@ export default async function EditInvoicePage({ params }: PageProps) {
         <InvoiceForm
           action={updateAction}
           clients={clients}
+          stores={stores}
           defaultInvoiceNumber={invoice.invoiceNumber}
           defaultIssueDate={invoice.issueDate.toISOString().slice(0, 10)}
           defaultDueDate={invoice.dueDate.toISOString().slice(0, 10)}
           defaultLineItems={defaultLineItems}
           defaultNotes={invoice.notes ?? ""}
           defaultClientId={invoice.clientId}
+          defaultStoreId={invoice.storeId ?? undefined}
           submitLabel="Save changes"
           backHref={`/hub/invoices/${id}`}
         />

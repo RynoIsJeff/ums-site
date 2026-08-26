@@ -261,13 +261,16 @@ model Invoice {
   createdById    String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+  storeId        String?
   client         Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   createdBy      User?             @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  store          PromoStore?       @relation(fields: [storeId], references: [id], onDelete: SetNull)
   lineItems      InvoiceLineItem[]
   allocations    PaymentAllocation[]
 
   @@index([clientId])
   @@index([status, dueDate])
+  @@index([storeId])
 }
 
 model InvoiceLineItem {
@@ -591,6 +594,7 @@ model PromoStore {
   client       Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
   socialPage   SocialPage? @relation(fields: [socialPageId], references: [id], onDelete: SetNull)
   promos       Promo[]
+  invoices     Invoice[]
 
   @@index([clientId])
 }

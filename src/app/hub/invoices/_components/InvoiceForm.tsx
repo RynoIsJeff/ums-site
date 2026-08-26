@@ -1,30 +1,33 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 
 const LINE_ROWS = 6;
 
 type LineItemDefault = { description: string; quantity: number; unitPrice: number };
 
+type StoreOption = { id: string; name: string; clientId: string };
+
 type InvoiceFormProps = {
   action: (prev: { error?: string }, formData: FormData) => Promise<{ error?: string }>;
   clients: { id: string; companyName: string }[];
+  stores: StoreOption[];
   defaultInvoiceNumber: string;
   defaultIssueDate: string;
   defaultDueDate: string;
   submitLabel: string;
   backHref: string;
-  /** Edit mode: existing line items for default values */
   defaultLineItems?: LineItemDefault[];
   defaultNotes?: string;
-  /** Pre-selected client (edit mode) */
   defaultClientId?: string;
+  defaultStoreId?: string;
 };
 
 export function InvoiceForm({
   action,
   clients,
+  stores,
   defaultInvoiceNumber,
   defaultIssueDate,
   defaultDueDate,
@@ -33,10 +36,14 @@ export function InvoiceForm({
   defaultLineItems = [],
   defaultNotes = "",
   defaultClientId,
+  defaultStoreId,
 }: InvoiceFormProps) {
   const [state, formAction] = useActionState(action, {});
+  const [selectedClientId, setSelectedClientId] = useState(defaultClientId ?? "");
   const rows = Math.max(LINE_ROWS, defaultLineItems.length || 1);
   const lineRows = Array.from({ length: rows }, (_, i) => defaultLineItems[i] ?? { description: "", quantity: 1, unitPrice: 0 });
+
+  const clientStores = stores.filter((s) => s.clientId === selectedClientId);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -55,7 +62,8 @@ export function InvoiceForm({
             id="clientId"
             name="clientId"
             required
-            defaultValue={defaultClientId}
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
             className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           >
             <option value="">Select client</option>
@@ -104,6 +112,28 @@ export function InvoiceForm({
             className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
         </div>
+
+        {/* Store — only shown when the selected client has stores */}
+        {clientStores.length > 0 && (
+          <div className="sm:col-span-2">
+            <label htmlFor="storeId" className="mb-1 block text-sm font-medium">
+              Store <span className="font-normal text-black/50">(optional — bill a specific branch)</span>
+            </label>
+            <select
+              id="storeId"
+              name="storeId"
+              defaultValue={defaultStoreId ?? ""}
+              className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            >
+              <option value="">No specific store</option>
+              {clientStores.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div>

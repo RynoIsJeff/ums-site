@@ -105,6 +105,8 @@ export async function createInvoice(
 
     const totalAmount = subtotal;
 
+    const storeId = (formData.get("storeId") as string)?.trim() || null;
+
     await prisma.invoice.create({
       data: {
         clientId,
@@ -119,6 +121,7 @@ export async function createInvoice(
         totalAmount: String(totalAmount),
         currency: "ZAR",
         notes: (formData.get("notes") as string)?.trim() || null,
+        storeId,
         createdById: user.id,
         lineItems: {
           create: items.map((i) => ({
@@ -202,6 +205,7 @@ export async function updateInvoice(
     });
 
     const totalAmount = subtotal;
+    const storeId = (formData.get("storeId") as string)?.trim() || null;
 
     await prisma.$transaction([
       prisma.invoiceLineItem.deleteMany({ where: { invoiceId } }),
@@ -216,6 +220,7 @@ export async function updateInvoice(
           vatAmount: "0",
           totalAmount: String(totalAmount),
           notes: (formData.get("notes") as string)?.trim() || null,
+          storeId,
           lineItems: {
             create: items.map((i) => ({
               description: i.description,

@@ -16,11 +16,16 @@ export default async function NewInvoicePage() {
   if (!user) return null;
 
   const scope = toAuthScope(user);
-  const [clients, nextNumber] = await Promise.all([
+  const [clients, stores, nextNumber] = await Promise.all([
     prisma.client.findMany({
       where: clientWhere(scope),
       orderBy: { companyName: "asc" },
       select: { id: true, companyName: true },
+    }),
+    prisma.promoStore.findMany({
+      where: { client: clientWhere(scope) },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, clientId: true },
     }),
     getNextInvoiceNumber(),
   ]);
@@ -45,6 +50,7 @@ export default async function NewInvoicePage() {
         <InvoiceForm
           action={createInvoice}
           clients={clients}
+          stores={stores}
           defaultInvoiceNumber={nextNumber}
           defaultIssueDate={today}
           defaultDueDate={dueDefault}
