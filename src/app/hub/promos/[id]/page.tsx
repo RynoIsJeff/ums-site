@@ -110,7 +110,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
           <Link href={`/hub/promos/${id}/edit`} className="underline">Edit to add products</Link>
         </div>
       ) : (
-        <PromoCardsSection items={cardItems} />
+        <PromoCardsSection items={cardItems} promoSlug={slugTitle} />
       )}
     </section>
   );
