@@ -8,8 +8,6 @@ const FOOTER_H = 62;
 const CONTENT_H = FLYER_H - HEADER_H - BANNER_H - FOOTER_H; // 839
 const RED = "#C8102E";
 const DARK = "#1e1e1e";
-// Thin separator colour — barely perceptible
-const SEP = "rgba(0,0,0,0.08)";
 
 function splitPrice(price: number) {
   const [w = "0", c = "00"] = price.toFixed(2).split(".");
@@ -116,7 +114,7 @@ function VariantBlock({
               justifyContent: "space-between",
               alignItems: "center",
               paddingBottom: i < variants.length - 1 ? 6 : 0,
-              borderBottom: i < variants.length - 1 ? `1px solid ${SEP}` : undefined,
+              borderBottom: i < variants.length - 1 ? "1px solid rgba(0,0,0,0.08)" : undefined,
             }}
           >
             <div style={{ fontSize: ls, fontWeight: 700, color: "#333", lineHeight: 1.25, maxWidth: "50%", overflow: "hidden" }}>
@@ -237,8 +235,8 @@ function ProductCellH({
           </div>
         )}
 
-        {/* Price block — pushed to the bottom of the cell */}
-        <div style={{ marginTop: "auto", paddingTop: 8 }}>
+        {/* Price block — sits directly below name / variant */}
+        <div style={{ marginTop: 12 }}>
           {isMulti ? (
             <VariantBlock variants={product.productVariants!} unit={unit} maxSize={maxPriceSize} />
           ) : (
@@ -323,7 +321,7 @@ function ProductCellV({
             {product.productVariant}
           </div>
         )}
-        <div style={{ marginTop: "auto", paddingTop: 4 }}>
+        <div style={{ marginTop: 8 }}>
           {isMulti ? (
             <VariantBlock variants={product.productVariants!} unit={unit} maxSize={maxPriceSize} />
           ) : (
@@ -439,21 +437,11 @@ export function A4Flyer({
               key={rowIdx}
               style={{
                 display: "flex",
-                // Centre an incomplete last row
                 justifyContent: isIncomplete ? "center" : "flex-start",
-                // Subtle horizontal rule between rows only
-                borderBottom: rowIdx < rows - 1 ? `1px solid ${SEP}` : undefined,
               }}
             >
               {rowProducts.map((product, colIdx) => (
-                // Thin vertical separator between columns — added as a right border
-                // on the wrapper, NOT on the cell, so the cell width stays exact.
-                <div
-                  key={colIdx}
-                  style={{
-                    borderRight: colIdx < rowProducts.length - 1 ? `1px solid ${SEP}` : undefined,
-                  }}
-                >
+                <div key={colIdx}>
                   {cols <= 2 ? (
                     <ProductCellH product={product} cellW={cellW} cellH={cellH} />
                   ) : (
