@@ -55,7 +55,7 @@ function PriceBlock({
 }) {
   const { whole, cents } = splitPrice(price);
   const was = wasPrice != null ? splitPrice(wasPrice) : null;
-  const ps = Math.max(24, Math.min(maxSize, 56));
+  const ps = Math.max(24, Math.min(maxSize, 90));
   const cs = Math.round(ps * 0.38);
   const us = Math.max(8, Math.round(cs * 0.72));
   const ws = Math.round(ps * 0.60);
@@ -170,16 +170,20 @@ function ProductCellH({
   const pad = 16; // info section horizontal padding (each side)
   const padV = 16; // info section vertical padding (each side)
 
-  const nameFontSize =
+  const baseNameSize =
     product.productName.length <= 10 ? 20
     : product.productName.length <= 18 ? 17
     : product.productName.length <= 28 ? 14
     : 12;
+  // Scale name font up when cells are tall; baseline reference = 170px
+  const cellScale = cellH / 170;
+  const nameFontSize = Math.min(38, Math.max(baseNameSize, Math.round(baseNameSize * cellScale)));
 
-  // Estimate space consumed by name + variant to size the price
-  const estimatedTopH = nameFontSize * 2.4 + (product.productVariant && !isMulti ? 22 : 0);
+  // Estimate lines: short names fit in 1 line, longer names wrap to 2
+  const nameLines = product.productName.length <= 12 ? 1 : 2;
+  const estimatedTopH = nameFontSize * 1.25 * nameLines + (product.productVariant && !isMulti ? 22 : 0);
   const priceAreaH = cellH - padV * 2 - estimatedTopH - 12;
-  const maxPriceSize = Math.max(26, Math.min(52, Math.floor(priceAreaH * (wasPrice ? 0.22 : 0.32))));
+  const maxPriceSize = Math.max(26, Math.min(90, Math.floor(priceAreaH * (wasPrice ? 0.24 : 0.38))));
 
   return (
     <div style={{ width: cellW, height: cellH, display: "flex", background: "#fff", overflow: "hidden" }}>
@@ -270,14 +274,17 @@ function ProductCellV({
   const infoH = cellH - imgH;
   const pad = 9;
 
-  const nameFontSize =
+  const baseNameSize =
     product.productName.length <= 12 ? 13
     : product.productName.length <= 22 ? 11
     : 9;
+  const cellScale = cellH / 170;
+  const nameFontSize = Math.min(22, Math.max(baseNameSize, Math.round(baseNameSize * cellScale)));
 
-  const estimatedTopH = nameFontSize * 2.4 + (product.productVariant && !isMulti ? 16 : 0);
+  const nameLines = product.productName.length <= 14 ? 1 : 2;
+  const estimatedTopH = nameFontSize * 1.25 * nameLines + (product.productVariant && !isMulti ? 16 : 0);
   const priceAreaH = infoH - pad * 2 - estimatedTopH - 8;
-  const maxPriceSize = Math.max(20, Math.min(34, Math.floor(priceAreaH * (wasPrice ? 0.22 : 0.34))));
+  const maxPriceSize = Math.max(20, Math.min(52, Math.floor(priceAreaH * (wasPrice ? 0.22 : 0.36))));
 
   return (
     <div style={{ width: cellW, height: cellH, display: "flex", flexDirection: "column", background: "#fff", overflow: "hidden" }}>
