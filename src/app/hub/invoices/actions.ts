@@ -13,11 +13,50 @@ const statuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"] as const;
 
 const LineItemSchema = z.object({
   description: z.string().min(1).max(500),
+  details: z.string().max(5000).nullable(),
   quantity: z
     .string()
     .transform((s) => ((Number(s) || 0) <= 0 ? 1 : Number(s))),
   unitPrice: z.string().transform((s) => Number(s) || 0),
 });
+
+/**
+ * Parse the repeated line item fields into priced rows. `details` is the
+ * optional multi-line block shown under a description — blank rows are skipped,
+ * and every row submits a details field so the indexes stay aligned.
+ */
+function readLineItems(formData: FormData) {
+  const descriptions = formData.getAll("description") as string[];
+  const detailsList = formData.getAll("details") as string[];
+  const quantities = formData.getAll("quantity") as string[];
+  const unitPrices = formData.getAll("unitPrice") as string[];
+
+  const items: {
+    description: string;
+    details: string | null;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+  }[] = [];
+  let subtotal = 0;
+
+  for (let i = 0; i < descriptions.length; i++) {
+    const desc = descriptions[i]?.trim();
+    if (!desc) continue;
+    const parsed = LineItemSchema.safeParse({
+      description: desc,
+      details: detailsList[i]?.trim() || null,
+      quantity: quantities[i] ?? "1",
+      unitPrice: unitPrices[i] ?? "0",
+    });
+    if (!parsed.success) continue;
+    const lineTotal = parsed.data.quantity * parsed.data.unitPrice;
+    subtotal += lineTotal;
+    items.push({ ...parsed.data, lineTotal });
+  }
+
+  return { items, subtotal };
+}
 
 /** Returns next invoice number in 4-digit format (e.g. 0088). Next after 0087 is 0088. */
 export async function getNextInvoiceNumber(): Promise<string> {
@@ -62,46 +101,14 @@ export async function createInvoice(
       return { error: "Valid issue and due dates required." };
     }
 
-    const descriptions = formData.getAll("description") as string[];
-    const quantities = formData.getAll("quantity") as string[];
-    const unitPrices = formData.getAll("unitPrice") as string[];
-
-    const lineItems: {
-      description: string;
-      quantity: number;
-      unitPrice: number;
-    }[] = [];
-    for (let i = 0; i < descriptions.length; i++) {
-      const desc = descriptions[i]?.trim();
-      if (!desc) continue;
-      const parsed = LineItemSchema.safeParse({
-        description: desc,
-        quantity: quantities[i] ?? "1",
-        unitPrice: unitPrices[i] ?? "0",
-      });
-      if (parsed.success) {
-        lineItems.push(parsed.data);
-      }
-    }
-    if (lineItems.length === 0)
+    const { items, subtotal } = readLineItems(formData);
+    if (items.length === 0)
       return { error: "At least one line item is required." };
 
     const existing = await prisma.invoice.findUnique({
       where: { invoiceNumber },
     });
     if (existing) return { error: "Invoice number already in use." };
-
-    let subtotal = 0;
-    const items = lineItems.map((item) => {
-      const lineTotal = item.quantity * item.unitPrice;
-      subtotal += lineTotal;
-      return {
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        lineTotal,
-      };
-    });
 
     const totalAmount = subtotal;
 
@@ -123,14 +130,7 @@ export async function createInvoice(
         notes: (formData.get("notes") as string)?.trim() || null,
         storeId,
         createdById: user.id,
-        lineItems: {
-          create: items.map((i) => ({
-            description: i.description,
-            quantity: i.quantity,
-            unitPrice: i.unitPrice,
-            lineTotal: i.lineTotal,
-          })),
-        },
+        lineItems: { create: items },
       },
     });
 
@@ -170,39 +170,9 @@ export async function updateInvoice(
       return { error: "Valid issue and due dates required." };
     }
 
-    const descriptions = formData.getAll("description") as string[];
-    const quantities = formData.getAll("quantity") as string[];
-    const unitPrices = formData.getAll("unitPrice") as string[];
-
-    const lineItems: {
-      description: string;
-      quantity: number;
-      unitPrice: number;
-    }[] = [];
-    for (let i = 0; i < descriptions.length; i++) {
-      const desc = descriptions[i]?.trim();
-      if (!desc) continue;
-      const parsed = LineItemSchema.safeParse({
-        description: desc,
-        quantity: quantities[i] ?? "1",
-        unitPrice: unitPrices[i] ?? "0",
-      });
-      if (parsed.success) lineItems.push(parsed.data);
-    }
-    if (lineItems.length === 0)
+    const { items, subtotal } = readLineItems(formData);
+    if (items.length === 0)
       return { error: "At least one line item is required." };
-
-    let subtotal = 0;
-    const items = lineItems.map((item) => {
-      const lineTotal = item.quantity * item.unitPrice;
-      subtotal += lineTotal;
-      return {
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        lineTotal,
-      };
-    });
 
     const totalAmount = subtotal;
     const storeId = (formData.get("storeId") as string)?.trim() || null;
@@ -221,14 +191,7 @@ export async function updateInvoice(
           totalAmount: String(totalAmount),
           notes: (formData.get("notes") as string)?.trim() || null,
           storeId,
-          lineItems: {
-            create: items.map((i) => ({
-              description: i.description,
-              quantity: i.quantity,
-              unitPrice: i.unitPrice,
-              lineTotal: i.lineTotal,
-            })),
-          },
+          lineItems: { create: items },
         },
       }),
     ]);
@@ -462,6 +425,7 @@ export async function duplicateInvoice(invoiceId: string): Promise<void> {
         lineItems: {
           create: src.lineItems.map((li) => ({
             description: li.description,
+            details: li.details,
             quantity: li.quantity,
             unitPrice: li.unitPrice,
             lineTotal: li.lineTotal,

@@ -12,10 +12,27 @@ export type PdfDocumentKind = "INVOICE" | "QUOTATION";
 
 export type PdfDocumentLine = {
   description: string;
+  /** Optional multi-line detail printed under the description. */
+  details?: string | null;
   quantity: unknown;
   unitPrice: unknown;
   lineTotal: unknown;
 };
+
+/** WinAnsi characters above U+00FF that the standard fonts can still encode. */
+const WIN_ANSI_EXTRAS = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+
+/**
+ * Standard PDF fonts only encode WinAnsi, and drawing anything else throws.
+ * Free-text fields (descriptions, details, client and store names) can contain
+ * an emoji or other stray glyph, so swap those out rather than fail the render.
+ */
+function sanitize(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\t/g, "  ")
+    .replace(/[^\n\x20-\xFF]/g, (c) => (WIN_ANSI_EXTRAS.includes(c) ? c : "?"));
+}
 
 export type PdfDocumentInput = {
   kind: PdfDocumentKind;
@@ -205,7 +222,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     metaY -= 14;
   };
 
-  drawMetaRow("Number:", doc.number);
+  drawMetaRow("Number:", sanitize(doc.number));
   drawMetaRow("Date:", issueDateStr);
   drawMetaRow(isQuote ? "Valid until:" : "Due date:", endDateStr);
 
@@ -230,7 +247,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
   });
 
   sectionTopY -= 16;
-  page.drawText(doc.clientName, {
+  page.drawText(sanitize(doc.clientName), {
     x: margin,
     y: sectionTopY,
     size: 11,
@@ -249,7 +266,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
       color: primaryBlue,
     });
     sectionTopY -= 14;
-    page.drawText(doc.store.name, {
+    page.drawText(sanitize(doc.store.name), {
       x: margin,
       y: sectionTopY,
       size: 11,
@@ -258,7 +275,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     });
     if (doc.store.address) {
       sectionTopY -= 13;
-      page.drawText(doc.store.address, {
+      page.drawText(sanitize(doc.store.address), {
         x: margin,
         y: sectionTopY,
         size: 10,
@@ -268,7 +285,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     }
     if (doc.store.phone) {
       sectionTopY -= 13;
-      page.drawText(doc.store.phone, {
+      page.drawText(sanitize(doc.store.phone), {
         x: margin,
         y: sectionTopY,
         size: 10,
@@ -376,7 +393,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
       return;
     }
 
-    const lines = wrapText(line.description, descWidth, 10);
+    const lines = wrapText(sanitize(line.description), descWidth, 10);
     const lineHeight = 12;
 
     // Description (wrapped, top-aligned within row)
@@ -391,8 +408,37 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
       });
     });
 
-    const rowBottomY = rowY - (lines.length - 1) * lineHeight;
+    let rowBottomY = rowY - (lines.length - 1) * lineHeight;
     const baselineY = rowY; // align numeric columns with first line of description
+
+    // Optional detail block: smaller and muted under the description, with the
+    // author's own line breaks and blank lines between paragraphs kept.
+    const details = line.details?.trim();
+    if (details) {
+      const detailSize = 9;
+      const detailLineHeight = 11;
+      let detailY = rowBottomY - detailLineHeight - 1;
+
+      for (const paragraph of sanitize(details).split("\n")) {
+        if (!paragraph.trim()) {
+          detailY -= detailLineHeight * 0.6; // blank line between paragraphs
+          continue;
+        }
+        for (const ln of wrapText(paragraph, descWidth, detailSize)) {
+          if (detailY < margin + 100) break;
+          page.drawText(ln, {
+            x: descLeft,
+            y: detailY,
+            size: detailSize,
+            font,
+            color: textMuted,
+          });
+          detailY -= detailLineHeight;
+        }
+      }
+
+      rowBottomY = detailY + detailLineHeight;
+    }
 
     const qty = toNum(line.quantity);
     const unitPrice = toNum(line.unitPrice);
@@ -513,7 +559,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     drawFooterLine("Bank: First National Bank (FNB)");
     drawFooterLine("Acc No: 63067511387");
     drawFooterLine("Branch Code: 250655");
-    drawFooterLine(`Reference: ${doc.number}`);
+    drawFooterLine(`Reference: ${sanitize(doc.number)}`);
   }
 
   return pdfDoc.save();

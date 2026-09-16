@@ -2,10 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
-
-const LINE_ROWS = 6;
-
-type LineItemDefault = { description: string; quantity: number; unitPrice: number };
+import { LineItemsFieldset, type LineItemDefault } from "./LineItemsFieldset";
 
 type StoreOption = { id: string; name: string; clientId: string };
 
@@ -40,8 +37,6 @@ export function InvoiceForm({
 }: InvoiceFormProps) {
   const [state, formAction] = useActionState(action, {});
   const [selectedClientId, setSelectedClientId] = useState(defaultClientId ?? "");
-  const rows = Math.max(LINE_ROWS, defaultLineItems.length || 1);
-  const lineRows = Array.from({ length: rows }, (_, i) => defaultLineItems[i] ?? { description: "", quantity: 1, unitPrice: 0 });
 
   const clientStores = stores;
 
@@ -146,43 +141,7 @@ export function InvoiceForm({
         )}
       </div>
 
-      <div>
-        <h3 className="text-sm font-medium">Line items</h3>
-        <p className="mt-1 text-xs text-black/60">Leave description empty to skip a row.</p>
-        <div className="mt-2 space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-black/60">
-            <div className="col-span-6">Description</div>
-            <div className="col-span-2">Qty</div>
-            <div className="col-span-3">Unit price (R)</div>
-          </div>
-          {lineRows.map((row, i) => (
-            <div key={i} className="grid grid-cols-12 gap-2">
-              <input
-                name="description"
-                placeholder="Description"
-                defaultValue={row.description}
-                className="col-span-6 rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-              <input
-                name="quantity"
-                type="text"
-                inputMode="decimal"
-                defaultValue={row.quantity}
-                placeholder="1"
-                className="col-span-2 rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-              <input
-                name="unitPrice"
-                type="text"
-                inputMode="decimal"
-                defaultValue={row.unitPrice}
-                placeholder="0"
-                className="col-span-3 rounded-md border border-black/15 px-3 py-2 text-sm"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      <LineItemsFieldset defaultLineItems={defaultLineItems} />
 
       <div>
         <label htmlFor="notes" className="mb-1 block text-sm font-medium">

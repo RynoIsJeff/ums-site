@@ -123,7 +123,14 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             <tbody>
               {quote.lineItems.map((line) => (
                 <tr key={line.id} className="border-b border-black/5">
-                  <td className="py-2">{line.description}</td>
+                  <td className="py-2">
+                    {line.description}
+                    {line.details && (
+                      <span className="mt-1 block whitespace-pre-line text-xs text-black/60">
+                        {line.details}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 text-right">{toNum(line.quantity)}</td>
                   <td className="py-2 text-right">
                     R {toNum(line.unitPrice).toLocaleString("en-ZA")}

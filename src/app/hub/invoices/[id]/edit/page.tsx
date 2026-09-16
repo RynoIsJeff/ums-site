@@ -49,6 +49,7 @@ export default async function EditInvoicePage({ params }: PageProps) {
 
   const defaultLineItems = invoice.lineItems.map((line) => ({
     description: line.description,
+    details: line.details,
     quantity: toNum(line.quantity),
     unitPrice: toNum(line.unitPrice),
   }));

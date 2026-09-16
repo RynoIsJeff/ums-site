@@ -145,7 +145,14 @@ export default async function PortalInvoicePage({ params }: PageProps) {
                 <tbody>
                   {invoice.lineItems.map((line) => (
                     <tr key={line.id} className="border-t border-slate-100">
-                      <td className="py-3 px-4">{line.description}</td>
+                      <td className="py-3 px-4">
+                        {line.description}
+                        {line.details && (
+                          <span className="mt-1 block whitespace-pre-line text-xs text-slate-500">
+                            {line.details}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3 px-4 text-right">
                         {Number(line.quantity)}
                       </td>

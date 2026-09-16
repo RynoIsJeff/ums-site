@@ -47,6 +47,7 @@ export default async function EditQuotePage({ params }: PageProps) {
 
   const defaultLineItems = quote.lineItems.map((line) => ({
     description: line.description,
+    details: line.details,
     quantity: toNum(line.quantity),
     unitPrice: toNum(line.unitPrice),
   }));

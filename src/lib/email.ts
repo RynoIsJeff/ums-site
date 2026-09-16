@@ -52,7 +52,7 @@ function buildInvoiceEmailHtml(
     .map(
       (line) => `
     <tr>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}${line.details ? `<div style="margin-top: 4px; font-size: 12px; color: #6b7280;">${escapeMultiline(line.details)}</div>` : ""}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${Number(line.quantity)}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.unitPrice), currency)}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.lineTotal), currency)}</td>
@@ -107,6 +107,11 @@ function buildInvoiceEmailHtml(
   ` : ""}
 </body>
 </html>`;
+}
+
+/** Escape for HTML, keeping the author's line breaks as <br>. */
+function escapeMultiline(s: string): string {
+  return escapeHtml(s).replace(/\r\n|\r|\n/g, "<br>");
 }
 
 function escapeHtml(s: string): string {
@@ -240,7 +245,7 @@ function buildQuoteEmailHtml(
     .map(
       (line) => `
     <tr>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}${line.details ? `<div style="margin-top: 4px; font-size: 12px; color: #6b7280;">${escapeMultiline(line.details)}</div>` : ""}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${Number(line.quantity)}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.unitPrice), currency)}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.lineTotal), currency)}</td>

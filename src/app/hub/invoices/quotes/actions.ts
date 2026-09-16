@@ -21,6 +21,7 @@ const statuses = [
 
 const LineItemSchema = z.object({
   description: z.string().min(1).max(500),
+  details: z.string().max(5000).nullable(),
   quantity: z
     .string()
     .transform((s) => ((Number(s) || 0) <= 0 ? 1 : Number(s))),
@@ -47,14 +48,20 @@ export async function getNextQuoteNumber(): Promise<string> {
   return `Q${String(maxNum + 1).padStart(4, "0")}`;
 }
 
-/** Parse the repeated description/quantity/unitPrice fields into priced line items. */
+/**
+ * Parse the repeated line item fields into priced rows. `details` is the
+ * optional multi-line block shown under a description — blank rows are skipped,
+ * and every row submits a details field so the indexes stay aligned.
+ */
 function readLineItems(formData: FormData) {
   const descriptions = formData.getAll("description") as string[];
+  const detailsList = formData.getAll("details") as string[];
   const quantities = formData.getAll("quantity") as string[];
   const unitPrices = formData.getAll("unitPrice") as string[];
 
   const items: {
     description: string;
+    details: string | null;
     quantity: number;
     unitPrice: number;
     lineTotal: number;
@@ -66,6 +73,7 @@ function readLineItems(formData: FormData) {
     if (!desc) continue;
     const parsed = LineItemSchema.safeParse({
       description: desc,
+      details: detailsList[i]?.trim() || null,
       quantity: quantities[i] ?? "1",
       unitPrice: unitPrices[i] ?? "0",
     });
@@ -360,6 +368,7 @@ export async function duplicateQuote(quoteId: string): Promise<void> {
         lineItems: {
           create: src.lineItems.map((li) => ({
             description: li.description,
+            details: li.details,
             quantity: li.quantity,
             unitPrice: li.unitPrice,
             lineTotal: li.lineTotal,
@@ -440,6 +449,7 @@ export async function convertQuoteToInvoice(
           lineItems: {
             create: quote.lineItems.map((li) => ({
               description: li.description,
+              details: li.details,
               quantity: li.quantity,
               unitPrice: li.unitPrice,
               lineTotal: li.lineTotal,

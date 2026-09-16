@@ -105,7 +105,14 @@ export default async function InvoicePrintPage({ params }: PageProps) {
           <tbody>
             {invoice.lineItems.map((line) => (
               <tr key={line.id} className="border-b border-black/10">
-                <td className="py-3">{line.description}</td>
+                <td className="py-3">
+                  {line.description}
+                  {line.details && (
+                    <span className="mt-1 block whitespace-pre-line text-xs text-black/60">
+                      {line.details}
+                    </span>
+                  )}
+                </td>
                 <td className="py-3 text-right">{Number(line.quantity)}</td>
                 <td className="py-3 text-right">
                   R {toNum(line.unitPrice).toLocaleString("en-ZA")}
