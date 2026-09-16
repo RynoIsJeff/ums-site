@@ -1,5 +1,11 @@
 import { Resend } from "resend";
-import type { Invoice, Client, InvoiceLineItem } from "@prisma/client";
+import type {
+  Invoice,
+  Client,
+  InvoiceLineItem,
+  Quote,
+  QuoteLineItem,
+} from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -8,6 +14,11 @@ const resend = process.env.RESEND_API_KEY
 type InvoiceWithRelations = Invoice & {
   client: Client;
   lineItems: InvoiceLineItem[];
+};
+
+type QuoteWithRelations = Quote & {
+  client: Client;
+  lineItems: QuoteLineItem[];
 };
 
 function formatCurrency(amount: number | string, currency = "ZAR"): string {
@@ -202,6 +213,121 @@ export async function sendInvoiceEmail(
     return { success: true };
   } catch (e) {
     console.error("[email] Failed to send invoice:", e);
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Failed to send email",
+    };
+  }
+}
+
+function buildQuoteEmailHtml(
+  quote: QuoteWithRelations,
+  companyName: string,
+  supportEmail: string | null
+): string {
+  const issueDate = quote.issueDate.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const validUntil = quote.validUntil.toLocaleDateString("en-ZA", {
+    dateStyle: "medium",
+  });
+  const total = Number(quote.totalAmount);
+  const currency = quote.currency || "ZAR";
+
+  const rows = quote.lineItems
+    .map(
+      (line) => `
+    <tr>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${Number(line.quantity)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.unitPrice), currency)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.lineTotal), currency)}</td>
+    </tr>`
+    )
+    .join("");
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #374151; max-width: 600px; margin: 0 auto; padding: 24px;">
+  <div style="margin-bottom: 24px;">
+    <p style="font-size: 18px; font-weight: 700; color: #111;">${escapeHtml(companyName || "Quotation")}</p>
+    ${supportEmail ? `<p style="font-size: 14px; color: #6b7280;">${escapeHtml(supportEmail)}</p>` : ""}
+  </div>
+  <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">Quotation ${escapeHtml(quote.quoteNumber)}</h1>
+  <p style="color: #6b7280; margin-bottom: 24px;">Date: ${issueDate} · Valid until: ${validUntil}</p>
+  <p style="margin-bottom: 16px;"><strong>For:</strong> ${escapeHtml(quote.client.companyName)}</p>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+    <thead>
+      <tr style="background: #f9fafb;">
+        <th style="padding: 8px 12px; text-align: left; font-weight: 600;">Description</th>
+        <th style="padding: 8px 12px; text-align: right; font-weight: 600;">Qty</th>
+        <th style="padding: 8px 12px; text-align: right; font-weight: 600;">Unit price</th>
+        <th style="padding: 8px 12px; text-align: right; font-weight: 600;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+    <tfoot>
+      <tr style="font-weight: 600; border-top: 2px solid #e5e7eb;">
+        <td colspan="3" style="padding: 12px;">Total</td>
+        <td style="padding: 12px; text-align: right;">${formatCurrency(total, currency)}</td>
+      </tr>
+    </tfoot>
+  </table>
+  ${quote.notes ? `<p style="color: #6b7280; font-size: 14px; margin-top: 24px;">${escapeHtml(quote.notes)}</p>` : ""}
+  <p style="margin-top: 32px; font-size: 14px; color: #6b7280;">
+    This quotation is valid until ${validUntil}. Reply to this email to accept it and we will send an invoice.
+  </p>
+</body>
+</html>`;
+}
+
+export async function sendQuoteEmail(
+  quote: QuoteWithRelations,
+  companyName: string | null,
+  supportEmail: string | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set, skipping quote email");
+    return { success: false, error: "Email not configured" };
+  }
+
+  const toEmail = quote.client.email?.trim();
+  if (!toEmail) {
+    return { success: false, error: "Client has no email address" };
+  }
+
+  const fromEmail =
+    process.env.EMAIL_FROM ||
+    supportEmail ||
+    process.env.HUB_BOOTSTRAP_EMAIL ||
+    "noreply@resend.dev";
+  const fromName = companyName || "UMS Hub";
+
+  const html = buildQuoteEmailHtml(quote, companyName || "UMS", supportEmail);
+
+  try {
+    const { error } = await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: [toEmail],
+      subject: `Quotation ${quote.quoteNumber} from ${companyName || "UMS"}`,
+      html,
+    });
+    if (error) {
+      console.error("[email] Resend error:", error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (e) {
+    console.error("[email] Failed to send quote:", e);
     return {
       success: false,
       error: e instanceof Error ? e.message : "Failed to send email",

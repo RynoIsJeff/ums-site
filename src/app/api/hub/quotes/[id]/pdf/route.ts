@@ -20,7 +20,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   const scope = toAuthScope(user);
 
-  const invoice = await prisma.invoice.findUnique({
+  const quote = await prisma.quote.findUnique({
     where: { id },
     include: {
       client: true,
@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     },
   });
 
-  if (!invoice || !canAccessClient(scope, invoice.clientId)) {
+  if (!quote || !canAccessClient(scope, quote.clientId)) {
     return new NextResponse("Not found", { status: 404 });
   }
 
@@ -38,16 +38,16 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   const asAttachment = url.searchParams.get("download") === "1";
 
   const pdfBytes = await renderDocumentPdf({
-    kind: "INVOICE",
-    number: invoice.invoiceNumber,
-    issueDate: invoice.issueDate,
-    endDate: invoice.dueDate,
-    clientName: invoice.client.companyName,
-    store: invoice.store,
-    lineItems: invoice.lineItems,
-    totalAmount: invoice.totalAmount,
+    kind: "QUOTATION",
+    number: quote.quoteNumber,
+    issueDate: quote.issueDate,
+    endDate: quote.validUntil,
+    clientName: quote.client.companyName,
+    store: quote.store,
+    lineItems: quote.lineItems,
+    totalAmount: quote.totalAmount,
   });
-  const filename = `invoice-${invoice.invoiceNumber}.pdf`;
+  const filename = `quote-${quote.quoteNumber}.pdf`;
 
   return new NextResponse(pdfBytes as unknown as BodyInit, {
     status: 200,

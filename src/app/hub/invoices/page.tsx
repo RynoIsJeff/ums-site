@@ -17,6 +17,7 @@ import {
   paramsForPagination,
 } from "@/app/hub/_lib/listParams";
 import { BulkInvoiceTable } from "./_components/BulkInvoiceActions";
+import { BillingDocTabs } from "./_components/BillingDocTabs";
 
 export const metadata = {
   title: "Invoices | UMS Hub",
@@ -124,6 +125,8 @@ export default async function HubInvoicesPage({
           </Link>
         </div>
       </div>
+
+      <BillingDocTabs active="invoices" className="mt-6" />
 
       <Suspense fallback={null}>
         <SuccessBanner

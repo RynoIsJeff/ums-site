@@ -5,6 +5,11 @@ const VARIANT_STYLES: Record<string, { bg: string; text: string }> = {
   PAID: { bg: "bg-green-50", text: "text-green-700" },
   OVERDUE: { bg: "bg-red-50", text: "text-red-700" },
   VOID: { bg: "bg-black/5", text: "text-(--hub-muted)" },
+  // Quote (DRAFT/SENT shared with Invoice)
+  ACCEPTED: { bg: "bg-green-50", text: "text-green-700" },
+  DECLINED: { bg: "bg-red-50", text: "text-red-700" },
+  EXPIRED: { bg: "bg-amber-50", text: "text-amber-700" },
+  CONVERTED: { bg: "bg-(--primary)/10", text: "text-(--primary)" },
   // Task
   TODO: { bg: "bg-black/5", text: "text-(--hub-muted)" },
   IN_PROGRESS: { bg: "bg-amber-50", text: "text-amber-700" },

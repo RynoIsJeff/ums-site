@@ -37,6 +37,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       client: { select: { id: true, companyName: true } },
       lineItems: { orderBy: { createdAt: "asc" } },
       store: { select: { id: true, name: true, address: true, phone: true } },
+      quote: { select: { id: true, quoteNumber: true } },
       allocations: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -110,6 +111,18 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             {invoice.store && <> · <span>{invoice.store.name}</span></>}
             {" · "}
             Due {invoice.dueDate.toLocaleDateString("en-ZA", { dateStyle: "medium" })}
+            {invoice.quote && (
+              <>
+                {" · "}
+                From quote{" "}
+                <Link
+                  href={`/hub/invoices/quotes/${invoice.quote.id}`}
+                  className="hover:underline"
+                >
+                  {invoice.quote.quoteNumber}
+                </Link>
+              </>
+            )}
           </p>
         </div>
         <StatusBadge status={invoice.status} size="md" />
