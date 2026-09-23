@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession, toAuthScope } from "@/lib/auth";
-import { clientIdWhere } from "@/lib/rbac";
+import { clientIdWhere, clientWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { updateStore } from "../../../actions";
 import { StoreForm } from "../../_components/StoreForm";
@@ -18,11 +18,18 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
   const store = await prisma.promoStore.findFirst({ where: { id, ...scopeWhere } });
   if (!store) notFound();
 
-  const socialPages = await prisma.socialPage.findMany({
-    where: { socialAccount: clientIdWhere(scope) },
-    select: { id: true, pageName: true },
-    orderBy: { pageName: "asc" },
-  });
+  const [socialPages, clients] = await Promise.all([
+    prisma.socialPage.findMany({
+      where: { socialAccount: clientIdWhere(scope) },
+      select: { id: true, pageName: true },
+      orderBy: { pageName: "asc" },
+    }),
+    prisma.client.findMany({
+      where: clientWhere(scope),
+      orderBy: { companyName: "asc" },
+      select: { id: true, companyName: true },
+    }),
+  ]);
 
   const boundAction = updateStore.bind(null, id);
 
@@ -39,6 +46,8 @@ export default async function EditStorePage({ params }: { params: Promise<{ id: 
       <StoreForm
         action={boundAction}
         submitLabel="Save changes"
+        clients={clients}
+        clientId={store.clientId}
         socialPages={socialPages}
         defaults={{
           name: store.name,

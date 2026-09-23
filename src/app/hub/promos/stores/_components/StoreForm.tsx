@@ -9,12 +9,21 @@ import type { StoreActionResult } from "../../actions";
 type Props = {
   action: (prev: StoreActionResult | null, formData: FormData) => Promise<StoreActionResult>;
   submitLabel: string;
+  /** Clients the store can belong to; the picker is shown when there is more than one. */
+  clients?: { id: string; companyName: string }[];
   clientId?: string;
   socialPages?: { id: string; pageName: string }[];
   defaults?: { name?: string; address?: string; phone?: string; socialPageId?: string };
 };
 
-export function StoreForm({ action, submitLabel, clientId, socialPages, defaults = {} }: Props) {
+export function StoreForm({
+  action,
+  submitLabel,
+  clients,
+  clientId,
+  socialPages,
+  defaults = {},
+}: Props) {
   const router = useRouter();
   const [state, formAction] = useActionState(action, null);
 
@@ -32,7 +41,28 @@ export function StoreForm({ action, submitLabel, clientId, socialPages, defaults
         </div>
       )}
       <form action={formAction} className="mt-6 space-y-4">
-        {clientId && <input type="hidden" name="clientId" value={clientId} />}
+        {clients && clients.length > 0 ? (
+          <div>
+            <label htmlFor="clientId" className="block text-sm font-medium">Client *</label>
+            <select
+              id="clientId"
+              name="clientId"
+              required
+              defaultValue={clientId ?? ""}
+              className="mt-1 w-full rounded-md border border-black/15 px-3 py-2 text-sm"
+            >
+              <option value="">Select client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>{c.companyName}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-(--hub-muted)">
+              Who this branch belongs to — it decides which invoices and quotes can bill it.
+            </p>
+          </div>
+        ) : (
+          clientId && <input type="hidden" name="clientId" value={clientId} />
+        )}
 
         <div>
           <label htmlFor="name" className="block text-sm font-medium">Store name *</label>

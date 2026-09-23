@@ -72,6 +72,7 @@ export async function updateStore(
   const address = (formData.get("address") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
   const socialPageId = (formData.get("socialPageId") as string)?.trim() || null;
+  const clientId = (formData.get("clientId") as string)?.trim() || null;
   if (!name) return { ok: false, error: "Name is required." };
 
   const scope = toAuthScope(user);
@@ -79,8 +80,23 @@ export async function updateStore(
   const store = await prisma.promoStore.findFirst({ where: { id, ...scopeWhere } });
   if (!store) redirect("/hub/promos/stores");
 
+  // Moving a store to another client is allowed, but only to one in scope.
+  if (clientId && clientId !== store.clientId && !canAccessClient(scope, clientId)) {
+    return { ok: false, error: "That client is not available to you." };
+  }
+
   try {
-    await prisma.promoStore.update({ where: { id }, data: { name, number, address, phone, socialPageId } });
+    await prisma.promoStore.update({
+      where: { id },
+      data: {
+        name,
+        number,
+        address,
+        phone,
+        socialPageId,
+        ...(clientId && { clientId }),
+      },
+    });
     return { ok: true };
   } catch (err) {
     console.error("[updateStore]", err);

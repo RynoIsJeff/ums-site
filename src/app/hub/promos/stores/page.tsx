@@ -22,6 +22,7 @@ export default async function PromoStoresPage() {
       name: true,
       phone: true,
       address: true,
+      client: { select: { companyName: true } },
       socialPage: { select: { pageName: true } },
       _count: { select: { promos: true } },
     },
@@ -57,10 +58,11 @@ export default async function PromoStoresPage() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-(--hub-border-light) bg-white">
-            <table className="hub-table min-w-[400px]">
+            <table className="hub-table min-w-[520px]">
               <thead>
                 <tr>
                   <th>Store name</th>
+                  <th>Client</th>
                   <th>Phone</th>
                   <th>Address</th>
                   <th>Facebook page</th>
@@ -77,6 +79,7 @@ export default async function PromoStoresPage() {
                         {s.name}
                       </span>
                     </td>
+                    <td className="text-(--hub-muted)">{s.client.companyName}</td>
                     <td className="text-(--hub-muted)">{s.phone ?? <span className="text-black/25">—</span>}</td>
                     <td className="text-(--hub-muted)">{s.address ?? <span className="text-black/25">—</span>}</td>
                     <td>

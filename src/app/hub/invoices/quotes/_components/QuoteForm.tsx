@@ -1,14 +1,15 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import {
   LineItemsFieldset,
   type LineItemDefault,
 } from "@/app/hub/invoices/_components/LineItemsFieldset";
-
-type StoreOption = { id: string; name: string; clientId: string };
+import {
+  StoreSelect,
+  type StoreOption,
+} from "@/app/hub/invoices/_components/StoreSelect";
 
 type QuoteFormProps = {
   action: (prev: { error?: string }, formData: FormData) => Promise<{ error?: string }>;
@@ -44,8 +45,6 @@ export function QuoteForm({
 }: QuoteFormProps) {
   const [state, formAction] = useActionState(action, {});
   const [selectedClientId, setSelectedClientId] = useState(defaultClientId ?? "");
-
-  const clientStores = stores.filter((s) => s.clientId === selectedClientId);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -119,34 +118,13 @@ export function QuoteForm({
 
         {/* Store — shown whenever a client is selected */}
         {selectedClientId && (
-          <div className="sm:col-span-2">
-            <label htmlFor="storeId" className="mb-1 block text-sm font-medium">
-              Store <span className="font-normal text-black/50">(optional — quote a specific branch)</span>
-            </label>
-            {clientStores.length > 0 ? (
-              <select
-                id="storeId"
-                name="storeId"
-                defaultValue={defaultStoreId ?? ""}
-                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
-              >
-                <option value="">No specific store</option>
-                {clientStores.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="py-2 text-sm text-black/50">
-                No stores set up for this client.{" "}
-                <Link href="/hub/promos/stores" className="underline hover:text-black">
-                  Add a store
-                </Link>{" "}
-                first.
-              </p>
-            )}
-          </div>
+          <StoreSelect
+            stores={stores}
+            clients={clients}
+            selectedClientId={selectedClientId}
+            defaultStoreId={defaultStoreId}
+            documentLabel="quote"
+          />
         )}
       </div>
 
