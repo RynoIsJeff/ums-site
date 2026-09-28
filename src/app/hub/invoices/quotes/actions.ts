@@ -8,7 +8,7 @@ import { canAccessClient, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { sendQuoteEmail } from "@/lib/email";
 import { getNextInvoiceNumber } from "../actions";
-import type { QuoteStatus } from "@prisma/client";
+import { Prisma, type QuoteStatus } from "@prisma/client";
 
 const statuses = [
   "DRAFT",
@@ -387,11 +387,12 @@ export async function duplicateQuote(quoteId: string): Promise<void> {
 }
 
 /**
- * Turn an accepted quote into a draft invoice: line items, amounts, store, and
- * notes carry over; the invoice gets the next invoice number, today's issue
- * date, and a due date the same number of days out as the quote's validity
- * window (30 days minimum). The quote is then marked CONVERTED and linked to
- * the invoice, so it can only ever produce one.
+ * Turn a quote into a draft invoice: line items, amounts, store, and notes
+ * carry over; the invoice gets the next invoice number, today's issue date,
+ * and a due date the same number of days out as the quote's validity window
+ * (30 days minimum). The quote is then marked CONVERTED and linked to the
+ * invoice, so it can only ever produce one. Converting counts as accepting,
+ * so a quote can be invoiced straight from draft or sent.
  */
 export async function convertQuoteToInvoice(
   quoteId: string,
@@ -410,16 +411,9 @@ export async function convertQuoteToInvoice(
     if (quote.status === "CONVERTED" || quote.convertedInvoiceId) {
       return { error: "This quote has already been converted to an invoice." };
     }
-    if (quote.status !== "ACCEPTED") {
-      return {
-        error: "Mark the quote as Accepted before creating an invoice from it.",
-      };
-    }
     if (quote.lineItems.length === 0) {
       return { error: "This quote has no line items." };
     }
-
-    const invoiceNumber = await getNextInvoiceNumber();
 
     const issueDate = new Date();
     issueDate.setHours(0, 0, 0, 0);
@@ -429,46 +423,69 @@ export async function convertQuoteToInvoice(
     const dueDate = new Date(issueDate);
     dueDate.setDate(dueDate.getDate() + Math.max(30, validityDays));
 
-    const invoice = await prisma.$transaction(async (tx) => {
-      const created = await tx.invoice.create({
-        data: {
-          clientId: quote.clientId,
-          invoiceNumber,
-          issueDate,
-          dueDate,
-          status: "DRAFT",
-          includeVat: quote.includeVat,
-          vatRate: quote.vatRate,
-          subtotalAmount: quote.subtotalAmount,
-          vatAmount: quote.vatAmount,
-          totalAmount: quote.totalAmount,
-          currency: quote.currency,
-          notes: quote.notes,
-          storeId: quote.storeId,
-          createdById: user.id,
-          lineItems: {
-            create: quote.lineItems.map((li) => ({
-              description: li.description,
-              details: li.details,
-              quantity: li.quantity,
-              unitPrice: li.unitPrice,
-              lineTotal: li.lineTotal,
-            })),
+    const createInvoice = (invoiceNumber: string) =>
+      prisma.$transaction(async (tx) => {
+        const created = await tx.invoice.create({
+          data: {
+            clientId: quote.clientId,
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            status: "DRAFT",
+            includeVat: quote.includeVat,
+            vatRate: quote.vatRate,
+            subtotalAmount: quote.subtotalAmount,
+            vatAmount: quote.vatAmount,
+            totalAmount: quote.totalAmount,
+            currency: quote.currency,
+            notes: quote.notes,
+            storeId: quote.storeId,
+            createdById: user.id,
+            lineItems: {
+              create: quote.lineItems.map((li) => ({
+                description: li.description,
+                details: li.details,
+                quantity: li.quantity,
+                unitPrice: li.unitPrice,
+                lineTotal: li.lineTotal,
+              })),
+            },
           },
-        },
+        });
+
+        await tx.quote.update({
+          where: { id: quoteId },
+          data: {
+            status: "CONVERTED",
+            convertedAt: new Date(),
+            convertedInvoiceId: created.id,
+            // Invoicing a quote is itself the acceptance.
+            ...(quote.acceptedAt ? {} : { acceptedAt: new Date() }),
+          },
+        });
+
+        return created;
       });
 
-      await tx.quote.update({
-        where: { id: quoteId },
-        data: {
-          status: "CONVERTED",
-          convertedAt: new Date(),
-          convertedInvoiceId: created.id,
-        },
-      });
-
-      return created;
-    });
+    // The number can clash — another invoice created meanwhile, or an existing
+    // one outside this user's client scope — so step forward and try again.
+    const firstNumber = parseInt(await getNextInvoiceNumber(), 10);
+    let invoice: { id: string } | null = null;
+    for (let attempt = 0; attempt < 10 && !invoice; attempt++) {
+      const invoiceNumber = String(firstNumber + attempt).padStart(4, "0");
+      try {
+        invoice = await createInvoice(invoiceNumber);
+      } catch (e) {
+        const numberTaken =
+          e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
+        if (!numberTaken) throw e;
+      }
+    }
+    if (!invoice) {
+      return {
+        error: "Could not find a free invoice number. Create the invoice manually.",
+      };
+    }
     newInvoiceId = invoice.id;
 
     revalidatePath("/hub/invoices");

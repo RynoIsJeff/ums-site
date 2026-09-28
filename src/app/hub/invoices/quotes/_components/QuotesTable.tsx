@@ -96,7 +96,9 @@ export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
                       </Link>
                     )}
                     {q.status === "DRAFT" && <MarkQuoteSentButton quoteId={q.id} />}
-                    {q.status === "ACCEPTED" && <ConvertQuoteButton quoteId={q.id} compact />}
+                    {q.status !== "CONVERTED" && (
+                      <ConvertQuoteButton quoteId={q.id} compact />
+                    )}
                     {q.status === "CONVERTED" && q.convertedInvoiceId && (
                       <Link
                         href={`/hub/invoices/${q.convertedInvoiceId}`}

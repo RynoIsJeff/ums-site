@@ -178,18 +178,18 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                 </Link>
                 <StatusBadge status={quote.convertedInvoice.status} />
               </div>
-            ) : quote.status === "ACCEPTED" ? (
+            ) : quote.lineItems.length === 0 ? (
+              <p className="mt-2 text-sm text-black/50">
+                Add a line item before invoicing this quote.
+              </p>
+            ) : (
               <div className="mt-3">
                 <ConvertQuoteButton quoteId={id} />
                 <p className="mt-2 text-xs text-black/50">
                   Copies the client, store, line items, and notes into a new draft
-                  invoice.
+                  invoice, and marks this quote accepted.
                 </p>
               </div>
-            ) : (
-              <p className="mt-2 text-sm text-black/50">
-                Mark this quote as Accepted to create an invoice from it.
-              </p>
             )}
           </div>
 
