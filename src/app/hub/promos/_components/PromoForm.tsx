@@ -26,6 +26,7 @@ type PromoFormProps = {
   submitLabel: string;
   cancelHref: string;
   clientId: string;
+  clientName?: string;
   stores: Store[];
   products: Product[];
   defaults?: {
@@ -47,6 +48,7 @@ export function PromoForm({
   submitLabel,
   cancelHref,
   clientId,
+  clientName,
   stores,
   products,
   defaults = {},
@@ -147,6 +149,7 @@ export function PromoForm({
 
         <div className="border-t border-black/10 pt-6">
           <ProductSelector
+            clientName={clientName}
             products={products}
             defaultSelected={defaults.selectedProductIds}
             defaultPriceOverrides={defaults.priceOverrides}

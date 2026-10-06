@@ -20,6 +20,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
     where: { id, ...scopeWhere },
     include: {
       items: { select: { productId: true, priceOverride: true, originalPrice: true, variants: true } },
+      client: { select: { companyName: true } },
     },
   });
   if (!promo) notFound();
@@ -76,6 +77,7 @@ export default async function EditPromoPage({ params }: { params: Promise<{ id: 
         submitLabel="Save changes"
         cancelHref={`/hub/promos/${id}`}
         clientId={promo.clientId}
+        clientName={promo.client.companyName}
         stores={stores}
         products={productsForForm}
         defaults={{

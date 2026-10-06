@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type Product = {
   id: string;
@@ -16,6 +17,8 @@ type VariantRow = { label: string; description?: string; promoPrice: string; ori
 
 type Props = {
   products: Product[];
+  /** Whose library these products come from, for the empty state. */
+  clientName?: string;
   defaultSelected?: string[];
   defaultPriceOverrides?: Record<string, string>;   // productId → promo price override
   defaultOriginalPrices?: Record<string, string>;   // productId → original (was) price
@@ -24,6 +27,7 @@ type Props = {
 
 export function ProductSelector({
   products,
+  clientName,
   defaultSelected = [],
   defaultPriceOverrides = {},
   defaultOriginalPrices = {},
@@ -148,8 +152,11 @@ export function ProductSelector({
 
       {products.length === 0 ? (
         <p className="text-sm text-(--hub-muted) py-2">
-          No products in library yet.{" "}
-          <a href="/hub/promos/products/new" className="underline">Add a product</a> first.
+          {clientName
+            ? `No products in ${clientName}'s library.`
+            : "No products in library yet."}{" "}
+          <Link href="/hub/promos/products" className="underline">Check the library</Link> — a
+          product belongs to one client, so it only shows on that client&apos;s promos.
         </p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">

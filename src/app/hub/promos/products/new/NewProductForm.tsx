@@ -7,8 +7,15 @@ import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { SaveProgress } from "@/app/hub/_components/SaveProgress";
 import { ImageUploadInput } from "../../_components/ImageUploadInput";
 import { createProduct } from "../../actions";
+import { ClientPickerField } from "../../_components/ClientPickerField";
 
-export function NewProductForm({ defaultClientId }: { defaultClientId: string }) {
+export function NewProductForm({
+  clients,
+  defaultClientId,
+}: {
+  clients: { id: string; companyName: string }[];
+  defaultClientId?: string;
+}) {
   const router = useRouter();
   const [state, formAction] = useActionState(createProduct, null);
 
@@ -26,7 +33,11 @@ export function NewProductForm({ defaultClientId }: { defaultClientId: string })
         </div>
       )}
       <form action={formAction} className="mt-6 space-y-4">
-        <input type="hidden" name="clientId" value={defaultClientId} />
+        <ClientPickerField
+          clients={clients}
+          defaultClientId={defaultClientId}
+          hint="Which client's promo library this product belongs to."
+        />
 
         <div>
           <label htmlFor="code" className="block text-sm font-medium">Product code</label>

@@ -16,7 +16,6 @@ export default async function NewProductPage() {
     orderBy: { companyName: "asc" },
     select: { id: true, companyName: true },
   });
-  const defaultClient = clients[0];
 
   return (
     <section className="py-10 max-w-lg">
@@ -29,10 +28,13 @@ export default async function NewProductPage() {
         </Link>
       </div>
 
-      {!defaultClient ? (
+      {clients.length === 0 ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
-        <NewProductForm defaultClientId={defaultClient.id} />
+        <NewProductForm
+          clients={clients}
+          defaultClientId={clients.length === 1 ? clients[0].id : undefined}
+        />
       )}
     </section>
   );

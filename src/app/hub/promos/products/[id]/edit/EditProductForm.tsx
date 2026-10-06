@@ -7,9 +7,12 @@ import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { SaveProgress } from "@/app/hub/_components/SaveProgress";
 import { ImageUploadInput } from "../../../_components/ImageUploadInput";
 import { updateProduct, type UpdateProductResult } from "../../../actions";
+import { ClientPickerField } from "../../../_components/ClientPickerField";
 
 type Props = {
   productId: string;
+  clients: { id: string; companyName: string }[];
+  defaultClientId: string;
   defaultCode: string;
   defaultName: string;
   defaultUnit: string;
@@ -20,6 +23,8 @@ type Props = {
 
 export function EditProductForm({
   productId,
+  clients,
+  defaultClientId,
   defaultCode,
   defaultName,
   defaultUnit,
@@ -45,6 +50,11 @@ export function EditProductForm({
         </div>
       )}
       <form action={formAction} className="mt-6 space-y-4">
+        <ClientPickerField
+          clients={clients}
+          defaultClientId={defaultClientId}
+          hint="Which client's promo library this product belongs to."
+        />
         <div>
           <label htmlFor="code" className="block text-sm font-medium">Product code</label>
           <input

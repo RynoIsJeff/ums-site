@@ -181,10 +181,17 @@ export async function updateProduct(
   const product = await prisma.promoProduct.findFirst({ where: { id, ...scopeWhere } });
   if (!product) redirect("/hub/promos/products");
 
+  const clientId = (formData.get("clientId") as string)?.trim() || null;
+  // Moving a product to another client is allowed, but only to one in scope.
+  if (clientId && clientId !== product.clientId && !canAccessClient(scope, clientId)) {
+    return { ok: false, error: "That client is not available to you." };
+  }
+
   try {
     await prisma.promoProduct.update({
       where: { id },
       data: {
+        ...(clientId && { clientId }),
         code,
         name,
         unit,

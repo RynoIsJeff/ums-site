@@ -4,12 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { createPromo } from "../actions";
 import { PromoForm } from "../_components/PromoForm";
+import { PromoClientSwitcher } from "../_components/PromoClientSwitcher";
 
 export const metadata = { title: "New Promo | UMS Hub" };
 
-export default async function NewPromoPage() {
+export default async function NewPromoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { user } = await getSession();
   if (!user) return null;
+
+  const { clientId: requestedClientId } = await searchParams;
 
   const scope = toAuthScope(user);
 
@@ -19,11 +26,27 @@ export default async function NewPromoPage() {
     select: { id: true, companyName: true },
   });
 
-  const firstStore = await prisma.promoStore.findFirst({
-    where: clientIdWhere(scope),
-    select: { clientId: true },
-  });
-  const defaultClient = (firstStore ? clients.find((c) => c.id === firstStore.clientId) : null) ?? clients[0];
+  // Pick the client explicitly where asked; otherwise fall back to the one
+  // whose library actually has products, then to a store's client.
+  const requested =
+    typeof requestedClientId === "string"
+      ? clients.find((c) => c.id === requestedClientId)
+      : undefined;
+  const [firstProduct, firstStore] = await Promise.all([
+    prisma.promoProduct.findFirst({
+      where: { ...clientIdWhere(scope), isActive: true },
+      select: { clientId: true },
+    }),
+    prisma.promoStore.findFirst({
+      where: clientIdWhere(scope),
+      select: { clientId: true },
+    }),
+  ]);
+  const defaultClient =
+    requested ??
+    (firstProduct ? clients.find((c) => c.id === firstProduct.clientId) : null) ??
+    (firstStore ? clients.find((c) => c.id === firstStore.clientId) : null) ??
+    clients[0];
 
   const [products, stores] = defaultClient
     ? await Promise.all([
@@ -59,15 +82,19 @@ export default async function NewPromoPage() {
       {!defaultClient ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
+        <>
+        <PromoClientSwitcher clients={clients} selectedClientId={defaultClient.id} />
         <PromoForm
           action={createPromo}
           backHref="/hub/promos"
           submitLabel="Create promo"
           cancelHref="/hub/promos"
           clientId={defaultClient.id}
+          clientName={defaultClient.companyName}
           stores={stores}
           products={productsForForm}
         />
+        </>
       )}
     </section>
   );
