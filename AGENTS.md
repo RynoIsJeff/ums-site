@@ -18,7 +18,7 @@ This is a Next.js 16 project with two parts: a **public marketing site** and an 
 
 ### Node version
 
-Requires Node >= 20 (pinned in `.nvmrc`). The VM update script handles `nvm use 20` automatically before `npm install`.
+Requires Node 24 (pinned in `.nvmrc` and `package.json` engines — Vercel discontinued Node 20). The VM update script handles `nvm use 24` automatically before `npm install`.
 
 ### Environment variables
 
