@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { getSession, toAuthScope } from "@/lib/auth";
-import { clientWhere } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
 import { NewProductForm } from "./NewProductForm";
+import { resolvePromoClientId } from "../../_lib/promoClient";
 
 export const metadata = { title: "Add Product | UMS Hub" };
 
@@ -11,11 +10,7 @@ export default async function NewProductPage() {
   if (!user) return null;
 
   const scope = toAuthScope(user);
-  const clients = await prisma.client.findMany({
-    where: clientWhere(scope),
-    orderBy: { companyName: "asc" },
-    select: { id: true, companyName: true },
-  });
+  const clientId = await resolvePromoClientId(scope);
 
   return (
     <section className="py-10 max-w-lg">
@@ -28,13 +23,10 @@ export default async function NewProductPage() {
         </Link>
       </div>
 
-      {clients.length === 0 ? (
+      {!clientId ? (
         <p className="mt-6 text-sm text-(--hub-muted)">No clients found. Add a client first.</p>
       ) : (
-        <NewProductForm
-          clients={clients}
-          defaultClientId={clients.length === 1 ? clients[0].id : undefined}
-        />
+        <NewProductForm clientId={clientId} />
       )}
     </section>
   );

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession, toAuthScope } from "@/lib/auth";
-import { clientIdWhere, clientWhere } from "@/lib/rbac";
+import { clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { EditProductForm } from "./EditProductForm";
@@ -18,12 +18,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const product = await prisma.promoProduct.findFirst({ where: { id, ...scopeWhere } });
   if (!product) notFound();
 
-  const clients = await prisma.client.findMany({
-    where: clientWhere(scope),
-    orderBy: { companyName: "asc" },
-    select: { id: true, companyName: true },
-  });
-
   return (
     <section className="py-10 max-w-lg">
       <h1 className="text-2xl font-semibold tracking-tight text-(--hub-text)">Edit product</h1>
@@ -36,8 +30,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
       <EditProductForm
         productId={id}
-        clients={clients}
-        defaultClientId={product.clientId}
+        clientId={product.clientId}
         defaultCode={product.code ?? ""}
         defaultName={product.name}
         defaultUnit={product.unit}
