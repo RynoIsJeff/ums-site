@@ -144,6 +144,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               {invoice.lineItems.map((line) => (
                 <tr key={line.id} className="border-b border-black/5">
                   <td className="py-2">
+                    {line.isCredit && (
+                      <span className="mr-2 rounded bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                        Credit
+                      </span>
+                    )}
                     {line.description}
                     {line.details && (
                       <span className="mt-1 block whitespace-pre-line text-xs text-black/60">
@@ -151,9 +156,15 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                       </span>
                     )}
                   </td>
-                  <td className="py-2 text-right">{Number(line.quantity)}</td>
-                  <td className="py-2 text-right">R {toNum(line.unitPrice).toLocaleString("en-ZA")}</td>
-                  <td className="py-2 text-right">R {toNum(line.lineTotal).toLocaleString("en-ZA")}</td>
+                  <td className="py-2 text-right">{line.isCredit ? "" : Number(line.quantity)}</td>
+                  <td className="py-2 text-right">
+                    {line.isCredit ? "" : `R ${toNum(line.unitPrice).toLocaleString("en-ZA")}`}
+                  </td>
+                  <td className={`py-2 text-right ${line.isCredit ? "text-green-700" : ""}`}>
+                    {line.isCredit
+                      ? `− R ${Math.abs(toNum(line.lineTotal)).toLocaleString("en-ZA")}`
+                      : `R ${toNum(line.lineTotal).toLocaleString("en-ZA")}`}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -113,12 +113,14 @@ export default async function InvoicePrintPage({ params }: PageProps) {
                     </span>
                   )}
                 </td>
-                <td className="py-3 text-right">{Number(line.quantity)}</td>
+                <td className="py-3 text-right">{line.isCredit ? "" : Number(line.quantity)}</td>
                 <td className="py-3 text-right">
-                  R {toNum(line.unitPrice).toLocaleString("en-ZA")}
+                  {line.isCredit ? "" : `R ${toNum(line.unitPrice).toLocaleString("en-ZA")}`}
                 </td>
                 <td className="py-3 text-right">
-                  R {toNum(line.lineTotal).toLocaleString("en-ZA")}
+                  {line.isCredit
+                    ? `− R ${Math.abs(toNum(line.lineTotal)).toLocaleString("en-ZA")}`
+                    : `R ${toNum(line.lineTotal).toLocaleString("en-ZA")}`}
                 </td>
               </tr>
             ))}

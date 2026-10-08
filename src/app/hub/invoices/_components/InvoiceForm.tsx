@@ -2,7 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
-import { LineItemsFieldset, type LineItemDefault } from "./LineItemsFieldset";
+import {
+  LineItemsFieldset,
+  type LineItemDefault,
+  type CreditLineDefault,
+} from "./LineItemsFieldset";
 import { StoreSelect, type StoreOption } from "./StoreSelect";
 
 type InvoiceFormProps = {
@@ -15,6 +19,7 @@ type InvoiceFormProps = {
   submitLabel: string;
   backHref: string;
   defaultLineItems?: LineItemDefault[];
+  defaultCredits?: CreditLineDefault[];
   defaultNotes?: string;
   defaultClientId?: string;
   defaultStoreId?: string;
@@ -30,6 +35,7 @@ export function InvoiceForm({
   submitLabel,
   backHref,
   defaultLineItems = [],
+  defaultCredits = [],
   defaultNotes = "",
   defaultClientId,
   defaultStoreId,
@@ -117,7 +123,11 @@ export function InvoiceForm({
         )}
       </div>
 
-      <LineItemsFieldset defaultLineItems={defaultLineItems} />
+      <LineItemsFieldset
+        defaultLineItems={defaultLineItems}
+        allowCredits
+        defaultCredits={defaultCredits}
+      />
 
       <div>
         <label htmlFor="notes" className="mb-1 block text-sm font-medium">

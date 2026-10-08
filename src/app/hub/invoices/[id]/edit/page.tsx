@@ -47,12 +47,21 @@ export default async function EditInvoicePage({ params }: PageProps) {
   if (!invoice || !canAccessClient(scope, invoice.clientId)) notFound();
   if (invoice.status !== "DRAFT") notFound();
 
-  const defaultLineItems = invoice.lineItems.map((line) => ({
-    description: line.description,
-    details: line.details,
-    quantity: toNum(line.quantity),
-    unitPrice: toNum(line.unitPrice),
-  }));
+  const defaultLineItems = invoice.lineItems
+    .filter((line) => !line.isCredit)
+    .map((line) => ({
+      description: line.description,
+      details: line.details,
+      quantity: toNum(line.quantity),
+      unitPrice: toNum(line.unitPrice),
+    }));
+
+  const defaultCredits = invoice.lineItems
+    .filter((line) => line.isCredit)
+    .map((line) => ({
+      description: line.description,
+      amount: Math.abs(toNum(line.lineTotal)),
+    }));
 
   const updateAction = updateInvoice.bind(null, id);
 
@@ -81,6 +90,7 @@ export default async function EditInvoicePage({ params }: PageProps) {
           defaultIssueDate={invoice.issueDate.toISOString().slice(0, 10)}
           defaultDueDate={invoice.dueDate.toISOString().slice(0, 10)}
           defaultLineItems={defaultLineItems}
+          defaultCredits={defaultCredits}
           defaultNotes={invoice.notes ?? ""}
           defaultClientId={invoice.clientId}
           defaultStoreId={invoice.storeId ?? undefined}

@@ -14,6 +14,8 @@ export type PdfDocumentLine = {
   description: string;
   /** Optional multi-line detail printed under the description. */
   details?: string | null;
+  /** Credit/discount: printed as a deduction with no quantity or unit price. */
+  isCredit?: boolean;
   quantity: unknown;
   unitPrice: unknown;
   lineTotal: unknown;
@@ -444,30 +446,35 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     const unitPrice = toNum(line.unitPrice);
     const lineTotal = toNum(line.lineTotal);
 
-    // Qty (right-aligned under QTY header)
-    const qtyText = qty.toFixed(0);
-    const qtyWidth = font.widthOfTextAtSize(qtyText, 10);
-    page.drawText(qtyText, {
-      x: qtyRight - qtyWidth,
-      y: baselineY,
-      size: 10,
-      font,
-      color: textDark,
-    });
+    // A credit has no quantity or unit price to show — just the deduction.
+    if (!line.isCredit) {
+      // Qty (right-aligned under QTY header)
+      const qtyText = qty.toFixed(0);
+      const qtyWidth = font.widthOfTextAtSize(qtyText, 10);
+      page.drawText(qtyText, {
+        x: qtyRight - qtyWidth,
+        y: baselineY,
+        size: 10,
+        font,
+        color: textDark,
+      });
 
-    // Unit price (right-aligned under UNIT PRICE header)
-    const unitText = `R ${unitPrice.toLocaleString("en-ZA")}`;
-    const unitWidth = font.widthOfTextAtSize(unitText, 10);
-    page.drawText(unitText, {
-      x: unitRight - unitWidth,
-      y: baselineY,
-      size: 10,
-      font,
-      color: textDark,
-    });
+      // Unit price (right-aligned under UNIT PRICE header)
+      const unitText = `R ${unitPrice.toLocaleString("en-ZA")}`;
+      const unitWidth = font.widthOfTextAtSize(unitText, 10);
+      page.drawText(unitText, {
+        x: unitRight - unitWidth,
+        y: baselineY,
+        size: 10,
+        font,
+        color: textDark,
+      });
+    }
 
     // Total (right-aligned under TOTAL header)
-    const totalText = `R ${lineTotal.toLocaleString("en-ZA")}`;
+    const totalText = line.isCredit
+      ? `- R ${Math.abs(lineTotal).toLocaleString("en-ZA")}`
+      : `R ${lineTotal.toLocaleString("en-ZA")}`;
     const totalWidth = font.widthOfTextAtSize(totalText, 10);
     page.drawText(totalText, {
       x: totalRight - totalWidth,

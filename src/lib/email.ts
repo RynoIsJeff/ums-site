@@ -52,10 +52,10 @@ function buildInvoiceEmailHtml(
     .map(
       (line) => `
     <tr>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(line.description)}${line.details ? `<div style="margin-top: 4px; font-size: 12px; color: #6b7280;">${escapeMultiline(line.details)}</div>` : ""}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${Number(line.quantity)}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.unitPrice), currency)}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(Number(line.lineTotal), currency)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${line.isCredit ? "Credit · " : ""}${escapeHtml(line.description)}${line.details ? `<div style="margin-top: 4px; font-size: 12px; color: #6b7280;">${escapeMultiline(line.details)}</div>` : ""}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${line.isCredit ? "" : Number(line.quantity)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${line.isCredit ? "" : formatCurrency(Number(line.unitPrice), currency)}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${line.isCredit ? `&minus; ${formatCurrency(Math.abs(Number(line.lineTotal)), currency)}` : formatCurrency(Number(line.lineTotal), currency)}</td>
     </tr>`
     )
     .join("");

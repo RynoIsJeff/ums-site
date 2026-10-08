@@ -11,6 +11,11 @@ import type { InvoiceStatus } from "@prisma/client";
 
 const statuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"] as const;
 
+const CreditSchema = z.object({
+  description: z.string().min(1).max(500),
+  amount: z.string().transform((v) => Math.abs(Number(v) || 0)),
+});
+
 const LineItemSchema = z.object({
   description: z.string().min(1).max(500),
   details: z.string().max(5000).nullable(),
@@ -36,6 +41,7 @@ function readLineItems(formData: FormData) {
     details: string | null;
     quantity: number;
     unitPrice: number;
+    isCredit: boolean;
     lineTotal: number;
   }[] = [];
   let subtotal = 0;
@@ -52,10 +58,37 @@ function readLineItems(formData: FormData) {
     if (!parsed.success) continue;
     const lineTotal = parsed.data.quantity * parsed.data.unitPrice;
     subtotal += lineTotal;
-    items.push({ ...parsed.data, lineTotal });
+    items.push({ ...parsed.data, isCredit: false, lineTotal });
   }
 
-  return { items, subtotal };
+  // Credits are typed in as positive amounts and stored negative, so they
+  // deduct from the same subtotal rather than needing their own column.
+  const creditDescriptions = formData.getAll("creditDescription") as string[];
+  const creditAmounts = formData.getAll("creditAmount") as string[];
+  let creditTotal = 0;
+
+  for (let i = 0; i < creditDescriptions.length; i++) {
+    const desc = creditDescriptions[i]?.trim();
+    if (!desc) continue;
+    const parsed = CreditSchema.safeParse({
+      description: desc,
+      amount: creditAmounts[i] ?? "0",
+    });
+    if (!parsed.success || parsed.data.amount === 0) continue;
+    const lineTotal = -parsed.data.amount;
+    subtotal += lineTotal;
+    creditTotal += parsed.data.amount;
+    items.push({
+      description: parsed.data.description,
+      details: null,
+      quantity: 1,
+      unitPrice: lineTotal,
+      isCredit: true,
+      lineTotal,
+    });
+  }
+
+  return { items, subtotal, creditTotal };
 }
 
 /** Returns next invoice number in 4-digit format (e.g. 0088). Next after 0087 is 0088. */
@@ -101,9 +134,13 @@ export async function createInvoice(
       return { error: "Valid issue and due dates required." };
     }
 
-    const { items, subtotal } = readLineItems(formData);
-    if (items.length === 0)
+    const { items, subtotal, creditTotal } = readLineItems(formData);
+    if (items.length === 0 || items.every((i) => i.isCredit))
       return { error: "At least one line item is required." };
+    if (subtotal < 0)
+      return {
+        error: `Credits (R ${creditTotal.toLocaleString("en-ZA")}) are more than the invoice total.`,
+      };
 
     const existing = await prisma.invoice.findUnique({
       where: { invoiceNumber },
@@ -170,9 +207,13 @@ export async function updateInvoice(
       return { error: "Valid issue and due dates required." };
     }
 
-    const { items, subtotal } = readLineItems(formData);
-    if (items.length === 0)
+    const { items, subtotal, creditTotal } = readLineItems(formData);
+    if (items.length === 0 || items.every((i) => i.isCredit))
       return { error: "At least one line item is required." };
+    if (subtotal < 0)
+      return {
+        error: `Credits (R ${creditTotal.toLocaleString("en-ZA")}) are more than the invoice total.`,
+      };
 
     const totalAmount = subtotal;
     const storeId = (formData.get("storeId") as string)?.trim() || null;
@@ -426,6 +467,7 @@ export async function duplicateInvoice(invoiceId: string): Promise<void> {
           create: src.lineItems.map((li) => ({
             description: li.description,
             details: li.details,
+            isCredit: li.isCredit,
             quantity: li.quantity,
             unitPrice: li.unitPrice,
             lineTotal: li.lineTotal,

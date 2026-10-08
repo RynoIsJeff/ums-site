@@ -154,13 +154,15 @@ export default async function PortalInvoicePage({ params }: PageProps) {
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        {Number(line.quantity)}
+                        {line.isCredit ? "" : Number(line.quantity)}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        R {toNum(line.unitPrice).toLocaleString("en-ZA")}
+                        {line.isCredit ? "" : `R ${toNum(line.unitPrice).toLocaleString("en-ZA")}`}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        R {toNum(line.lineTotal).toLocaleString("en-ZA")}
+                        {line.isCredit
+                          ? `− R ${Math.abs(toNum(line.lineTotal)).toLocaleString("en-ZA")}`
+                          : `R ${toNum(line.lineTotal).toLocaleString("en-ZA")}`}
                       </td>
                     </tr>
                   ))}
