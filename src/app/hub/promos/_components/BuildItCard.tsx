@@ -11,6 +11,10 @@ const FOOTER_H = 62;
 const IMG_W = 270;
 // Usable width of the text panel (card - image - left/right padding)
 const TEXT_PANEL_W = CARD_W - IMG_W - 25;
+// Inner height available to the product panel once its padding is removed
+const PANEL_INNER_H = PRODUCT_H - 13 - 11;
+// Width the price column of a variant row can use, after the label column
+const VARIANT_PRICE_W = Math.round(TEXT_PANEL_W * 0.58);
 // Helvetica Bold digit width ratio — empirically ~0.65 of font size
 const DIGIT_W_RATIO = 0.65;
 
@@ -106,30 +110,57 @@ function computeSizes(
   return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, nameSize, variantSize, variantLines, labelSize };
 }
 
+/**
+ * Size a variant row from the space it actually gets, not from guessed
+ * multipliers: the rows have to share a fixed panel, so derive the price size
+ * from the row height and cap it by the width the digits need. Anything that
+ * does not fit shrinks rather than being cut off.
+ */
 function computeMultiVariantSizes(
   variantCount: number,
   hasAnyWas: boolean,
   maxDigits: number,
-  hasAnyDescription: boolean,
+  availableHeight: number,
 ) {
-  const countScale = variantCount <= 2 ? 1.0 : variantCount === 3 ? 0.75 : 0.62;
-  const wasScale = hasAnyWas ? 0.62 : 1.0;
-  const descScale = hasAnyDescription ? 0.88 : 1.0;
-  const digitScale =
-    maxDigits <= 2 ? 1.12
-    : maxDigits === 3 ? 1.0
-    : maxDigits === 4 ? 0.88
-    : 0.77;
+  const rowGap = variantCount <= 3 ? 9 : 6;
+  const rowH = Math.max(
+    16,
+    (availableHeight - rowGap * (variantCount - 1)) / variantCount,
+  );
 
-  const nowSize = Math.round(56 * countScale * wasScale * descScale * digitScale);
-  const centsSize = Math.round(nowSize * 0.37);
-  const eachSize = Math.max(8, Math.round(nowSize * 0.18));
-  const wasSize = Math.round(nowSize * 0.70);
-  const wasCentsSize = Math.round(wasSize * 0.40);
-  const labelSize = variantCount <= 2 ? (hasAnyDescription ? 11 : 13) : (hasAnyDescription ? 9 : 11);
-  const descSize = variantCount <= 2 ? 9 : 8;
+  // WAS sits on its own line above NOW, so it takes a slice off the row.
+  const wasSize = hasAnyWas ? Math.round(Math.min(14, Math.max(8, rowH * 0.3))) : 0;
+  const wasLineH = hasAnyWas ? wasSize * 1.15 + 2 : 0;
 
-  return { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize, descSize };
+  const nowTagSize = hasAnyWas ? Math.round(Math.min(12, Math.max(8, rowH * 0.22))) : 0;
+  // Space left for the NOW figure, and the width its digits need beside the tag.
+  const byHeight = (rowH - wasLineH) * 0.92;
+  const byWidth =
+    (VARIANT_PRICE_W - (hasAnyWas ? nowTagSize * 2.6 : 0)) /
+    (0.62 * maxDigits + 0.52);
+  const nowSize = Math.max(13, Math.min(46, Math.floor(Math.min(byHeight, byWidth))));
+
+  const centsSize = Math.round(nowSize * 0.42);
+  const eachSize = Math.max(7, Math.round(nowSize * 0.22));
+  const wasCentsSize = Math.max(6, Math.round(wasSize * 0.72));
+  const labelSize = Math.round(Math.min(13, Math.max(8, rowH * 0.26)));
+  const descSize = Math.max(7, labelSize - 2);
+  // Only show the unit when the row is tall enough for it to read as a unit.
+  const showUnit = rowH >= 30;
+
+  return {
+    rowH,
+    rowGap,
+    nowSize,
+    centsSize,
+    eachSize,
+    wasSize,
+    wasCentsSize,
+    nowTagSize,
+    labelSize,
+    descSize,
+    showUnit,
+  };
 }
 
 function PriceBlock({
@@ -201,7 +232,19 @@ function VariantPriceRow({
     variant.originalPrice != null && variant.originalPrice > 0
       ? splitPrice(variant.originalPrice)
       : null;
-  const { nowSize, centsSize, eachSize, wasSize, wasCentsSize, labelSize, descSize } = sizes;
+  const {
+    rowH,
+    rowGap,
+    nowSize,
+    centsSize,
+    eachSize,
+    wasSize,
+    wasCentsSize,
+    nowTagSize,
+    labelSize,
+    descSize,
+    showUnit,
+  } = sizes;
 
   return (
     <div
@@ -209,11 +252,10 @@ function VariantPriceRow({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        flex: "1 1 0",
-        paddingBottom: isLast ? 0 : 6,
-        marginBottom: isLast ? 0 : 6,
+        height: rowH,
+        paddingBottom: isLast ? 0 : rowGap / 2,
+        marginBottom: isLast ? 0 : rowGap / 2,
         borderBottom: isLast ? undefined : "1px solid rgba(0,0,0,0.08)",
-        overflow: "hidden",
       }}
     >
       <span
@@ -221,48 +263,95 @@ function VariantPriceRow({
           fontSize: labelSize,
           fontWeight: 700,
           color: "#333",
-          lineHeight: 1.2,
+          lineHeight: 1.15,
           flexShrink: 0,
-          maxWidth: "42%",
-          overflow: "hidden",
+          maxWidth: "40%",
         }}
       >
         {variant.label}
         {variant.description && (
-          <span style={{ display: "block", fontSize: descSize, fontWeight: 400, color: "#6b7280", lineHeight: 1.3, marginTop: 1, whiteSpace: "pre-line" }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: descSize,
+              fontWeight: 400,
+              color: "#6b7280",
+              lineHeight: 1.2,
+              whiteSpace: "pre-line",
+            }}
+          >
             {variant.description}
           </span>
         )}
       </span>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
         {was && (
-          <>
-            <span style={{ fontSize: 10, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+          /* WAS on one line: tag, struck price and cents side by side. */
+          <div style={{ display: "flex", alignItems: "baseline", gap: 3, lineHeight: 1 }}>
+            <span
+              style={{
+                fontSize: Math.max(7, wasSize - 2),
+                fontWeight: 900,
+                color: "#9ca3af",
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.06em",
+              }}
+            >
               WAS
             </span>
-            <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 2 }}>
-              <span style={{ fontSize: wasSize, fontWeight: 900, color: "#999", lineHeight: 0.9, textDecoration: "line-through" }}>
-                {was.whole}
-              </span>
-              <span style={{ fontSize: wasCentsSize, fontWeight: 800, color: "#999", lineHeight: 1, textDecoration: "line-through", marginTop: 1, marginLeft: 1 }}>
-                {was.cents}
-              </span>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>
+            <span
+              style={{
+                fontSize: wasSize,
+                fontWeight: 800,
+                color: "#9ca3af",
+                textDecoration: "line-through",
+              }}
+            >
+              {was.whole}
+            </span>
+            <span
+              style={{
+                fontSize: wasCentsSize,
+                fontWeight: 800,
+                color: "#9ca3af",
+                textDecoration: "line-through",
+              }}
+            >
+              {was.cents}
+            </span>
+          </div>
+        )}
+
+        {/* NOW on one line, with the figure kept as large as the row allows. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, lineHeight: 1 }}>
+          {was && (
+            <span
+              style={{
+                fontSize: nowTagSize,
+                fontWeight: 900,
+                color: RED,
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.06em",
+              }}
+            >
               NOW
             </span>
-          </>
-        )}
-        <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
-          <span style={{ fontSize: nowSize, fontWeight: 900, color: "#111", lineHeight: 0.88 }}>
-            {now.whole}
-          </span>
-          <div style={{ display: "flex", flexDirection: "column", marginTop: Math.round(nowSize * 0.05), marginLeft: 2 }}>
-            <span style={{ fontSize: centsSize, fontWeight: 800, color: "#111", lineHeight: 1 }}>
-              {now.cents}
+          )}
+          <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
+            <span style={{ fontSize: nowSize, fontWeight: 900, color: "#111", lineHeight: 0.92 }}>
+              {now.whole}
             </span>
-            <span style={{ fontSize: eachSize, color: "#555", marginTop: 1, lineHeight: 1 }}>{unit}</span>
+            <div style={{ display: "flex", flexDirection: "column", marginLeft: 2 }}>
+              <span style={{ fontSize: centsSize, fontWeight: 800, color: "#111", lineHeight: 1 }}>
+                {now.cents}
+              </span>
+              {showUnit && (
+                <span style={{ fontSize: eachSize, color: "#555", lineHeight: 1, marginTop: 1 }}>
+                  {unit}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -341,18 +430,23 @@ export function BuildItCard({
   const wasWhole = wasPrice != null ? splitPrice(wasPrice).whole : null;
   const sizes = computeSizes(productName, productVariant, nowWhole, wasWhole);
 
+  const nameSize = isMultiVariant
+    ? (productName.length <= 14 ? 24 : productName.length <= 22 ? 21 : productName.length <= 32 ? 18 : 15)
+    : sizes.nameSize;
+
+  // The name can wrap to a second line, which is height the rows cannot have.
+  const nameCharsPerLine = Math.max(8, Math.floor(TEXT_PANEL_W / (nameSize * 0.52)));
+  const nameLines = Math.min(2, Math.max(1, Math.ceil(productName.length / nameCharsPerLine)));
+  const variantListH = PANEL_INNER_H - Math.round(nameSize * 1.12 * nameLines) - 6;
+
   const mvSizes = isMultiVariant
     ? computeMultiVariantSizes(
         productVariants.length,
         productVariants.some((v) => v.originalPrice != null && v.originalPrice > 0),
         Math.max(...productVariants.map((v) => String(Math.floor(v.promoPrice)).length)),
-        productVariants.some((v) => !!v.description),
+        variantListH,
       )
     : null;
-
-  const nameSize = isMultiVariant
-    ? (productName.length <= 14 ? 24 : productName.length <= 22 ? 21 : productName.length <= 32 ? 18 : 15)
-    : sizes.nameSize;
 
   return (
     <div
