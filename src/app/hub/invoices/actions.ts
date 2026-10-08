@@ -7,7 +7,7 @@ import { requireHubAuth } from "@/lib/auth";
 import { canAccessClient, clientIdWhere } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { sendInvoiceEmail } from "@/lib/email";
-import type { InvoiceStatus } from "@prisma/client";
+import { Prisma, type InvoiceStatus } from "@prisma/client";
 
 const statuses = ["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"] as const;
 
@@ -109,6 +109,18 @@ export async function getNextInvoiceNumber(): Promise<string> {
   return String(maxNum + 1).padStart(4, "0");
 }
 
+/**
+ * A missing column means the database is behind the deployed code — worth
+ * saying so, rather than reporting a generic failure the user cannot act on.
+ */
+function describeSaveFailure(e: unknown): string {
+  if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
+    const column = (e.meta?.column as string) ?? "a new column";
+    return `The database is missing ${column}, so this could not be saved. A pending migration needs to run (prisma migrate deploy).`;
+  }
+  return "Something went wrong.";
+}
+
 export type InvoiceFormState = { error?: string; emailError?: string };
 
 export async function createInvoice(
@@ -144,8 +156,14 @@ export async function createInvoice(
 
     const existing = await prisma.invoice.findUnique({
       where: { invoiceNumber },
+      select: { id: true },
     });
-    if (existing) return { error: "Invoice number already in use." };
+    if (existing) {
+      // Most often a resubmit after a slow save: the first one did land.
+      return {
+        error: `Invoice ${invoiceNumber} already exists — it may have been created by an earlier attempt. Check the invoice list before trying again.`,
+      };
+    }
 
     const totalAmount = subtotal;
 
@@ -175,7 +193,7 @@ export async function createInvoice(
     revalidatePath("/hub/billing");
   } catch (e) {
     console.error("[createInvoice]", e);
-    return { error: "Something went wrong." };
+    return { error: describeSaveFailure(e) };
   }
   redirect("/hub/invoices?success=invoice");
 }
@@ -242,7 +260,7 @@ export async function updateInvoice(
     revalidatePath("/hub/billing");
   } catch (e) {
     console.error("[updateInvoice]", e);
-    return { error: "Something went wrong." };
+    return { error: describeSaveFailure(e) };
   }
   redirect(`/hub/invoices/${invoiceId}`);
 }

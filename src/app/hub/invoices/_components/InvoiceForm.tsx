@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
+import Link from "next/link";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import {
   LineItemsFieldset,
@@ -8,6 +10,34 @@ import {
   type CreditLineDefault,
 } from "./LineItemsFieldset";
 import { StoreSelect, type StoreOption } from "./StoreSelect";
+
+/**
+ * Saving ends in a redirect to the invoice list, so the button keeps spinning
+ * while that page loads. If it takes long enough to look stuck, say what is
+ * happening — and warn against resubmitting, which would double up the work.
+ */
+function SlowSaveNotice() {
+  const { pending } = useFormStatus();
+  const [slowSince, setSlowSince] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => setSlowSince(Date.now()), 8000);
+    return () => clearTimeout(t);
+  }, [pending]);
+
+  if (!pending || slowSince === null) return null;
+
+  return (
+    <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+      Still saving. Don&apos;t submit again — if it does not finish, check the{" "}
+      <Link href="/hub/invoices" className="underline">
+        invoice list
+      </Link>{" "}
+      first, as this invoice may already have been created.
+    </p>
+  );
+}
 
 type InvoiceFormProps = {
   action: (prev: { error?: string }, formData: FormData) => Promise<{ error?: string }>;
@@ -141,6 +171,8 @@ export function InvoiceForm({
           className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
         />
       </div>
+
+      <SlowSaveNotice />
 
       <div className="flex flex-wrap gap-3">
         <PendingSubmitButton className="rounded-md border border-transparent bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/90">
