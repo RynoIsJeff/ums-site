@@ -5,6 +5,8 @@ const RED = "#C8102E";
 const DARK = "#1e1e1e";
 const CARD_W = 540;
 const HEADER_H = 196;
+/** Header box shape, shared with the A4 flyer so the banner matches on both. */
+export const CARD_HEADER_ASPECT = CARD_W / HEADER_H;
 const BANNER_H = 26;
 const PRODUCT_H = 256;
 const FOOTER_H = 62;
@@ -474,6 +476,8 @@ export function BuildItCard({
               // "fill" stretches to fit exactly — prevents cropping when PDF aspect ratio
               // doesn't match the header box (e.g. A4 landscape vs square card PDFs)
               objectFit: "fill",
+              // block, or the inline baseline adds a few px below the banner
+              display: "block",
             }}
           />
         ) : (

@@ -1,8 +1,10 @@
-import type { CardVariant } from "./BuildItCard";
+import { CARD_HEADER_ASPECT, type CardVariant } from "./BuildItCard";
 
 const FLYER_W = 794;
 const FLYER_H = 1123;
-const HEADER_H = 196;
+// Same shape as the promo card's header, so the banner artwork is stretched
+// identically on both — a shorter box here squashed it on the flyer only.
+const HEADER_H = Math.round(FLYER_W / CARD_HEADER_ASPECT);
 const BANNER_H = 26;
 const FOOTER_H = 62;
 const CONTENT_H = FLYER_H - HEADER_H - BANNER_H - FOOTER_H; // 839
@@ -41,71 +43,98 @@ function PhoneIcon() {
   );
 }
 
-/** Large, properly spaced price block matching BuildItCard style. */
+/**
+ * Price block sized from the room the cell actually has. WAS and NOW each sit
+ * on one line: stacking label-figure-label-figure needed four lines and the
+ * NOW figure fell off the bottom of the cell.
+ */
 function PriceBlock({
   price,
   wasPrice,
   unit,
-  maxSize,
+  availH,
+  availW,
+  maxNow,
 }: {
   price: number;
   wasPrice: number | null;
   unit: string;
-  maxSize: number;
+  availH: number;
+  availW: number;
+  maxNow: number;
 }) {
   const { whole, cents } = splitPrice(price);
   const was = wasPrice != null ? splitPrice(wasPrice) : null;
-  const ps = Math.max(24, Math.min(maxSize, 56));
-  const cs = Math.round(ps * 0.38);
-  const us = Math.max(8, Math.round(cs * 0.72));
-  const ws = Math.round(ps * 0.60);
-  const wcs = Math.round(ws * 0.40);
-  const ls = 9;
+
+  const wasSize = was ? Math.round(Math.min(22, Math.max(9, availH * 0.2))) : 0;
+  const wasLineH = was ? wasSize * 1.25 + 3 : 0;
+  const tagSize = was ? Math.round(Math.min(12, Math.max(8, availH * 0.1))) : 0;
+
+  const byHeight = (availH - wasLineH) * (was ? 0.78 : 0.7);
+  const byWidth = (availW - (was ? tagSize * 2.8 : 0)) / (0.62 * whole.length + 0.6);
+  const ps = Math.max(18, Math.min(maxNow, Math.floor(Math.min(byHeight, byWidth))));
+  const cs = Math.round(ps * 0.4);
+  const us = Math.max(7, Math.round(ps * 0.2));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {was && (
-        <>
-          <span style={{ fontSize: ls, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>WAS</span>
-          <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1, marginBottom: 4 }}>
-            <span style={{ fontSize: ws, fontWeight: 900, color: "#aaa", lineHeight: 0.9, textDecoration: "line-through" }}>{was.whole}</span>
-            <span style={{ fontSize: wcs, fontWeight: 800, color: "#aaa", textDecoration: "line-through", marginTop: 1, marginLeft: 1, lineHeight: 1 }}>{was.cents}</span>
-          </div>
-          <span style={{ fontSize: ls, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.08em", lineHeight: 1 }}>NOW</span>
-        </>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 3, lineHeight: 1 }}>
+          <span style={{ fontSize: Math.max(7, tagSize - 1), fontWeight: 900, color: "#9ca3af", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>WAS</span>
+          <span style={{ fontSize: wasSize, fontWeight: 800, color: "#9ca3af", textDecoration: "line-through" }}>{was.whole}</span>
+          <span style={{ fontSize: Math.max(6, Math.round(wasSize * 0.7)), fontWeight: 800, color: "#9ca3af", textDecoration: "line-through" }}>{was.cents}</span>
+        </div>
       )}
-      <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
-        <span style={{ fontSize: ps, fontWeight: 900, color: "#111", lineHeight: 0.88 }}>{whole}</span>
-        <div style={{ display: "flex", flexDirection: "column", marginTop: Math.round(ps * 0.05), marginLeft: 2 }}>
-          <span style={{ fontSize: cs, fontWeight: 800, color: "#111", lineHeight: 1 }}>{cents}</span>
-          <span style={{ fontSize: us, color: "#666", lineHeight: 1.2, marginTop: 2 }}>{unit}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, lineHeight: 1 }}>
+        {was && (
+          <span style={{ fontSize: tagSize, fontWeight: 900, color: RED, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>NOW</span>
+        )}
+        <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
+          <span style={{ fontSize: ps, fontWeight: 900, color: "#111", lineHeight: 0.9 }}>{whole}</span>
+          <div style={{ display: "flex", flexDirection: "column", marginLeft: 2 }}>
+            <span style={{ fontSize: cs, fontWeight: 800, color: "#111", lineHeight: 1 }}>{cents}</span>
+            <span style={{ fontSize: us, color: "#666", lineHeight: 1.1, marginTop: 1 }}>{unit}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/** Multi-variant price list. */
+/** Multi-variant price list, sized so every row fits the cell. */
 function VariantBlock({
   variants,
   unit,
-  maxSize,
+  availH,
+  availW,
+  maxNow,
 }: {
   variants: CardVariant[];
   unit: string;
-  maxSize: number;
+  availH: number;
+  availW: number;
+  maxNow: number;
 }) {
-  const ls = Math.max(9, Math.min(13, Math.round(maxSize * 0.28)));
-  const ps = Math.max(16, Math.min(maxSize, 30));
+  const hasAnyWas = variants.some((v) => v.originalPrice != null && v.originalPrice > 0);
+  const maxDigits = Math.max(...variants.map((v) => splitPrice(v.promoPrice).whole.length));
+  const rowGap = variants.length <= 3 ? 7 : 5;
+  const rowH = Math.max(14, (availH - rowGap * (variants.length - 1)) / variants.length);
+
+  const wasSize = hasAnyWas ? Math.round(Math.min(13, Math.max(8, rowH * 0.3))) : 0;
+  const wasLineH = hasAnyWas ? wasSize * 1.2 + 2 : 0;
+  const tagSize = hasAnyWas ? Math.round(Math.min(11, Math.max(7, rowH * 0.22))) : 0;
+  const byHeight = (rowH - wasLineH) * 0.9;
+  const byWidth = (availW * 0.55 - tagSize * 2.6) / (0.62 * maxDigits + 0.55);
+  const ps = Math.max(12, Math.min(maxNow, Math.floor(Math.min(byHeight, byWidth))));
   const cs = Math.round(ps * 0.42);
-  const ws = Math.round(ps * 0.75);
-  const wcs = Math.round(ws * 0.42);
+  const ls = Math.round(Math.min(12, Math.max(8, rowH * 0.26)));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {variants.map((v, i) => {
         const now = splitPrice(v.promoPrice);
         const was = v.originalPrice != null && v.originalPrice > 0 ? splitPrice(v.originalPrice) : null;
+        const isLast = i === variants.length - 1;
         return (
           <div
             key={i}
@@ -113,30 +142,40 @@ function VariantBlock({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              paddingBottom: i < variants.length - 1 ? 6 : 0,
-              borderBottom: i < variants.length - 1 ? "1px solid rgba(0,0,0,0.08)" : undefined,
+              height: rowH,
+              paddingBottom: isLast ? 0 : rowGap / 2,
+              marginBottom: isLast ? 0 : rowGap / 2,
+              borderBottom: isLast ? undefined : "1px solid rgba(0,0,0,0.08)",
             }}
           >
-            <div style={{ fontSize: ls, fontWeight: 700, color: "#333", lineHeight: 1.25, maxWidth: "50%", overflow: "hidden" }}>
+            <div style={{ fontSize: ls, fontWeight: 700, color: "#333", lineHeight: 1.15, maxWidth: "42%" }}>
               {v.label}
               {v.description && (
-                <div style={{ fontSize: Math.max(8, ls - 2), fontWeight: 400, color: "#6b7280", whiteSpace: "pre-line" as const, marginTop: 1 }}>
+                <div style={{ fontSize: Math.max(7, ls - 2), fontWeight: 400, color: "#6b7280", whiteSpace: "pre-line" as const }}>
                   {v.description}
                 </div>
               )}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
               {was && (
-                <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
-                  <span style={{ fontSize: ws, fontWeight: 900, color: "#aaa", lineHeight: 0.9, textDecoration: "line-through" }}>{was.whole}</span>
-                  <span style={{ fontSize: wcs, fontWeight: 800, color: "#aaa", textDecoration: "line-through", marginTop: 1, marginLeft: 1 }}>{was.cents}</span>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 2, lineHeight: 1 }}>
+                  <span style={{ fontSize: Math.max(6, tagSize - 1), fontWeight: 900, color: "#9ca3af", textTransform: "uppercase" as const }}>WAS</span>
+                  <span style={{ fontSize: wasSize, fontWeight: 800, color: "#9ca3af", textDecoration: "line-through" }}>{was.whole}</span>
+                  <span style={{ fontSize: Math.max(6, Math.round(wasSize * 0.7)), fontWeight: 800, color: "#9ca3af", textDecoration: "line-through" }}>{was.cents}</span>
                 </div>
               )}
-              <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
-                <span style={{ fontSize: ps, fontWeight: 900, color: "#111", lineHeight: 0.9 }}>{now.whole}</span>
-                <div style={{ display: "flex", flexDirection: "column", marginTop: Math.round(ps * 0.05), marginLeft: 1 }}>
-                  <span style={{ fontSize: cs, fontWeight: 800, color: "#111", lineHeight: 1 }}>{now.cents}</span>
-                  <span style={{ fontSize: Math.max(7, Math.round(cs * 0.7)), color: "#666", lineHeight: 1.2 }}>{unit}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 3, lineHeight: 1 }}>
+                {was && (
+                  <span style={{ fontSize: tagSize, fontWeight: 900, color: RED, textTransform: "uppercase" as const }}>NOW</span>
+                )}
+                <div style={{ display: "flex", alignItems: "flex-start", lineHeight: 1 }}>
+                  <span style={{ fontSize: ps, fontWeight: 900, color: "#111", lineHeight: 0.9 }}>{now.whole}</span>
+                  <div style={{ display: "flex", flexDirection: "column", marginLeft: 1 }}>
+                    <span style={{ fontSize: cs, fontWeight: 800, color: "#111", lineHeight: 1 }}>{now.cents}</span>
+                    {rowH >= 26 && (
+                      <span style={{ fontSize: Math.max(6, Math.round(cs * 0.68)), color: "#666", lineHeight: 1.1 }}>{unit}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -178,8 +217,8 @@ function ProductCellH({
 
   // Estimate space consumed by name + variant to size the price
   const estimatedTopH = nameFontSize * 2.4 + (product.productVariant && !isMulti ? 22 : 0);
-  const priceAreaH = cellH - padV * 2 - estimatedTopH - 12;
-  const maxPriceSize = Math.max(26, Math.min(52, Math.floor(priceAreaH * (wasPrice ? 0.22 : 0.32))));
+  const priceAreaH = Math.max(28, cellH - padV * 2 - estimatedTopH - 12);
+  const priceAreaW = Math.max(60, cellW - imageW - pad * 2);
 
   return (
     <div style={{ width: cellW, height: cellH, display: "flex", background: "#fff", overflow: "hidden" }}>
@@ -238,9 +277,22 @@ function ProductCellH({
         {/* Price block — sits directly below name / variant */}
         <div style={{ marginTop: 12 }}>
           {isMulti ? (
-            <VariantBlock variants={product.productVariants!} unit={unit} maxSize={maxPriceSize} />
+            <VariantBlock
+              variants={product.productVariants!}
+              unit={unit}
+              availH={priceAreaH}
+              availW={priceAreaW}
+              maxNow={26}
+            />
           ) : (
-            <PriceBlock price={price} wasPrice={wasPrice} unit={unit} maxSize={maxPriceSize} />
+            <PriceBlock
+              price={price}
+              wasPrice={wasPrice}
+              unit={unit}
+              availH={priceAreaH}
+              availW={priceAreaW}
+              maxNow={34}
+            />
           )}
         </div>
       </div>
@@ -276,8 +328,8 @@ function ProductCellV({
     : 9;
 
   const estimatedTopH = nameFontSize * 2.4 + (product.productVariant && !isMulti ? 16 : 0);
-  const priceAreaH = infoH - pad * 2 - estimatedTopH - 8;
-  const maxPriceSize = Math.max(20, Math.min(34, Math.floor(priceAreaH * (wasPrice ? 0.22 : 0.34))));
+  const priceAreaH = Math.max(24, infoH - pad * 2 - estimatedTopH - 8);
+  const priceAreaW = Math.max(60, cellW - (pad + 1) * 2);
 
   return (
     <div style={{ width: cellW, height: cellH, display: "flex", flexDirection: "column", background: "#fff", overflow: "hidden" }}>
@@ -323,9 +375,22 @@ function ProductCellV({
         )}
         <div style={{ marginTop: 8 }}>
           {isMulti ? (
-            <VariantBlock variants={product.productVariants!} unit={unit} maxSize={maxPriceSize} />
+            <VariantBlock
+              variants={product.productVariants!}
+              unit={unit}
+              availH={priceAreaH}
+              availW={priceAreaW}
+              maxNow={26}
+            />
           ) : (
-            <PriceBlock price={price} wasPrice={wasPrice} unit={unit} maxSize={maxPriceSize} />
+            <PriceBlock
+              price={price}
+              wasPrice={wasPrice}
+              unit={unit}
+              availH={priceAreaH}
+              availW={priceAreaW}
+              maxNow={34}
+            />
           )}
         </div>
       </div>
@@ -392,7 +457,7 @@ export function A4Flyer({
       <div style={{ width: FLYER_W, height: HEADER_H, background: "#e5e7eb", overflow: "hidden", flexShrink: 0 }}>
         {headerImageData ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={headerImageData} alt="" style={{ width: "100%", height: "100%", objectFit: "fill" }} />
+          <img src={headerImageData} alt="" style={{ width: "100%", height: "100%", objectFit: "fill", display: "block" }} />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af", fontSize: 14 }}>
             No header image
