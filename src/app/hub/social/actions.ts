@@ -22,22 +22,6 @@ const ConnectPageSchema = z.object({
   pageAccessToken: z.string().min(1, "Page access token is required"),
 });
 
-const CreatePostSchema = z
-  .object({
-    clientId: z.string().min(1),
-    socialPageIds: z.array(z.string().min(1)).min(1, "Please select at least one page"),
-    caption: z.string().min(1, "Caption is required").max(63206),
-    scheduledFor: z.string().optional(),
-    mediaUrls: z.array(z.string().url("Enter a valid media URL")).optional().default([]),
-    mediaType: z.enum(["IMAGE", "VIDEO"]).optional(),
-  })
-  .refine(
-    (data) => !data.mediaUrls?.length || data.mediaType,
-    {
-      message: "Select a media type for the media URL.",
-      path: ["mediaType"],
-    }
-  );
 
 const UpdatePostSchema = z
   .object({
@@ -308,76 +292,93 @@ export async function createPost(
 ): Promise<SocialFormState> {
   const { scope, user } = await requireHubAuth();
 
-  const pageIds = formData.getAll("socialPageIds");
-  const raw = {
-    clientId: formData.get("clientId"),
-    socialPageIds: Array.isArray(pageIds) ? pageIds.filter((id): id is string => typeof id === "string") : [],
-    caption: (formData.get("caption") as string)?.trim(),
-    scheduledFor: formData.get("scheduledFor") || undefined,
-    mediaUrls: (formData.getAll("mediaUrl") as string[]).filter(Boolean),
-    mediaType: (formData.get("mediaType") as string) || undefined,
-  };
+  const clientId = (formData.get("clientId") as string | null)?.trim() ?? "";
+  const pageIds = formData.getAll("socialPageIds").filter((id): id is string => typeof id === "string");
+  const mediaUrls = (formData.getAll("mediaUrl") as string[]).filter(Boolean);
+  const mediaType = (formData.get("mediaType") as string) || undefined;
 
-  const parsed = CreatePostSchema.safeParse(raw);
-  if (!parsed.success) {
-    const msg = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { error: msg };
+  // Support multi-entry (new PostForm) and single-entry (SchedulePostModal / legacy) formats.
+  const entryCaptions = (formData.getAll("entryCaption") as string[]).filter(Boolean);
+  const entryScheduledFors = formData.getAll("entryScheduledFor") as string[];
+
+  type PostEntry = { caption: string; scheduledFor?: string };
+  const entries: PostEntry[] =
+    entryCaptions.length > 0
+      ? entryCaptions.map((cap, i) => ({
+          caption: cap.trim(),
+          scheduledFor: (entryScheduledFors[i] as string | undefined) || undefined,
+        }))
+      : [
+          {
+            caption: ((formData.get("caption") as string | null) ?? "").trim(),
+            scheduledFor: (formData.get("scheduledFor") as string | null) || undefined,
+          },
+        ];
+
+  // Basic validation
+  if (!clientId) return { error: "Client is required." };
+  if (pageIds.length === 0) return { error: "Please select at least one page." };
+  if (entries.length === 0) return { error: "At least one post entry is required." };
+  for (const entry of entries) {
+    if (!entry.caption) return { error: "Caption is required for all posts." };
+    if (entry.caption.length > 63206) return { error: "Caption is too long (max 63 206 characters)." };
   }
+  if (mediaUrls.length > 0 && !mediaType) return { error: "Select a media type for the attached media." };
 
-  const { clientId, socialPageIds, caption, scheduledFor, mediaUrls, mediaType } = parsed.data;
   if (!canAccessClient(scope, clientId)) {
     return { error: "Access denied to this client." };
   }
 
   const pages = await prisma.socialPage.findMany({
-    where: {
-      id: { in: socialPageIds },
-      socialAccount: { clientId },
-    },
+    where: { id: { in: pageIds }, socialAccount: { clientId } },
     include: { socialAccount: { select: { clientId: true } } },
   });
 
-  if (pages.length !== socialPageIds.length) {
+  if (pages.length !== pageIds.length) {
     return { error: "One or more selected pages are invalid for this client." };
   }
 
   const publishNow = formData.get("publishNow") === "true";
-  const scheduledAt = !publishNow && scheduledFor ? parseSastDatetime(scheduledFor) : null;
-  const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
-
   const shouldCreateMedia = mediaUrls.length > 0 && !!mediaType;
 
+  // Create one post per (page × entry) combination
   const results = await Promise.all(
-    pages.map(async (page) => {
-      const post = await prisma.socialPost.create({
-        data: {
-          clientId,
-          socialPageId: page.id,
-          provider: "META",
-          status,
-          caption,
-          scheduledFor: scheduledAt,
-          createdById: user.id,
-        },
-      });
+    pages.flatMap((page) =>
+      entries.map(async (entry) => {
+        const scheduledAt =
+          !publishNow && entry.scheduledFor ? parseSastDatetime(entry.scheduledFor) : null;
+        const status = scheduledAt && scheduledAt > new Date() ? "SCHEDULED" : "DRAFT";
 
-      if (shouldCreateMedia) {
-        await prisma.socialPostMedia.createMany({
-          data: mediaUrls.map((url, i) => ({
-            socialPostId: post.id,
-            mediaType: mediaType as "IMAGE" | "VIDEO",
-            mediaUrl: url,
-            sortOrder: i,
-          })),
+        const post = await prisma.socialPost.create({
+          data: {
+            clientId,
+            socialPageId: page.id,
+            provider: "META",
+            status,
+            caption: entry.caption,
+            scheduledFor: scheduledAt,
+            createdById: user.id,
+          },
         });
-      }
 
-      if (publishNow) {
-        const result = await publishPostNow(post.id);
-        if (result.error) return `${page.pageName ?? page.id}: ${result.error}`;
-      }
-      return null;
-    })
+        if (shouldCreateMedia) {
+          await prisma.socialPostMedia.createMany({
+            data: mediaUrls.map((url, i) => ({
+              socialPostId: post.id,
+              mediaType: mediaType as "IMAGE" | "VIDEO",
+              mediaUrl: url,
+              sortOrder: i,
+            })),
+          });
+        }
+
+        if (publishNow) {
+          const result = await publishPostNow(post.id);
+          if (result.error) return `${page.pageName ?? page.id}: ${result.error}`;
+        }
+        return null;
+      })
+    )
   );
 
   const publishErrors = results.filter(Boolean) as string[];

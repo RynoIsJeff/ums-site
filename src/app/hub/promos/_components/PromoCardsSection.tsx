@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, AlertCircle, X, GripVertical } from "lucide-react";
 import { BuildItCard, type CardVariant } from "./BuildItCard";
 import { A4Flyer, type A4FlyerProduct } from "./A4Flyer";
@@ -71,7 +71,13 @@ export function PromoCardsSection({
   // --- Format / flyer state ---
   const [viewMode, setViewMode] = useState<"cards" | "flyer">("cards");
   const [flyerPages, setFlyerPages] = useState<1 | 2>(1);
-  const [productOrder, setProductOrder] = useState<string[]>(() => items.map((i) => i.id));
+  const [productOrder, setProductOrder] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(`promo-order-${promoSlug}`);
+      if (saved) return JSON.parse(saved) as string[];
+    } catch {}
+    return items.map((i) => i.id);
+  });
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const flyerRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -88,6 +94,14 @@ export function PromoCardsSection({
   const orderedItems = effectiveOrder
     .map((id) => items.find((i) => i.id === id))
     .filter(Boolean) as CardItem[];
+
+  // Persist whenever new products are discovered (appended at end)
+  useEffect(() => {
+    if (missingIds.length > 0) {
+      try { localStorage.setItem(`promo-order-${promoSlug}`, JSON.stringify(effectiveOrder)); } catch {}
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missingIds.length]);
 
   const splitIdx = Math.ceil(orderedItems.length / 2);
   const page1Items = flyerPages === 2 ? orderedItems.slice(0, splitIdx) : orderedItems;
@@ -116,10 +130,12 @@ export function PromoCardsSection({
       setDragOverIndex(null);
       return;
     }
+    const fromIdx = draggingIndex;
     setProductOrder((prev) => {
       const next = [...prev];
-      const [moved] = next.splice(draggingIndex, 1);
-      next.splice(idx, 0, moved);
+      // Swap the two positions
+      [next[fromIdx], next[idx]] = [next[idx], next[fromIdx]];
+      try { localStorage.setItem(`promo-order-${promoSlug}`, JSON.stringify(next)); } catch {}
       return next;
     });
     setDraggingIndex(null);
