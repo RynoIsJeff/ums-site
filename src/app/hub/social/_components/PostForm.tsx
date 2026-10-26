@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { MediaUploadInput } from "./MediaUploadInput";
+import { CaptionTextarea } from "./CaptionTextarea";
 
 type PageOption = {
   id: string;
@@ -247,7 +248,7 @@ export function PostForm({
                     <label className="block text-xs font-medium text-(--hub-muted) mb-1">
                       Caption *
                     </label>
-                    <textarea
+                    <CaptionTextarea
                       name="entryCaption"
                       required
                       rows={3}
@@ -265,7 +266,7 @@ export function PostForm({
         <>
           <div>
             <label htmlFor="caption" className="block text-sm font-medium">Caption *</label>
-            <textarea
+            <CaptionTextarea
               id="caption"
               name="caption"
               required

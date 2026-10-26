@@ -3,6 +3,7 @@
 import { useActionState, useCallback, useEffect, useState } from "react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import { MediaUploadInput } from "../../_components/MediaUploadInput";
+import { CaptionTextarea } from "../../_components/CaptionTextarea";
 
 const MODAL_INITIAL_STATE: { error?: string } = {};
 
@@ -206,7 +207,7 @@ export function SchedulePostModal({
             <label htmlFor="modal-caption" className="block text-sm font-medium">
               Caption *
             </label>
-            <textarea
+            <CaptionTextarea
               id="modal-caption"
               name="caption"
               required
