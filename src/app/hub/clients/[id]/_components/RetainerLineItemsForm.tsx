@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Plus, X } from "lucide-react";
 import {
   updateClientRetainerLineItems,
   type RetainerLineItemsFormState,
@@ -8,7 +9,16 @@ import {
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { RetainerInvoiceLineTemplate } from "@/lib/retainer-invoice-lines";
 
-const LINE_ROWS = 5;
+type Row = { id: string; description: string; quantity: string; unitPrice: string };
+
+function makeRow(t?: RetainerInvoiceLineTemplate): Row {
+  return {
+    id: `row-${Math.random().toString(36).slice(2)}`,
+    description: t?.description ?? "",
+    quantity: t ? String(t.quantity) : "1",
+    unitPrice: t ? String(t.unitPrice) : "",
+  };
+}
 
 type Props = {
   clientId: string;
@@ -17,16 +27,26 @@ type Props = {
 
 export function RetainerLineItemsForm({ clientId, defaultLines }: Props) {
   const bound = updateClientRetainerLineItems.bind(null, clientId);
-  const [state, formAction] = useActionState(
-    bound,
-    {} as RetainerLineItemsFormState
+  const [state, formAction] = useActionState(bound, {} as RetainerLineItemsFormState);
+
+  const [rows, setRows] = useState<Row[]>(() =>
+    defaultLines.length > 0
+      ? defaultLines.map((l) => makeRow(l))
+      : [makeRow()]
   );
 
-  const rows = Math.max(LINE_ROWS, defaultLines.length || 1);
-  const lineRows = Array.from(
-    { length: rows },
-    (_, i) => defaultLines[i] ?? { description: "", quantity: 1, unitPrice: 0 }
-  );
+  const addRow = () => setRows((prev) => [...prev, makeRow()]);
+  const removeRow = (id: string) =>
+    setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
+
+  const updateRow = (id: string, field: keyof Omit<Row, "id">, value: string) =>
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+
+  const total = rows.reduce((sum, r) => {
+    const qty = parseFloat(r.quantity) || 0;
+    const price = parseFloat(r.unitPrice) || 0;
+    return sum + qty * price;
+  }, 0);
 
   return (
     <form action={formAction} className="space-y-3">
@@ -39,44 +59,75 @@ export function RetainerLineItemsForm({ clientId, defaultLines }: Props) {
         <p className="text-sm text-emerald-700">Retainer invoice lines saved.</p>
       )}
 
-      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-(--hub-muted)">
+      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-(--hub-muted) px-1">
         <div className="col-span-6">Description</div>
         <div className="col-span-2">Qty</div>
         <div className="col-span-3">Unit price (R)</div>
       </div>
+
       <div className="space-y-2">
-        {lineRows.map((row, i) => (
-          <div key={i} className="grid grid-cols-12 gap-2">
+        {rows.map((row) => (
+          <div key={row.id} className="grid grid-cols-12 gap-2 items-center">
             <input
               name="retainerDescription"
               placeholder="e.g. Social media management"
-              defaultValue={row.description}
-              className="col-span-6 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm"
+              value={row.description}
+              onChange={(e) => updateRow(row.id, "description", e.target.value)}
+              className="col-span-6 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
             />
             <input
               name="retainerQuantity"
               type="text"
               inputMode="decimal"
-              defaultValue={row.quantity}
-              className="col-span-2 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm"
+              value={row.quantity}
+              onChange={(e) => updateRow(row.id, "quantity", e.target.value)}
+              className="col-span-2 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
             />
             <input
               name="retainerUnitPrice"
               type="text"
               inputMode="decimal"
-              defaultValue={row.unitPrice}
-              className="col-span-3 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm"
+              placeholder="0.00"
+              value={row.unitPrice}
+              onChange={(e) => updateRow(row.id, "unitPrice", e.target.value)}
+              className="col-span-3 rounded-md border border-(--hub-border-light) px-3 py-2 text-sm focus:border-(--primary) focus:outline-none focus:ring-1 focus:ring-(--primary)"
             />
+            <button
+              type="button"
+              onClick={() => removeRow(row.id)}
+              disabled={rows.length === 1}
+              className="col-span-1 flex items-center justify-center rounded-md p-2 text-black/40 hover:text-red-500 disabled:opacity-20"
+              aria-label="Remove line"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         ))}
       </div>
+
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={addRow}
+          className="inline-flex items-center gap-1.5 rounded-md border border-(--hub-border-light) px-3 py-1.5 text-sm font-medium hover:bg-black/5"
+        >
+          <Plus className="h-4 w-4" />
+          Add line
+        </button>
+        {total > 0 && (
+          <p className="text-sm font-medium">
+            Total: R {total.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        )}
+      </div>
+
       <p className="text-xs text-(--hub-muted)">
-        Leave descriptions empty to skip a row. If all rows are empty, automated retainer
-        invoices use a single line from the retainer amount. If you add lines here, the
-        monthly (or quarterly/annual) cron invoice uses these lines and their totals.
+        Leave all descriptions empty to use the retainer amount as a single line. If any lines
+        are filled, recurring invoices are built from these lines.
       </p>
+
       <PendingSubmitButton className="rounded-md border border-transparent bg-(--primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-95">
-        Save retainer invoice lines
+        Save invoice lines
       </PendingSubmitButton>
     </form>
   );

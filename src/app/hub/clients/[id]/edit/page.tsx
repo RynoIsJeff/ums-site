@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { ClientForm } from "../../_components/ClientForm";
 import { updateClient } from "../../actions";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
+import { RetainerLineItemsForm } from "../_components/RetainerLineItemsForm";
+import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -82,6 +84,19 @@ export default async function EditClientPage({ params }: PageProps) {
           submitLabel="Save changes"
           backHref={`/hub/clients/${client.id}`}
         />
+      </div>
+
+      <div className="mt-6 rounded-xl border border-black/10 bg-white p-6">
+        <h2 className="text-base font-semibold">Retainer invoice line items</h2>
+        <p className="mt-1 text-sm text-black/60 max-w-2xl">
+          These lines are used when generating recurring retainer invoices automatically. Leave all descriptions empty to fall back to a single line using the retainer amount above.
+        </p>
+        <div className="mt-4">
+          <RetainerLineItemsForm
+            clientId={client.id}
+            defaultLines={normalizeRetainerLineItemsJson(client.retainerLineItems)}
+          />
+        </div>
       </div>
     </section>
   );
