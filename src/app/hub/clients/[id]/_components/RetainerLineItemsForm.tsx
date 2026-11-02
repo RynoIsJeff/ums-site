@@ -114,11 +114,9 @@ export function RetainerLineItemsForm({ clientId, defaultLines }: Props) {
           <Plus className="h-4 w-4" />
           Add line
         </button>
-        {total > 0 && (
-          <p className="text-sm font-medium">
-            Total: R {total.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-        )}
+        <p className="text-sm font-medium">
+          Retainer total: R {total.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </p>
       </div>
 
       <p className="text-xs text-(--hub-muted)">
