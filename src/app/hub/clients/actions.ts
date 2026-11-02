@@ -55,6 +55,7 @@ export async function createClient(
       email: raw.email || undefined,
       startDate: raw.startDate || undefined,
       renewalDate: raw.renewalDate || undefined,
+      billingFrequency: raw.billingFrequency || undefined,
       retainerAmount: raw.retainerAmount || undefined,
     });
 
@@ -112,6 +113,7 @@ export async function updateClient(
       email: raw.email || undefined,
       startDate: raw.startDate || undefined,
       renewalDate: raw.renewalDate || undefined,
+      billingFrequency: raw.billingFrequency || undefined,
       retainerAmount: raw.retainerAmount || undefined,
     });
 
