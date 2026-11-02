@@ -105,15 +105,17 @@ export async function resetRetainerInvoices(
         select: { issueDate: true },
       });
 
-      const baseDate = lastInvoice
-        ? new Date(lastInvoice.issueDate)
-        : client.renewalDate
-          ? new Date(client.renewalDate)
-          : now;
-      const nextIssue = addMonths(startOfMonth(baseDate), monthsPerInvoice);
+      // For new clients with no invoices, issue for the current month immediately.
+      const issueDate = lastInvoice
+        ? (() => {
+            const baseDate = new Date(lastInvoice.issueDate);
+            const nextIssue = addMonths(startOfMonth(baseDate), monthsPerInvoice);
+            return nextIssue.getTime() <= today.getTime() ? nextIssue : null;
+          })()
+        : today;
 
-      if (nextIssue.getTime() <= today.getTime()) {
-        const dueDate = addMonths(nextIssue, 1);
+      if (issueDate) {
+        const dueDate = addMonths(issueDate, 1);
         const invoiceNumber = await getNextNum(prefix);
 
         const lineCreates =
@@ -140,7 +142,7 @@ export async function resetRetainerInvoices(
           data: {
             clientId: client.id,
             invoiceNumber,
-            issueDate: nextIssue,
+            issueDate: issueDate,
             dueDate,
             status: "DRAFT",
             includeVat: false,
