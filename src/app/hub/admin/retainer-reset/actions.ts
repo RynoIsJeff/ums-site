@@ -11,11 +11,10 @@ function parseInvoiceNum(invoiceNumber: string, prefix: string): number {
   return m ? parseInt(m[1], 10) : -1;
 }
 
-async function getNextNum(prefix: string, afterDelete: Set<string>): Promise<string> {
+async function getNextNum(prefix: string): Promise<string> {
   const all = await prisma.invoice.findMany({ select: { invoiceNumber: true } });
   let maxNum = 87;
   for (const inv of all) {
-    if (afterDelete.has(inv.invoiceNumber)) continue;
     const n = parseInvoiceNum(inv.invoiceNumber, prefix);
     if (n > maxNum) maxNum = n;
   }
@@ -59,7 +58,6 @@ export async function resetRetainerInvoices(
     });
 
     const deletedNumbers = toDelete.map((i) => i.invoiceNumber);
-    const deleteSet = new Set(deletedNumbers);
 
     if (toDelete.length > 0) {
       await prisma.invoice.deleteMany({
@@ -116,7 +114,7 @@ export async function resetRetainerInvoices(
 
       if (nextIssue.getTime() <= today.getTime()) {
         const dueDate = addMonths(nextIssue, 1);
-        const invoiceNumber = await getNextNum(prefix, new Set(created.concat([...deleteSet])));
+        const invoiceNumber = await getNextNum(prefix);
 
         const lineCreates =
           templates.length > 0
