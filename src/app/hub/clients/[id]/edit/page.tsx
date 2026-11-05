@@ -8,7 +8,7 @@ import { ClientForm } from "../../_components/ClientForm";
 import { updateClient } from "../../actions";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { RetainerLineItemsForm } from "../_components/RetainerLineItemsForm";
-import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
+import { normalizeRetainerGroups } from "@/lib/retainer-invoice-lines";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -94,7 +94,7 @@ export default async function EditClientPage({ params }: PageProps) {
         <div className="mt-4">
           <RetainerLineItemsForm
             clientId={client.id}
-            defaultLines={normalizeRetainerLineItemsJson(client.retainerLineItems)}
+            defaultGroups={normalizeRetainerGroups(client.retainerLineItems)}
           />
         </div>
       </div>

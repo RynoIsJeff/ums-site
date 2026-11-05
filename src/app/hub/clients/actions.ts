@@ -156,15 +156,9 @@ export async function updateClient(
   redirect(`/hub/clients/${clientId}`);
 }
 
-const RetainerLineItemSchema = z.object({
-  description: z.string().min(1).max(500),
-  quantity: z.string().transform((s) => ((Number(s) || 0) <= 0 ? 1 : Number(s))),
-  unitPrice: z.string().transform((s) => Number(s) || 0),
-});
-
 export type RetainerLineItemsFormState = { error?: string; ok?: boolean };
 
-/** Line items copied onto each recurring retainer invoice when the cron runs (optional). */
+/** Save multi-group retainer invoice templates for a client. */
 export async function updateClientRetainerLineItems(
   clientId: string,
   _prev: RetainerLineItemsFormState,
@@ -176,33 +170,50 @@ export async function updateClientRetainerLineItems(
       return { error: "You do not have access to this client." };
     }
 
-    const descriptions = formData.getAll("retainerDescription") as string[];
-    const quantities = formData.getAll("retainerQuantity") as string[];
-    const unitPrices = formData.getAll("retainerUnitPrice") as string[];
+    const raw = formData.get("retainerGroupsJson");
+    if (typeof raw !== "string") return { error: "Invalid submission." };
 
-    const lineItems: { description: string; quantity: number; unitPrice: number }[] = [];
-    for (let i = 0; i < descriptions.length; i++) {
-      const desc = descriptions[i]?.trim();
-      if (!desc) continue;
-      const parsed = RetainerLineItemSchema.safeParse({
-        description: desc,
-        quantity: quantities[i] ?? "1",
-        unitPrice: unitPrices[i] ?? "0",
-      });
-      if (parsed.success) lineItems.push(parsed.data);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return { error: "Invalid JSON payload." };
+    }
+
+    if (!Array.isArray(parsed)) return { error: "Invalid format." };
+
+    // Validate and clean each group
+    type SavedLine = { description: string; quantity: number; unitPrice: number };
+    type SavedGroup = { name: string; lines: SavedLine[] };
+    const groups: SavedGroup[] = [];
+
+    for (const g of parsed) {
+      if (!g || typeof g !== "object") continue;
+      const o = g as Record<string, unknown>;
+      const name = typeof o.name === "string" ? o.name.trim().slice(0, 200) : "";
+      const lines: SavedLine[] = [];
+      if (Array.isArray(o.lines)) {
+        for (const l of o.lines) {
+          if (!l || typeof l !== "object") continue;
+          const lo = l as Record<string, unknown>;
+          const desc = typeof lo.description === "string" ? lo.description.trim() : "";
+          if (!desc) continue;
+          const qty = Number(lo.quantity);
+          const price = Number(lo.unitPrice);
+          lines.push({
+            description: desc.slice(0, 500),
+            quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
+            unitPrice: Number.isFinite(price) && price >= 0 ? price : 0,
+          });
+        }
+      }
+      if (lines.length > 0) groups.push({ name, lines });
     }
 
     await prisma.client.update({
       where: { id: clientId },
       data: {
-        retainerLineItems:
-          lineItems.length > 0
-            ? lineItems.map((r) => ({
-                description: r.description,
-                quantity: r.quantity,
-                unitPrice: r.unitPrice,
-              }))
-            : Prisma.DbNull,
+        retainerLineItems: groups.length > 0 ? groups : Prisma.DbNull,
       },
     });
 

@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { ClientTabs } from "./_components/ClientTabs";
 import { DeleteClientButton } from "./_components/DeleteClientButton";
 import { RetainerLineItemsForm } from "./_components/RetainerLineItemsForm";
-import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
+import { normalizeRetainerGroups } from "@/lib/retainer-invoice-lines";
 import { Breadcrumbs } from "@/app/hub/_components/Breadcrumbs";
 import { StatusBadge } from "@/app/hub/_components/StatusBadge";
 import { toNum } from "@/lib/utils";
@@ -71,7 +71,7 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
 
   if (!client) notFound();
 
-  const retainerLineTemplates = normalizeRetainerLineItemsJson(client.retainerLineItems);
+  const retainerLineTemplates = normalizeRetainerGroups(client.retainerLineItems);
 
   const outstandingTotal = clientInvoices
     .filter((inv) => inv.status === "SENT" || inv.status === "OVERDUE")
@@ -297,7 +297,7 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
                 <div className="mt-4">
                   <RetainerLineItemsForm
                     clientId={client.id}
-                    defaultLines={retainerLineTemplates}
+                    defaultGroups={retainerLineTemplates}
                   />
                 </div>
               </div>

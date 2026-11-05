@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireHubAuth } from "@/lib/auth";
 import { Prisma, type BillingFrequency } from "@prisma/client";
-import { normalizeRetainerLineItemsJson } from "@/lib/retainer-invoice-lines";
+import { normalizeRetainerGroups } from "@/lib/retainer-invoice-lines";
 
 function parseInvoiceNum(invoiceNumber: string, prefix: string): number {
   const s = prefix ? invoiceNumber.replace(prefix, "") : invoiceNumber;
@@ -93,9 +93,9 @@ export async function resetRetainerInvoices(
       const freq = client.billingFrequency as BillingFrequency;
       if (!freq) continue;
 
-      const templates = normalizeRetainerLineItemsJson(client.retainerLineItems);
+      const groups = normalizeRetainerGroups(client.retainerLineItems);
       const amount = client.retainerAmount != null ? Number(client.retainerAmount) : 0;
-      if (templates.length === 0 && amount <= 0) continue;
+      if (groups.length === 0 && amount <= 0) continue;
 
       const monthsPerInvoice = freq === "MONTHLY" ? 1 : freq === "QUARTERLY" ? 3 : 12;
 
@@ -105,7 +105,7 @@ export async function resetRetainerInvoices(
         select: { issueDate: true },
       });
 
-      // For new clients with no invoices, issue for the current month immediately.
+      // New clients with no invoices get one for the current month immediately.
       const issueDate = lastInvoice
         ? (() => {
             const baseDate = new Date(lastInvoice.issueDate);
@@ -116,45 +116,52 @@ export async function resetRetainerInvoices(
 
       if (issueDate) {
         const dueDate = addMonths(issueDate, 1);
-        const invoiceNumber = await getNextNum(prefix);
 
-        const lineCreates =
-          templates.length > 0
-            ? templates.map((t) => ({
-                description: t.description,
-                quantity: t.quantity,
-                unitPrice: t.unitPrice,
-                lineTotal: t.quantity * t.unitPrice,
-              }))
+        const invoiceGroups =
+          groups.length > 0
+            ? groups
             : [
                 {
-                  description: `Retainer - ${client.companyName} (${freq})`,
-                  quantity: 1,
-                  unitPrice: amount,
-                  lineTotal: amount,
+                  name: "",
+                  lines: [
+                    {
+                      description: `Retainer - ${client.companyName} (${freq})`,
+                      quantity: 1,
+                      unitPrice: amount,
+                    },
+                  ],
                 },
               ];
 
-        const subtotal = lineCreates.reduce((s, l) => s + l.lineTotal, 0);
-        if (subtotal <= 0) continue;
+        for (const group of invoiceGroups) {
+          const lineCreates = group.lines.map((t) => ({
+            description: t.description,
+            quantity: t.quantity,
+            unitPrice: t.unitPrice,
+            lineTotal: t.quantity * t.unitPrice,
+          }));
+          const subtotal = lineCreates.reduce((s, l) => s + l.lineTotal, 0);
+          if (subtotal <= 0) continue;
 
-        await prisma.invoice.create({
-          data: {
-            clientId: client.id,
-            invoiceNumber,
-            issueDate: issueDate,
-            dueDate,
-            status: "DRAFT",
-            includeVat: false,
-            vatRate: 0,
-            subtotalAmount: String(subtotal),
-            vatAmount: "0",
-            totalAmount: String(subtotal),
-            currency: "ZAR",
-            lineItems: { create: lineCreates },
-          },
-        });
-        created.push(invoiceNumber);
+          const invoiceNumber = await getNextNum(prefix);
+          await prisma.invoice.create({
+            data: {
+              clientId: client.id,
+              invoiceNumber,
+              issueDate,
+              dueDate,
+              status: "DRAFT",
+              includeVat: false,
+              vatRate: 0,
+              subtotalAmount: String(subtotal),
+              vatAmount: "0",
+              totalAmount: String(subtotal),
+              currency: "ZAR",
+              lineItems: { create: lineCreates },
+            },
+          });
+          created.push(invoiceNumber);
+        }
       }
     }
 
