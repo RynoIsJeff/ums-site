@@ -64,7 +64,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
   });
 
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage();
+  let page = pdfDoc.addPage();
   const { width, height } = page.getSize();
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -388,11 +388,29 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
 
   let rowY = headerTextY - 18;
 
+  const startNewPage = () => {
+    page = pdfDoc.addPage();
+    page.drawRectangle({
+      x: tableLeftX,
+      y: height - margin - headerHeight,
+      width: tableRightX - tableLeftX,
+      height: headerHeight,
+      color: primaryBlue,
+    });
+    const newHdrY = height - margin - headerHeight + 5;
+    page.drawText("DESCRIPTION", { x: descLeft, y: newHdrY, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+    const qhw = fontBold.widthOfTextAtSize("QTY", 10);
+    page.drawText("QTY", { x: qtyRight - qhw, y: newHdrY, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+    const uhw = fontBold.widthOfTextAtSize("UNIT PRICE", 10);
+    page.drawText("UNIT PRICE", { x: unitRight - uhw, y: newHdrY, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+    const thw = fontBold.widthOfTextAtSize("TOTAL", 10);
+    page.drawText("TOTAL", { x: totalRight - thw, y: newHdrY, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+    rowY = newHdrY - 18;
+  };
+
   doc.lineItems.forEach((line) => {
-    if (rowY < margin + 100) {
-      // In this version, we assume documents fit on one page;
-      // add basic guard to avoid overlapping footer.
-      return;
+    if (rowY < margin + 150) {
+      startNewPage();
     }
 
     const lines = wrapText(sanitize(line.description), descWidth, 10);
@@ -489,6 +507,12 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
   });
 
   // --- TOTALS BOX (single total) ---
+
+  // If not enough room for totals + footer on the current page, start a fresh one.
+  if (rowY < margin + 190) {
+    page = pdfDoc.addPage();
+    rowY = height - margin;
+  }
 
   const totalsTopY = rowY - 10;
   const totalsWidth = 260;
