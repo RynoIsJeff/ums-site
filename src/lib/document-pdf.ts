@@ -449,7 +449,7 @@ export async function renderDocumentPdf(doc: PdfDocumentInput): Promise<Uint8Arr
     // A credit has no quantity or unit price to show — just the deduction.
     if (!line.isCredit) {
       // Qty (right-aligned under QTY header)
-      const qtyText = qty.toFixed(0);
+      const qtyText = qty % 1 === 0 ? qty.toFixed(0) : qty.toLocaleString("en-ZA", { maximumFractionDigits: 4 });
       const qtyWidth = font.widthOfTextAtSize(qtyText, 10);
       page.drawText(qtyText, {
         x: qtyRight - qtyWidth,
