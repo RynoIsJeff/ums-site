@@ -156,7 +156,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                       </span>
                     )}
                   </td>
-                  <td className="py-2 text-right">{line.isCredit ? "" : Number(line.quantity)}</td>
+                  <td className="py-2 text-right whitespace-nowrap">{line.isCredit ? "" : toNum(line.quantity).toLocaleString("en-ZA", { maximumFractionDigits: 4 })}</td>
                   <td className="py-2 text-right">
                     {line.isCredit ? "" : `R ${toNum(line.unitPrice).toLocaleString("en-ZA")}`}
                   </td>
