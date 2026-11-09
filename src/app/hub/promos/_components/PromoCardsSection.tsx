@@ -237,64 +237,59 @@ export function PromoCardsSection({
   }
 
   // --- WhatsApp share ---
-  // navigator.share({ files }) must be called synchronously within a click
-  // handler — if we await image capture first, the browser's user-activation
-  // window expires and the share is denied. Solution: two-tap flow.
-  //   Tap 1 → capture all cards into waFilesRef (async, slow).
-  //   Tap 2 → call navigator.share() synchronously before any await.
-  async function handleShareWhatsApp() {
+  // navigator.share({ files }) requires a synchronous user gesture. We use a
+  // two-tap flow: tap 1 prepares images asynchronously; tap 2 calls share()
+  // from a plain (non-async) event handler so activation is never expired.
+  function handleShareWhatsApp() {
     setShareWAError(null);
 
-    // ── Tap 2: files ready → share NOW (before any await) ──────────────────
+    // ── Tap 2: files ready → fire share synchronously ───────────────────────
     if (waFilesRef.current && waFilesRef.current.length > 0) {
-      if (navigator.share) {
-        // Called synchronously — user-activation check passes.
-        const sharePromise = navigator.share({
-          files: waFilesRef.current,
-          title: "Promo Cards",
-        });
-        waFilesRef.current = null;
-        setWaReady(false);
-        try {
-          await sharePromise;
-        } catch (err) {
-          if (err instanceof Error && err.name !== "AbortError") {
-            setShareWAError(friendlyError(err));
-          }
-        }
-      } else {
-        setShareWAError("Sharing is not supported in this browser.");
+      if (!navigator.share) {
+        setShareWAError("Your browser does not support direct sharing. Use Download All and attach the images in WhatsApp.");
+        return;
       }
+      const files = waFilesRef.current;
+      waFilesRef.current = null;
+      setWaReady(false);
+      // navigator.share called synchronously — user-activation window is fresh.
+      navigator.share({ files, title: "Promo Cards" }).catch((err: unknown) => {
+        if (err instanceof Error && err.name !== "AbortError") {
+          setShareWAError(friendlyError(err));
+        }
+      });
       return;
     }
 
-    // ── Tap 1: capture cards into memory ────────────────────────────────────
-    const { toPng } = await import("html-to-image");
-    setSharingWA(true);
-    setShareWADone(0);
-    try {
-      const files: File[] = [];
-      for (const item of items) {
-        const el = cardRefs.current.get(item.id);
-        if (!el) continue;
-        try {
-          const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
-          const blob = await (await fetch(dataUrl)).blob();
-          files.push(new File([blob], item.filename, { type: "image/png" }));
-          setShareWADone((n) => n + 1);
-        } catch {}
+    // ── Tap 1: capture cards into memory (async IIFE, no await here) ────────
+    void (async () => {
+      const { toPng } = await import("html-to-image");
+      setSharingWA(true);
+      setShareWADone(0);
+      try {
+        const files: File[] = [];
+        for (const item of items) {
+          const el = cardRefs.current.get(item.id);
+          if (!el) continue;
+          try {
+            const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
+            const blob = await (await fetch(dataUrl)).blob();
+            files.push(new File([blob], item.filename, { type: "image/png" }));
+            setShareWADone((n) => n + 1);
+          } catch {}
+        }
+        if (files.length === 0) {
+          setShareWAError("Could not prepare any cards.");
+          return;
+        }
+        waFilesRef.current = files;
+        setWaReady(true);
+      } catch (err) {
+        setShareWAError(friendlyError(err));
+      } finally {
+        setSharingWA(false);
       }
-      if (files.length === 0) {
-        setShareWAError("Could not prepare any cards.");
-        return;
-      }
-      waFilesRef.current = files;
-      setWaReady(true);
-    } catch (err) {
-      setShareWAError(friendlyError(err));
-    } finally {
-      setSharingWA(false);
-    }
+    })();
   }
 
   // --- Flyer export helpers ---
