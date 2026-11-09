@@ -72,6 +72,7 @@ export function PromoCardsSection({
   const [sharingWA, setSharingWA] = useState(false);
   const [shareWADone, setShareWADone] = useState(0);
   const [shareWAError, setShareWAError] = useState<string | null>(null);
+  const [suggestEdge, setSuggestEdge] = useState(false);
 
   // --- Format / flyer state ---
   const [viewMode, setViewMode] = useState<"cards" | "flyer">("cards");
@@ -246,7 +247,7 @@ export function PromoCardsSection({
     // ── Tap 2: files ready → fire share synchronously ───────────────────────
     if (waFilesRef.current && waFilesRef.current.length > 0) {
       if (!navigator.share) {
-        setShareWAError("Your browser does not support direct sharing. Use Download All and attach the images in WhatsApp.");
+        setSuggestEdge(true);
         return;
       }
       const files = waFilesRef.current;
@@ -254,7 +255,13 @@ export function PromoCardsSection({
       setWaReady(false);
       // navigator.share called synchronously — user-activation window is fresh.
       navigator.share({ files, title: "Promo Cards" }).catch((err: unknown) => {
-        if (err instanceof Error && err.name !== "AbortError") {
+        if (err instanceof Error && err.name === "AbortError") return;
+        // Chrome on Windows blocks file sharing — suggest Edge instead.
+        const ua = navigator.userAgent;
+        const isWinChrome = ua.includes("Windows") && ua.includes("Chrome") && !ua.includes("Edg/");
+        if (isWinChrome) {
+          setSuggestEdge(true);
+        } else {
           setShareWAError(friendlyError(err));
         }
       });
@@ -503,6 +510,39 @@ export function PromoCardsSection({
                 />
               </div>
               <p className="mt-1.5 text-xs text-(--hub-muted)">{progressPct}% complete</p>
+            </div>
+          )}
+
+          {/* Suggest Edge when Chrome on Windows blocks file sharing */}
+          {suggestEdge && (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-blue-900">
+                    Chrome on Windows doesn&apos;t support direct file sharing.
+                  </p>
+                  <p className="mt-1 text-sm text-blue-700">
+                    Microsoft Edge (already installed on Windows 10/11) uses the Windows Share Sheet,
+                    which lets you send directly to WhatsApp. Click below to open this page in Edge
+                    — the cards will already be prepared and you just tap &ldquo;Tap again to send&rdquo;.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.href = `microsoft-edge:${window.location.href}`;
+                    }}
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                      <path d="M21.86 17.86c-.45.25-1.56.7-2.86.7-2.9 0-5-1.86-5-4.56 0-2.42 1.7-3.6 1.7-3.6s-2.42.35-2.42 2.9v.5c0 2.3 1.46 4.1 3.6 4.1.9 0 1.7-.3 2.3-.7l-.03.03c-1.3 1.6-3.3 2.6-5.5 2.6-4 0-7.2-3.2-7.2-7.2 0-.6.08-1.2.2-1.76C5.1 9.5 3 7.1 3 4.3c0-.3.02-.6.06-.9C4.3 5.14 6.42 6 8.76 6c.4 0 .8-.04 1.2-.1A9.03 9.03 0 0 1 21 15c0 1.03-.2 2.03-.56 2.86z"/>
+                    </svg>
+                    Open in Microsoft Edge
+                  </button>
+                </div>
+                <button type="button" onClick={() => setSuggestEdge(false)} className="shrink-0 text-blue-400 hover:text-blue-600">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
 
