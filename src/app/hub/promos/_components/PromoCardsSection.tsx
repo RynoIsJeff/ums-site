@@ -256,7 +256,7 @@ export function PromoCardsSection({
         setShareWAError("Could not prepare any cards to share.");
         return;
       }
-      if (navigator.canShare?.({ files })) {
+      if (navigator.share) {
         await navigator.share({ files, title: "Promo Cards" });
       } else {
         setShareWAError(
