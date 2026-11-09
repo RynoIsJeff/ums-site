@@ -70,6 +70,7 @@ export function PromoCardsSection({
   const [sharingWA, setSharingWA] = useState(false);
   const [shareWADone, setShareWADone] = useState(0);
   const [shareWAError, setShareWAError] = useState<string | null>(null);
+  const [shareWAInfo, setShareWAInfo] = useState<string | null>(null);
 
   // --- Format / flyer state ---
   const [viewMode, setViewMode] = useState<"cards" | "flyer">("cards");
@@ -240,6 +241,7 @@ export function PromoCardsSection({
     setSharingWA(true);
     setShareWADone(0);
     setShareWAError(null);
+    setShareWAInfo(null);
     try {
       const files: File[] = [];
       for (const item of items) {
@@ -256,13 +258,33 @@ export function PromoCardsSection({
         setShareWAError("Could not prepare any cards to share.");
         return;
       }
+
+      // Try native share sheet (works on Android / iOS)
       if (navigator.share) {
-        await navigator.share({ files, title: "Promo Cards" });
-      } else {
-        setShareWAError(
-          "Direct sharing isn't supported in this browser. Download the cards and attach them in WhatsApp."
-        );
+        try {
+          await navigator.share({ files, title: "Promo Cards" });
+          return;
+        } catch (err) {
+          if (err instanceof Error && err.name === "AbortError") return; // user cancelled
+          // fall through to desktop download fallback
+        }
       }
+
+      // Desktop fallback: download all files + open WhatsApp
+      for (const file of files) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        a.click();
+        URL.revokeObjectURL(url);
+        await new Promise<void>((r) => setTimeout(r, 300));
+      }
+      // Try to open WhatsApp app on the user's machine
+      window.open("whatsapp://", "_blank");
+      setShareWAInfo(
+        `${files.length} cards saved to your Downloads folder — open WhatsApp and attach them from there.`
+      );
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
         setShareWAError(friendlyError(err));
@@ -479,6 +501,16 @@ export function PromoCardsSection({
                 />
               </div>
               <p className="mt-1.5 text-xs text-(--hub-muted)">{progressPct}% complete</p>
+            </div>
+          )}
+
+          {/* WhatsApp info (desktop fallback) */}
+          {shareWAInfo && (
+            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 flex items-start justify-between gap-2">
+              <p className="text-sm text-green-800">{shareWAInfo}</p>
+              <button type="button" onClick={() => setShareWAInfo(null)} className="shrink-0 text-green-400 hover:text-green-600">
+                <X className="h-4 w-4" />
+              </button>
             </div>
           )}
 
