@@ -398,6 +398,7 @@ model SocialPost {
   promo          Promo?            @relation(fields: [promoId], references: [id], onDelete: SetNull)
   createdBy      User?             @relation("SocialPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   media          SocialPostMedia[]
+  postInsight    PostInsight?
 
   @@index([clientId, status, scheduledFor])
   @@index([promoId])
@@ -415,6 +416,19 @@ model SocialPostMedia {
   socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
 
   @@index([socialPostId, sortOrder])
+}
+
+model PostInsight {
+  id           String     @id @default(cuid())
+  socialPostId String     @unique
+  reactions    Int        @default(0)
+  comments     Int        @default(0)
+  shares       Int        @default(0)
+  reach        Int        @default(0)
+  impressions  Int        @default(0)
+  clicks       Int        @default(0)
+  fetchedAt    DateTime   @default(now())
+  socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
 }
 
 model Task {

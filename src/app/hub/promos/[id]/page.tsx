@@ -9,6 +9,7 @@ import { toNum } from "@/lib/utils";
 import { PromoCardsSection } from "../_components/PromoCardsSection";
 import { DeletePromoButton } from "./_components/DeletePromoButton";
 import { PostToSocialsClient } from "./_components/PostToSocialsClient";
+import { AICampaignButton } from "./_components/AICampaignButton";
 
 export const metadata = { title: "Promo Cards | UMS Hub" };
 
@@ -92,13 +93,22 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
             Edit
           </Link>
           {cardItems.length > 0 && (
-            <PostToSocialsClient
-              clientId={promo.clientId}
-              promoId={id}
-              socialPages={socialPages}
-              defaultPageId={promo.store?.socialPageId ?? null}
-              items={cardItems}
-            />
+            <>
+              <AICampaignButton
+                clientId={promo.clientId}
+                promoId={id}
+                socialPages={socialPages}
+                defaultPageId={promo.store?.socialPageId ?? null}
+                items={cardItems}
+              />
+              <PostToSocialsClient
+                clientId={promo.clientId}
+                promoId={id}
+                socialPages={socialPages}
+                defaultPageId={promo.store?.socialPageId ?? null}
+                items={cardItems}
+              />
+            </>
           )}
           <DeletePromoButton promoId={id} />
         </div>
