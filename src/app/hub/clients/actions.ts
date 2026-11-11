@@ -42,6 +42,15 @@ function parseOptionalDecimal(s: string | undefined): string | undefined {
 
 export type ClientFormState = { error?: string };
 
+function parseBrandVoice(formData: FormData): Record<string, string> | null {
+  const fields: Record<string, string> = {};
+  for (const key of ["bv_tone", "bv_slogans", "bv_audience", "bv_hashtags", "bv_useWords", "bv_avoidWords", "bv_cta"] as const) {
+    const val = (formData.get(key) as string | null)?.trim();
+    if (val) fields[key.replace("bv_", "")] = val;
+  }
+  return Object.keys(fields).length > 0 ? fields : null;
+}
+
 export async function createClient(
   _prev: ClientFormState,
   formData: FormData
@@ -68,6 +77,8 @@ export async function createClient(
     const renewalDate = parseOptionalDate(data.renewalDate);
     const retainerAmount = parseOptionalDecimal(data.retainerAmount);
 
+    const brandVoice = parseBrandVoice(formData);
+
     await prisma.client.create({
       data: {
         companyName: data.companyName.trim(),
@@ -83,6 +94,7 @@ export async function createClient(
         retainerAmount: retainerAmount != null ? retainerAmount : null,
         notes: data.notes?.trim() || null,
         status: (data.status as ClientStatus) ?? "LEAD",
+        brandVoice: brandVoice ?? Prisma.DbNull,
       },
     });
 
@@ -125,6 +137,8 @@ export async function updateClient(
     const renewalDate = parseOptionalDate(data.renewalDate);
     const retainerAmount = parseOptionalDecimal(data.retainerAmount);
 
+    const brandVoice = parseBrandVoice(formData);
+
     await prisma.client.update({
       where: { id: clientId },
       data: {
@@ -141,6 +155,7 @@ export async function updateClient(
         retainerAmount: retainerAmount != null ? retainerAmount : null,
         notes: data.notes?.trim() || null,
         status: (data.status as ClientStatus) ?? "LEAD",
+        brandVoice: brandVoice ?? Prisma.DbNull,
       },
     });
 

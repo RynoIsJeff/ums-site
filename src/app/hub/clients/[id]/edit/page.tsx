@@ -43,6 +43,8 @@ export default async function EditClientPage({ params }: PageProps) {
 
   const boundUpdateClient = updateClient.bind(null, clientId);
 
+  const bv = (client.brandVoice ?? {}) as Record<string, string>;
+
   const defaultValues = {
     companyName: client.companyName,
     contactPerson: client.contactPerson,
@@ -57,6 +59,13 @@ export default async function EditClientPage({ params }: PageProps) {
     retainerAmount: client.retainerAmount != null ? String(client.retainerAmount) : "",
     notes: client.notes ?? "",
     status: client.status,
+    bv_tone: bv.tone ?? "",
+    bv_slogans: bv.slogans ?? "",
+    bv_audience: bv.audience ?? "",
+    bv_hashtags: bv.hashtags ?? "",
+    bv_useWords: bv.useWords ?? "",
+    bv_avoidWords: bv.avoidWords ?? "",
+    bv_cta: bv.cta ?? "",
   };
 
   return (

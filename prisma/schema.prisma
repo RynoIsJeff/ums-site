@@ -187,6 +187,7 @@ model Client {
   /// When set, recurring invoices use these line items (description, quantity, unitPrice) instead of a single retainer line.
   retainerLineItems Json?
   notes            String?
+  brandVoice       Json?
   status           ClientStatus            @default(LEAD)
   servicePlanId    String?
   createdAt        DateTime                @default(now())
