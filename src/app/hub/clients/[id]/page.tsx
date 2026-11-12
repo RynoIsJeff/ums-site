@@ -44,7 +44,22 @@ export default async function HubClientDetailPage({ params, searchParams }: Page
   const [client, clientInvoices, clientSocialPages, clientSocialPosts, clientTasks] = await Promise.all([
     prisma.client.findFirst({
       where: { id: clientId },
-      include: {
+      select: {
+        id: true,
+        companyName: true,
+        contactPerson: true,
+        email: true,
+        phone: true,
+        vatNumber: true,
+        billingAddress: true,
+        planLabel: true,
+        billingFrequency: true,
+        retainerAmount: true,
+        retainerLineItems: true,
+        startDate: true,
+        renewalDate: true,
+        notes: true,
+        status: true,
         contacts: { orderBy: { isPrimary: "desc" } },
       },
     }),
