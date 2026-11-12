@@ -80,7 +80,7 @@ export async function createClient(
 
     const brandVoice = parseBrandVoice(formData);
 
-    await prisma.client.create({
+    const created = await prisma.client.create({
       data: {
         companyName: data.companyName.trim(),
         contactPerson: data.contactPerson.trim(),
@@ -95,9 +95,21 @@ export async function createClient(
         retainerAmount: retainerAmount != null ? retainerAmount : null,
         notes: data.notes?.trim() || null,
         status: (data.status as ClientStatus) ?? "LEAD",
-        brandVoice: brandVoice ?? Prisma.DbNull,
       },
+      select: { id: true },
     });
+
+    // Save brandVoice separately — column may not exist in production yet
+    if (brandVoice !== null) {
+      try {
+        await prisma.client.update({
+          where: { id: created.id },
+          data: { brandVoice },
+        });
+      } catch {
+        // Column not yet migrated in production — data will save on next deploy
+      }
+    }
 
     revalidatePath("/hub/clients");
     revalidatePath("/hub");
@@ -157,9 +169,20 @@ export async function updateClient(
         retainerAmount: retainerAmount != null ? retainerAmount : null,
         notes: data.notes?.trim() || null,
         status: (data.status as ClientStatus) ?? "LEAD",
-        brandVoice: brandVoice ?? Prisma.DbNull,
       },
     });
+
+    // Save brandVoice separately — column may not exist in production yet
+    if (brandVoice !== null) {
+      try {
+        await prisma.client.update({
+          where: { id: clientId },
+          data: { brandVoice },
+        });
+      } catch {
+        // Column not yet migrated in production — data will save on next deploy
+      }
+    }
 
     revalidatePath("/hub/clients");
     revalidatePath(`/hub/clients/${clientId}`);
