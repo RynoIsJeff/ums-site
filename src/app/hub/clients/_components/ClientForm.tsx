@@ -1,8 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { PendingSubmitButton } from "@/app/hub/_components/PendingSubmitButton";
 import type { ClientStatus, BillingFrequency } from "@prisma/client";
+
+type BrandVoice = {
+  tone?: string;
+  slogans?: string;
+  audience?: string;
+  hashtags?: string;
+  useWords?: string;
+  avoidWords?: string;
+  cta?: string;
+};
 
 const STATUS_OPTIONS: { value: ClientStatus; label: string }[] = [
   { value: "LEAD", label: "Lead" },
@@ -34,6 +45,13 @@ type ClientFormProps = {
     retainerAmount?: string;
     notes?: string;
     status?: string;
+    bv_tone?: string;
+    bv_slogans?: string;
+    bv_audience?: string;
+    bv_hashtags?: string;
+    bv_useWords?: string;
+    bv_avoidWords?: string;
+    bv_cta?: string;
   };
   submitLabel: string;
   backHref: string;
@@ -46,6 +64,7 @@ export function ClientForm({
   backHref,
 }: ClientFormProps) {
   const [state, formAction] = useActionState(action, {});
+  const [bvOpen, setBvOpen] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const form = e.currentTarget;
@@ -238,6 +257,70 @@ export function ClientForm({
             className="w-full rounded-md border border-black/15 px-3 py-2 text-sm"
           />
         </div>
+      </div>
+
+      {/* AI Brand Voice */}
+      <div className="rounded-xl border border-purple-200 bg-purple-50/50">
+        <button
+          type="button"
+          onClick={() => setBvOpen((o) => !o)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-purple-900"
+        >
+          <span className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-purple-600" />
+            AI Brand Voice
+          </span>
+          {bvOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        {bvOpen && (
+          <div className="grid gap-4 border-t border-purple-200 px-4 pb-4 pt-4 sm:grid-cols-2">
+            <p className="sm:col-span-2 text-xs text-purple-700">
+              These details help the AI Campaign Generator write captions that match your client&apos;s brand. All fields are optional.
+            </p>
+            <div className="sm:col-span-2">
+              <label htmlFor="bv_tone" className="mb-1 block text-sm font-medium">Tone &amp; style</label>
+              <input id="bv_tone" name="bv_tone" defaultValue={defaultValues?.bv_tone}
+                placeholder="e.g. friendly, down-to-earth, community-focused"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="bv_slogans" className="mb-1 block text-sm font-medium">Slogans &amp; taglines</label>
+              <input id="bv_slogans" name="bv_slogans" defaultValue={defaultValues?.bv_slogans}
+                placeholder="e.g. BUILD IT! | SupaTrade Specials | Prices you'll love"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="bv_audience" className="mb-1 block text-sm font-medium">Target audience</label>
+              <input id="bv_audience" name="bv_audience" defaultValue={defaultValues?.bv_audience}
+                placeholder="e.g. Working-class South African families and builders"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="bv_hashtags" className="mb-1 block text-sm font-medium">Preferred hashtags</label>
+              <input id="bv_hashtags" name="bv_hashtags" defaultValue={defaultValues?.bv_hashtags}
+                placeholder="e.g. #SupaTrade #BuildIt #WeeklySpecials"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label htmlFor="bv_useWords" className="mb-1 block text-sm font-medium">Words/phrases to use</label>
+              <textarea id="bv_useWords" name="bv_useWords" rows={2} defaultValue={defaultValues?.bv_useWords}
+                placeholder="e.g. affordable, fresh, value, specials, deals"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label htmlFor="bv_avoidWords" className="mb-1 block text-sm font-medium">Words/phrases to avoid</label>
+              <textarea id="bv_avoidWords" name="bv_avoidWords" rows={2} defaultValue={defaultValues?.bv_avoidWords}
+                placeholder="e.g. luxury, exclusive, premium, upmarket"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="bv_cta" className="mb-1 block text-sm font-medium">Preferred call-to-action</label>
+              <input id="bv_cta" name="bv_cta" defaultValue={defaultValues?.bv_cta}
+                placeholder="e.g. Visit your nearest BUILD IT SupaTrade today!"
+                className="w-full rounded-md border border-black/15 px-3 py-2 text-sm" />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3">

@@ -356,6 +356,50 @@ export async function deletePromo(id: string): Promise<{ error?: string }> {
   return {};
 }
 
+// ─── Duplicate ───────────────────────────────────────────────────────────────
+
+export async function duplicatePromo(promoId: string): Promise<void> {
+  const { scope } = await requireHubAuth();
+
+  const src = await prisma.promo.findFirst({
+    where: { id: promoId, ...clientIdWhere(scope) },
+    include: { items: true },
+  });
+  if (!src) redirect("/hub/promos");
+  if (!canAccessClient(scope, src.clientId)) redirect("/hub/promos");
+
+  const newPromo = await prisma.$transaction(async (tx) => {
+    const promo = await tx.promo.create({
+      data: {
+        clientId: src.clientId,
+        storeId: src.storeId,
+        title: `${src.title} (copy)`,
+        promoDateFrom: src.promoDateFrom,
+        promoDateTo: src.promoDateTo,
+        headerImageData: src.headerImageData,
+        status: "DRAFT",
+      },
+    });
+    if (src.items.length > 0) {
+      await tx.promoItem.createMany({
+        data: src.items.map((item) => ({
+          promoId: promo.id,
+          productId: item.productId,
+          priceOverride: item.priceOverride,
+          originalPrice: item.originalPrice,
+          variants: item.variants ?? undefined,
+          sortOrder: item.sortOrder,
+        })),
+      });
+    }
+    return promo;
+  });
+
+  revalidatePath("/hub/promos");
+  revalidatePath(`/hub/clients/${src.clientId}`);
+  redirect(`/hub/promos/${newPromo.id}/edit`);
+}
+
 // ─── Social Scheduling ────────────────────────────────────────────────────────
 
 export async function schedulePromoPost(
@@ -390,6 +434,27 @@ export async function schedulePromoPost(
   // Treat bare datetime string as SAST (UTC+2, no DST)
   const hasTimezone = scheduledFor.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(scheduledFor);
   const scheduledAt = new Date(hasTimezone ? scheduledFor : `${scheduledFor}+02:00`);
+
+  // Conflict guard: block scheduling within 90 min of an existing post on the same page
+  const ninetyMin = 90 * 60 * 1000;
+  const conflict = await prisma.socialPost.findFirst({
+    where: {
+      socialPageId: { in: socialPageIds },
+      status: { in: ["SCHEDULED", "PROCESSING"] },
+      scheduledFor: {
+        gte: new Date(scheduledAt.getTime() - ninetyMin),
+        lte: new Date(scheduledAt.getTime() + ninetyMin),
+      },
+      promoId: { not: promoId },
+    },
+    select: { scheduledFor: true },
+  });
+  if (conflict) {
+    const conflictTime = conflict.scheduledFor
+      ? conflict.scheduledFor.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" })
+      : "unknown time";
+    return { ok: false, error: `Conflict: another post is already scheduled near ${conflictTime}. Choose a time at least 90 minutes away.` };
+  }
 
   try {
     await Promise.all(

@@ -197,6 +197,7 @@ model Client {
   /// When set, recurring invoices use these line items (description, quantity, unitPrice) instead of a single retainer line.
   retainerLineItems Json?
   notes            String?
+  brandVoice       Json?
   status           ClientStatus            @default(LEAD)
   servicePlanId    String?
   createdAt        DateTime                @default(now())
@@ -468,6 +469,7 @@ model SocialPost {
   promo          Promo?            @relation(fields: [promoId], references: [id], onDelete: SetNull)
   createdBy      User?             @relation("SocialPostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   media          SocialPostMedia[]
+  postInsight    PostInsight?
 
   @@index([clientId, status, scheduledFor])
   @@index([promoId])
@@ -485,6 +487,19 @@ model SocialPostMedia {
   socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
 
   @@index([socialPostId, sortOrder])
+}
+
+model PostInsight {
+  id           String     @id @default(cuid())
+  socialPostId String     @unique
+  reactions    Int        @default(0)
+  comments     Int        @default(0)
+  shares       Int        @default(0)
+  reach        Int        @default(0)
+  impressions  Int        @default(0)
+  clicks       Int        @default(0)
+  fetchedAt    DateTime   @default(now())
+  socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
 }
 
 model Task {

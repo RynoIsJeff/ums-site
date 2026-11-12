@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { Pencil } from "lucide-react";
 import { getSession, toAuthScope } from "@/lib/auth";
 import { clientIdWhere } from "@/lib/rbac";
@@ -7,7 +8,9 @@ import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { PromoCardsSection } from "../_components/PromoCardsSection";
 import { DeletePromoButton } from "./_components/DeletePromoButton";
+import { DuplicatePromoButton } from "./_components/DuplicatePromoButton";
 import { PostToSocialsClient } from "./_components/PostToSocialsClient";
+import { AICampaignButton } from "./_components/AICampaignButton";
 
 export const metadata = { title: "Promo Cards | UMS Hub" };
 
@@ -38,6 +41,11 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
     select: { id: true, pageName: true },
     orderBy: { pageName: "asc" },
   });
+
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto")?.split(",")[0] ?? "http";
+  const publicShareUrl = `${proto}://${host}/promos/share/${id}`;
 
   const slugTitle = promo.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
@@ -86,14 +94,24 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
             Edit
           </Link>
           {cardItems.length > 0 && (
-            <PostToSocialsClient
-              clientId={promo.clientId}
-              promoId={id}
-              socialPages={socialPages}
-              defaultPageId={promo.store?.socialPageId ?? null}
-              items={cardItems}
-            />
+            <>
+              <AICampaignButton
+                clientId={promo.clientId}
+                promoId={id}
+                socialPages={socialPages}
+                defaultPageId={promo.store?.socialPageId ?? null}
+                items={cardItems}
+              />
+              <PostToSocialsClient
+                clientId={promo.clientId}
+                promoId={id}
+                socialPages={socialPages}
+                defaultPageId={promo.store?.socialPageId ?? null}
+                items={cardItems}
+              />
+            </>
           )}
+          <DuplicatePromoButton promoId={id} />
           <DeletePromoButton promoId={id} />
         </div>
       </div>
@@ -110,7 +128,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
           <Link href={`/hub/promos/${id}/edit`} className="underline">Edit to add products</Link>
         </div>
       ) : (
-        <PromoCardsSection items={cardItems} promoSlug={slugTitle} />
+        <PromoCardsSection items={cardItems} promoSlug={slugTitle} publicShareUrl={publicShareUrl} />
       )}
     </section>
   );

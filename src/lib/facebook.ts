@@ -777,3 +777,92 @@ export async function deleteFacebookPost(
     return { ok: false, error: e instanceof Error ? e.message : "Network error" };
   }
 }
+
+/**
+ * Fetch post-level engagement insights from the Graph API.
+ * Requires pages_read_engagement permission.
+ */
+export async function getPostInsights(
+  externalPostId: string,
+  pageAccessToken: string,
+): Promise<{
+  impressions: number;
+  reach: number;
+  clicks: number;
+  reactions: number;
+  comments: number;
+  shares: number;
+}> {
+  const metrics = [
+    "post_impressions",
+    "post_impressions_unique",
+    "post_engaged_users",
+    "post_clicks",
+    "post_reactions_by_type_total",
+  ].join(",");
+
+  const url =
+    `${GRAPH_BASE}/${externalPostId}/insights` +
+    `?metric=${metrics}&access_token=${encodeURIComponent(pageAccessToken)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = (await res.json()) as {
+      data?: { name: string; values?: { value: number | Record<string, number> }[] }[];
+      error?: { message: string };
+    };
+
+    if (!res.ok || !data.data) return { impressions: 0, reach: 0, clicks: 0, reactions: 0, comments: 0, shares: 0 };
+
+    function val(name: string): number {
+      const metric = data.data!.find((d) => d.name === name);
+      const v = metric?.values?.[0]?.value;
+      if (typeof v === "number") return v;
+      if (typeof v === "object" && v !== null) return Object.values(v).reduce((a, b) => a + b, 0);
+      return 0;
+    }
+
+    return {
+      impressions: val("post_impressions"),
+      reach: val("post_impressions_unique"),
+      clicks: val("post_clicks"),
+      reactions: val("post_reactions_by_type_total"),
+      comments: 0,
+      shares: 0,
+    };
+  } catch {
+    return { impressions: 0, reach: 0, clicks: 0, reactions: 0, comments: 0, shares: 0 };
+  }
+}
+
+/**
+ * Fetch the hourly fan-online distribution for a Facebook Page.
+ * Returns a map of hour (0-23) → average concurrent fans online.
+ * Requires pages_read_engagement permission.
+ */
+export async function getPageFansOnline(
+  pageId: string,
+  pageAccessToken: string,
+): Promise<Record<string, number>> {
+  const url =
+    `${GRAPH_BASE}/${pageId}/insights` +
+    `?metric=page_fans_online&period=day&access_token=${encodeURIComponent(pageAccessToken)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = (await res.json()) as {
+      data?: { name: string; values?: { value: Record<string, number> }[] }[];
+      error?: { message: string };
+    };
+
+    if (!res.ok || !data.data) return {};
+
+    const metric = data.data.find((d) => d.name === "page_fans_online");
+    const value = metric?.values?.[0]?.value;
+    if (!value || typeof value !== "object") return {};
+
+    return value;
+  } catch {
+    return {};
+  }
+}

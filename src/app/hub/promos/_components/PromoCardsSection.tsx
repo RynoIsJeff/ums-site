@@ -56,9 +56,11 @@ function toFlyerProduct(item: CardItem): A4FlyerProduct {
 export function PromoCardsSection({
   items,
   promoSlug,
+  publicShareUrl,
 }: {
   items: CardItem[];
   promoSlug: string;
+  publicShareUrl?: string;
 }) {
   // --- Square card state ---
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -67,12 +69,7 @@ export function PromoCardsSection({
   const [batchFailures, setBatchFailures] = useState<FailedItem[]>([]);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
-  const waFilesRef = useRef<File[] | null>(null);
-  const [waReady, setWaReady] = useState(false);
-  const [sharingWA, setSharingWA] = useState(false);
-  const [shareWADone, setShareWADone] = useState(0);
   const [shareWAError, setShareWAError] = useState<string | null>(null);
-  const [suggestEdge, setSuggestEdge] = useState(false);
 
   // --- Format / flyer state ---
   const [viewMode, setViewMode] = useState<"cards" | "flyer">("cards");
@@ -237,66 +234,28 @@ export function PromoCardsSection({
     }
   }
 
-  // --- WhatsApp share ---
-  // navigator.share({ files }) requires a synchronous user gesture. We use a
-  // two-tap flow: tap 1 prepares images asynchronously; tap 2 calls share()
-  // from a plain (non-async) event handler so activation is never expired.
+  // --- WhatsApp share via public link ---
+  // navigator.share({ files }) is blocked on Chrome/Windows (a browser
+  // limitation with no workaround). Instead we share a public gallery URL
+  // so recipients can view and download cards from any device or browser.
   function handleShareWhatsApp() {
     setShareWAError(null);
-
-    // ── Tap 2: files ready → fire share synchronously ───────────────────────
-    if (waFilesRef.current && waFilesRef.current.length > 0) {
-      if (!navigator.share) {
-        setSuggestEdge(true);
-        return;
-      }
-      const files = waFilesRef.current;
-      waFilesRef.current = null;
-      setWaReady(false);
-      // navigator.share called synchronously — user-activation window is fresh.
-      navigator.share({ files, title: "Promo Cards" }).catch((err: unknown) => {
-        if (err instanceof Error && err.name === "AbortError") return;
-        // Chrome on Windows blocks file sharing — suggest Edge instead.
-        const ua = navigator.userAgent;
-        const isWinChrome = ua.includes("Windows") && ua.includes("Chrome") && !ua.includes("Edg/");
-        if (isWinChrome) {
-          setSuggestEdge(true);
-        } else {
-          setShareWAError(friendlyError(err));
-        }
-      });
+    if (!publicShareUrl) {
+      setShareWAError("Share link not available — try refreshing the page.");
       return;
     }
-
-    // ── Tap 1: capture cards into memory (async IIFE, no await here) ────────
-    void (async () => {
-      const { toPng } = await import("html-to-image");
-      setSharingWA(true);
-      setShareWADone(0);
-      try {
-        const files: File[] = [];
-        for (const item of items) {
-          const el = cardRefs.current.get(item.id);
-          if (!el) continue;
-          try {
-            const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true });
-            const blob = await (await fetch(dataUrl)).blob();
-            files.push(new File([blob], item.filename, { type: "image/png" }));
-            setShareWADone((n) => n + 1);
-          } catch {}
-        }
-        if (files.length === 0) {
-          setShareWAError("Could not prepare any cards.");
-          return;
-        }
-        waFilesRef.current = files;
-        setWaReady(true);
-      } catch (err) {
-        setShareWAError(friendlyError(err));
-      } finally {
-        setSharingWA(false);
-      }
-    })();
+    const text = `🛒 ${items[0]?.storeName ? items[0].storeName + " — " : ""}Check out these special offers!\n\nView all promo cards here:\n${publicShareUrl}`;
+    if (navigator.share) {
+      // Mobile/Edge: system share sheet (user can pick WhatsApp or any other app)
+      navigator.share({ url: publicShareUrl, text }).catch((err: unknown) => {
+        if (err instanceof Error && err.name === "AbortError") return;
+        // Fallback to wa.me if share sheet fails
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+      });
+    } else {
+      // Desktop Chrome: open WhatsApp with prefilled message
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    }
   }
 
   // --- Flyer export helpers ---
@@ -448,22 +407,18 @@ export function PromoCardsSection({
                 <button
                   type="button"
                   onClick={handleShareWhatsApp}
-                  disabled={sharingWA || exportingAll}
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 transition-colors ${waReady ? "bg-green-700 ring-2 ring-green-400 hover:bg-green-800" : "bg-green-600 hover:bg-green-700"}`}
+                  disabled={exportingAll}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                   </svg>
-                  {sharingWA
-                    ? `Preparing ${shareWADone}/${items.length}…`
-                    : waReady
-                      ? "Tap again to send"
-                      : "Share to WhatsApp"}
+                  Share to WhatsApp
                 </button>
                 <button
                   type="button"
                   onClick={handleExportAll}
-                  disabled={exportingAll || sharingWA}
+                  disabled={exportingAll}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/80 disabled:opacity-50"
                 >
                   <Download className="h-4 w-4" />
@@ -510,39 +465,6 @@ export function PromoCardsSection({
                 />
               </div>
               <p className="mt-1.5 text-xs text-(--hub-muted)">{progressPct}% complete</p>
-            </div>
-          )}
-
-          {/* Suggest Edge when Chrome on Windows blocks file sharing */}
-          {suggestEdge && (
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium text-blue-900">
-                    Chrome on Windows doesn&apos;t support direct file sharing.
-                  </p>
-                  <p className="mt-1 text-sm text-blue-700">
-                    Microsoft Edge (already installed on Windows 10/11) uses the Windows Share Sheet,
-                    which lets you send directly to WhatsApp. Click below to open this page in Edge
-                    — the cards will already be prepared and you just tap &ldquo;Tap again to send&rdquo;.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.location.href = `microsoft-edge:${window.location.href}`;
-                    }}
-                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <path d="M21.86 17.86c-.45.25-1.56.7-2.86.7-2.9 0-5-1.86-5-4.56 0-2.42 1.7-3.6 1.7-3.6s-2.42.35-2.42 2.9v.5c0 2.3 1.46 4.1 3.6 4.1.9 0 1.7-.3 2.3-.7l-.03.03c-1.3 1.6-3.3 2.6-5.5 2.6-4 0-7.2-3.2-7.2-7.2 0-.6.08-1.2.2-1.76C5.1 9.5 3 7.1 3 4.3c0-.3.02-.6.06-.9C4.3 5.14 6.42 6 8.76 6c.4 0 .8-.04 1.2-.1A9.03 9.03 0 0 1 21 15c0 1.03-.2 2.03-.56 2.86z"/>
-                    </svg>
-                    Open in Microsoft Edge
-                  </button>
-                </div>
-                <button type="button" onClick={() => setSuggestEdge(false)} className="shrink-0 text-blue-400 hover:text-blue-600">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
             </div>
           )}
 
