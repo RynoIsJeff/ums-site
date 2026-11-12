@@ -173,7 +173,7 @@ export async function POST(
   const topFanHours = Object.entries(fansOnline)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
-    .map(([h, c]) => `${h.padStart(2, "0")}:00 (${c} fans)`)
+    .map(([h, c]) => `${String(h).padStart(2, "0")}:00 (${c} fans)`)
     .join(", ");
 
   // Build date list — only future dates (from today SAST onwards)
@@ -194,6 +194,24 @@ export async function POST(
       { status: 400 },
     );
   }
+
+  // Compute the best posting hour server-side so the AI doesn't have to guess.
+  // Priority: (1) historical best hour from post insights, (2) peak fans-online hour, (3) 10:00
+  const topFansHour =
+    Object.keys(fansOnline).length > 0
+      ? parseInt(Object.entries(fansOnline).sort(([, a], [, b]) => b - a)[0][0])
+      : null;
+  const recommendedHour = topHour ?? topFansHour ?? 10;
+  const recommendedTime = `${String(recommendedHour).padStart(2, "0")}:00`;
+
+  // Last date in the remaining schedule — always post at 07:00 (store opening)
+  const lastDate = promoDates[promoDates.length - 1];
+
+  // Is today actually the promo launch day, or is the promo already running?
+  const promoLaunchDate = promo.promoDateFrom.toISOString().slice(0, 10);
+  const todayDate = todaySast.toISOString().slice(0, 10);
+  const isActualLaunchDay = promoDates[0] === promoLaunchDate;
+  const currentPromoDay = Math.round((todaySast.getTime() - promoStart.getTime()) / msPerDay) + 1;
 
   // Brand voice from client
   const bv = (promo.client?.brandVoice ?? {}) as Record<string, string>;
@@ -228,21 +246,32 @@ PAGE PERFORMANCE DATA:
 - Historical promo posts on this page (last 90 days): ${historicalPosts.length} posts
 - Average reach per promo post: ${avgReach > 0 ? avgReach : "No data yet"}
 - Best performing posting hour (SAST): ${topHour !== null ? `${String(topHour).padStart(2, "0")}:00` : "No data yet"}
+- RECOMMENDED POSTING TIME (pre-calculated from above data): ${recommendedTime} SAST
 
 EXISTING POSTS ALREADY SCHEDULED (avoid these exact times):
 ${conflictSlots.length > 0 ? conflictSlots.join("\n") : "None — all slots are open"}
+
+PROMO STATUS:
+- Today is ${todayDate} — this is day ${currentPromoDay} of ${totalDays} of the promo.
+- Promo actual launch date: ${promoLaunchDate}
+- ${isActualLaunchDay ? "Today IS the launch day — write launch/opening post copy." : `The promo launched on ${promoLaunchDate} and is ALREADY RUNNING. Do NOT write launch copy for the first post. Write mid-promo copy ("still running", "grab it while you can", etc.).`}
 
 TASK:
 Create exactly one Facebook post per remaining day (${promoDates.length} posts total).
 Dates required: ${promoDates.join(", ")}
 
 Rules:
-1. Choose the optimal posting time (SAST, whole hours only like "09:00") based on the fans-online data and historical best-performing hours. Default to 10:00 if no data.
-2. If a time conflicts with an existing scheduled post (within 90 minutes), shift to the next-best available hour.
-3. Vary caption tone: first day = excitement/launch (introduce all items), middle days = spotlight 1-2 items with specific prices and savings, last day = urgency ("Don't miss out before ${promo.promoDateTo.toISOString().slice(0, 10)}!").
-4. Keep captions engaging, conversational, and in South African English. Include relevant emojis. Use specific prices and savings amounts (e.g. "Get 2kg Flour for only R24.99 — that's R10 off!"). Apply the brand voice above consistently.
+1. POSTING TIME: Use ${recommendedTime} SAST for ALL posts. Do NOT default to 10:00 — ${recommendedTime} is the data-driven optimal time for this page. Only deviate from ${recommendedTime} if it conflicts with an existing scheduled post (rule 2).
+2. CONFLICT AVOIDANCE: If ${recommendedTime} on a given date is within 90 minutes of an existing scheduled post, shift that post to the next-best hour. Keep all other posts at ${recommendedTime}.
+3. LAST DAY RULE (HARD): The post for ${lastDate} MUST be at 07:00 — store opening time for maximum urgency. This overrides the recommended time. No exceptions.
+4. CAPTION TONE — follow this strictly based on where we are in the promo:
+   ${isActualLaunchDay
+     ? "- Today is the LAUNCH DAY: write exciting opening copy, briefly introduce ALL products on special."
+     : `- The promo is mid-run (day ${currentPromoDay}/${totalDays}). First post = mid-promo momentum ("still on!", "grab it while you can"). Do NOT write launch copy.`}
+   - Middle days: spotlight 1–2 specific products per day, use exact prices and savings (e.g. "Get 2kg Flour for only R24.99 — that's R10 off!").
+   - Last day (${lastDate}): high-urgency closing copy — "Last chance TODAY!", "We close at 5pm — don't miss out!", reference the end date.
 5. MUST include a post for every single date listed — do not skip any.
-6. Each day should spotlight DIFFERENT products from the list. Middle days: deep-dive one or two items per day, highlighting savings.
+6. Each day spotlights DIFFERENT products. Rotate through the full product list across the schedule.
 
 Respond with ONLY this JSON (no other text):
 {
@@ -287,6 +316,11 @@ Respond with ONLY this JSON (no other text):
   } catch {
     return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
   }
+
+  // Server-side enforcement: last day must always be 07:00 regardless of what the AI chose
+  schedule = schedule.map((post) =>
+    post.date === lastDate ? { ...post, time: "07:00" } : post,
+  );
 
   return NextResponse.json({
     schedule,
