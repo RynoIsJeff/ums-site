@@ -196,13 +196,22 @@ export async function POST(
   }
 
   // Compute the best posting hour server-side so the AI doesn't have to guess.
-  // Priority: (1) historical best hour from post insights, (2) peak fans-online hour, (3) 10:00
+  // Priority: (1) historical best hour from post insights, (2) peak fans-online hour, (3) no data
   const topFansHour =
     Object.keys(fansOnline).length > 0
       ? parseInt(Object.entries(fansOnline).sort(([, a], [, b]) => b - a)[0][0])
       : null;
-  const recommendedHour = topHour ?? topFansHour ?? 10;
-  const recommendedTime = `${String(recommendedHour).padStart(2, "0")}:00`;
+  const hasTimeData = topHour !== null || topFansHour !== null;
+  const recommendedHour = topHour ?? topFansHour ?? null;
+  const recommendedTime = recommendedHour !== null
+    ? `${String(recommendedHour).padStart(2, "0")}:00`
+    : null;
+
+  // Current SAST hour — used to prevent scheduling today's post in the past
+  const nowSastMs = Date.now() + 2 * 60 * 60 * 1000;
+  const nowSastHour = Math.floor(nowSastMs / (60 * 60 * 1000)) % 24;
+  // Minimum schedulable hour for today: at least 1 hour from now
+  const minTodayHour = nowSastHour + 1;
 
   // Last date in the remaining schedule — always post at 07:00 (store opening)
   const lastDate = promoDates[promoDates.length - 1];
@@ -232,13 +241,12 @@ PROMO DETAILS:
 ${productList.join("\n")}
 
 BRAND VOICE & STYLE (apply to ALL captions):
-- Tone: ${bv.tone || "friendly, conversational, South African retail"}
-- Slogans/taglines to weave in naturally: ${bv.slogans || "none provided"}
-- Target audience: ${bv.audience || "general public"}
-- Preferred hashtags: ${bv.hashtags || "none"}
-- Words/phrases to use: ${bv.useWords || "none"}
-- Words/phrases to AVOID: ${bv.avoidWords || "none"}
-- Preferred call-to-action: ${bv.cta || "Visit us today!"}
+- Tone: ${bv.tone || "friendly, energetic, community-focused South African retail — speak directly to customers, use exclamation points, feel like a trusted local store"}
+- Slogans/taglines to weave in naturally: ${bv.slogans || "none — create enthusiastic promotional copy that feels local and genuine"}
+- Target audience: ${bv.audience || "South African families, builders, and DIY enthusiasts looking for value"}
+- Words/phrases to use: ${bv.useWords || "specials, deals, savings, affordable, value, don't miss out, grab yours"}
+- Words/phrases to AVOID: ${bv.avoidWords || "luxury, exclusive, premium, upmarket"}
+- Preferred call-to-action: ${bv.cta || `Visit ${promo.store?.name ?? "us"} today!`}
 - Always mention the store by name: ${promo.store?.name ?? "the store"}
 
 PAGE PERFORMANCE DATA:
@@ -246,32 +254,42 @@ PAGE PERFORMANCE DATA:
 - Historical promo posts on this page (last 90 days): ${historicalPosts.length} posts
 - Average reach per promo post: ${avgReach > 0 ? avgReach : "No data yet"}
 - Best performing posting hour (SAST): ${topHour !== null ? `${String(topHour).padStart(2, "0")}:00` : "No data yet"}
-- RECOMMENDED POSTING TIME (pre-calculated from above data): ${recommendedTime} SAST
+${recommendedTime ? `- DATA-DRIVEN OPTIMAL TIME: ${recommendedTime} SAST (use this for all posts)` : "- No time data yet — choose times by day of week (see rule 1)"}
 
 EXISTING POSTS ALREADY SCHEDULED (avoid these exact times):
 ${conflictSlots.length > 0 ? conflictSlots.join("\n") : "None — all slots are open"}
 
 PROMO STATUS:
-- Today is ${todayDate} — this is day ${currentPromoDay} of ${totalDays} of the promo.
+- Today is ${todayDate} (SAST) — this is day ${currentPromoDay} of ${totalDays} of the promo.
 - Promo actual launch date: ${promoLaunchDate}
 - ${isActualLaunchDay ? "Today IS the launch day — write launch/opening post copy." : `The promo launched on ${promoLaunchDate} and is ALREADY RUNNING. Do NOT write launch copy for the first post. Write mid-promo copy ("still running", "grab it while you can", etc.).`}
+- Today's earliest schedulable time: ${String(minTodayHour).padStart(2, "0")}:00 SAST (it is currently ${String(nowSastHour).padStart(2, "0")}:${String(new Date(nowSastMs).getUTCMinutes()).padStart(2, "0")} SAST — do not schedule today's post before this time)
 
 TASK:
 Create exactly one Facebook post per remaining day (${promoDates.length} posts total).
 Dates required: ${promoDates.join(", ")}
 
 Rules:
-1. POSTING TIME: Use ${recommendedTime} SAST for ALL posts. Do NOT default to 10:00 — ${recommendedTime} is the data-driven optimal time for this page. Only deviate from ${recommendedTime} if it conflicts with an existing scheduled post (rule 2).
-2. CONFLICT AVOIDANCE: If ${recommendedTime} on a given date is within 90 minutes of an existing scheduled post, shift that post to the next-best hour. Keep all other posts at ${recommendedTime}.
-3. LAST DAY RULE (HARD): The post for ${lastDate} MUST be at 07:00 — store opening time for maximum urgency. This overrides the recommended time. No exceptions.
-4. CAPTION TONE — follow this strictly based on where we are in the promo:
+1. POSTING TIME (choose ONE rule based on data availability):
+   ${recommendedTime
+     ? `DATA EXISTS → Use ${recommendedTime} SAST for every post. This is the proven best time for this page. Deviate only when rule 2 forces it.`
+     : `NO DATA YET → Choose the best time for each day by day of week. Use realistic variety — do NOT pick 10:00 for every day:
+   - Monday–Friday: 12:00 (lunch) or 17:00 (after work, people browse Facebook on the way home)
+   - Saturday: 09:00 (morning — people shop early)
+   - Sunday: 10:00 (mid-morning)
+   Feel free to shift ±1 hour to avoid repetition.`}
+2. CONFLICT AVOIDANCE: If a chosen time on a given date is within 90 minutes of an existing scheduled post, shift to the next-best hour.
+3. TODAY'S POST: Must be at ${String(minTodayHour).padStart(2, "0")}:00 or later (never in the past).
+4. LAST DAY RULE (NON-NEGOTIABLE): The post for ${lastDate} MUST be at 07:00 — store opening time, maximum urgency. No exceptions, even if data says otherwise.
+5. CAPTION TONE — follow strictly:
    ${isActualLaunchDay
-     ? "- Today is the LAUNCH DAY: write exciting opening copy, briefly introduce ALL products on special."
-     : `- The promo is mid-run (day ${currentPromoDay}/${totalDays}). First post = mid-promo momentum ("still on!", "grab it while you can"). Do NOT write launch copy.`}
-   - Middle days: spotlight 1–2 specific products per day, use exact prices and savings (e.g. "Get 2kg Flour for only R24.99 — that's R10 off!").
-   - Last day (${lastDate}): high-urgency closing copy — "Last chance TODAY!", "We close at 5pm — don't miss out!", reference the end date.
-5. MUST include a post for every single date listed — do not skip any.
-6. Each day spotlights DIFFERENT products. Rotate through the full product list across the schedule.
+     ? "- LAUNCH DAY: exciting opening copy. Briefly introduce ALL products on special and invite people to come in."
+     : `- MID-PROMO (day ${currentPromoDay}/${totalDays}): "still running!", "grab it while you can", "don't miss these specials". NO launch copy.`}
+   - Middle days: spotlight 1–2 specific products per day, use EXACT prices and savings (e.g. "Get 2kg Flour for only R24.99 — that's R10 off!").
+   - Last day (${lastDate}): "LAST CHANCE TODAY!", "We close tonight — come grab your specials before it's too late!", "These prices end TODAY!"
+6. HASHTAGS: Every post MUST end with relevant hashtags. ${bv.hashtags ? `Use these: ${bv.hashtags}` : `Generate relevant ones for a South African hardware/building supplies retail store, e.g. #WeeklySpecials #BuildIt #HardwareDeals #DIY #SouthAfrica #Specials — adapt to the products featured that day.`}
+7. MUST include a post for every single date listed — do not skip any.
+8. Each day spotlights DIFFERENT products. Rotate through the full product list.
 
 Respond with ONLY this JSON (no other text):
 {
@@ -317,10 +335,15 @@ Respond with ONLY this JSON (no other text):
     return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
   }
 
-  // Server-side enforcement: last day must always be 07:00 regardless of what the AI chose
-  schedule = schedule.map((post) =>
-    post.date === lastDate ? { ...post, time: "07:00" } : post,
-  );
+  // Server-side enforcement: last day always 07:00; today's post never in the past
+  schedule = schedule.map((post) => {
+    if (post.date === lastDate) return { ...post, time: "07:00" };
+    if (post.date === todayDate) {
+      const [h] = post.time.split(":").map(Number);
+      if (h < minTodayHour) return { ...post, time: `${String(minTodayHour).padStart(2, "0")}:00` };
+    }
+    return post;
+  });
 
   return NextResponse.json({
     schedule,
