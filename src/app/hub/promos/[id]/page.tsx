@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { PromoCardsSection } from "../_components/PromoCardsSection";
 import { DeletePromoButton } from "./_components/DeletePromoButton";
+import { DuplicatePromoButton } from "./_components/DuplicatePromoButton";
 import { PostToSocialsClient } from "./_components/PostToSocialsClient";
 import { AICampaignButton } from "./_components/AICampaignButton";
 
@@ -110,6 +111,7 @@ export default async function PromoViewPage({ params }: { params: Promise<{ id: 
               />
             </>
           )}
+          <DuplicatePromoButton promoId={id} />
           <DeletePromoButton promoId={id} />
         </div>
       </div>

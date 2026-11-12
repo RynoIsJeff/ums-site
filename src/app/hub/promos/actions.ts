@@ -333,6 +333,50 @@ export async function deletePromo(id: string): Promise<{ error?: string }> {
   return {};
 }
 
+// ─── Duplicate ───────────────────────────────────────────────────────────────
+
+export async function duplicatePromo(promoId: string): Promise<void> {
+  const { scope } = await requireHubAuth();
+
+  const src = await prisma.promo.findFirst({
+    where: { id: promoId, ...clientIdWhere(scope) },
+    include: { items: true },
+  });
+  if (!src) redirect("/hub/promos");
+  if (!canAccessClient(scope, src.clientId)) redirect("/hub/promos");
+
+  const newPromo = await prisma.$transaction(async (tx) => {
+    const promo = await tx.promo.create({
+      data: {
+        clientId: src.clientId,
+        storeId: src.storeId,
+        title: `${src.title} (copy)`,
+        promoDateFrom: src.promoDateFrom,
+        promoDateTo: src.promoDateTo,
+        headerImageData: src.headerImageData,
+        status: "DRAFT",
+      },
+    });
+    if (src.items.length > 0) {
+      await tx.promoItem.createMany({
+        data: src.items.map((item) => ({
+          promoId: promo.id,
+          productId: item.productId,
+          priceOverride: item.priceOverride,
+          originalPrice: item.originalPrice,
+          variants: item.variants ?? undefined,
+          sortOrder: item.sortOrder,
+        })),
+      });
+    }
+    return promo;
+  });
+
+  revalidatePath("/hub/promos");
+  revalidatePath(`/hub/clients/${src.clientId}`);
+  redirect(`/hub/promos/${newPromo.id}/edit`);
+}
+
 // ─── Social Scheduling ────────────────────────────────────────────────────────
 
 export async function schedulePromoPost(
