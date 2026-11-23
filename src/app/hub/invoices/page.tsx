@@ -39,6 +39,14 @@ export default async function HubInvoicesPage({
   const scope = toAuthScope(user);
   const scopeWhere = clientIdWhere(scope);
 
+  // Auto-mark SENT invoices as OVERDUE when their due date has passed
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  await prisma.invoice.updateMany({
+    where: { ...scopeWhere, status: "SENT", dueDate: { lt: today } },
+    data: { status: "OVERDUE" },
+  });
+
   const where: Prisma.InvoiceWhereInput = {
     ...scopeWhere,
   };

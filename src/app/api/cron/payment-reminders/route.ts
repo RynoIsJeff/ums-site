@@ -22,6 +22,12 @@ export async function GET(req: Request) {
   in7Days.setDate(in7Days.getDate() + 7);
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+  // Auto-mark SENT invoices as OVERDUE when their due date has passed
+  await prisma.invoice.updateMany({
+    where: { status: "SENT", dueDate: { lt: startOfToday } },
+    data: { status: "OVERDUE" },
+  });
+
   const config = await prisma.companyConfig.findFirst();
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
