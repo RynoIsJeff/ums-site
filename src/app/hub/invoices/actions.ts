@@ -217,6 +217,11 @@ export async function updateInvoice(
       return { error: "Only draft invoices can be edited." };
     }
 
+    const newClientId = (formData.get("clientId") as string)?.trim();
+    if (!newClientId || !canAccessClient(scope, newClientId)) {
+      return { error: "Invalid or inaccessible client." };
+    }
+
     const issueDateStr = formData.get("issueDate") as string;
     const dueDateStr = formData.get("dueDate") as string;
     const issueDate = issueDateStr ? new Date(issueDateStr) : new Date();
@@ -241,6 +246,7 @@ export async function updateInvoice(
       prisma.invoice.update({
         where: { id: invoiceId },
         data: {
+          clientId: newClientId,
           issueDate,
           dueDate,
           includeVat: false,
