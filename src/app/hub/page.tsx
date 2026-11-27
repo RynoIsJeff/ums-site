@@ -17,6 +17,7 @@ import {
   FilePlus,
   UserPlus,
   Calendar,
+  TrendingUp,
 } from "lucide-react";
 import { toNum } from "@/lib/utils";
 
@@ -99,6 +100,7 @@ export default async function HubHomePage() {
     recentSentInvoices,
     recentPublishedPosts,
     paymentsLast6Months,
+    monthlyRetainerAgg,
   ] = await Promise.all([
     prisma.client.count({ where: clientWhereClause }),
     prisma.client.findMany({
@@ -142,10 +144,15 @@ export default async function HubHomePage() {
       where: { ...clientIdClause, paidAt: { gte: sixMonthsAgo } },
       select: { paidAt: true, amount: true },
     }),
+    prisma.client.aggregate({
+      where: { ...clientWhereClause, status: "ACTIVE", billingFrequency: "MONTHLY" },
+      _sum: { retainerAmount: true },
+    }),
   ]);
 
   const paymentsThisMonthTotal = paymentsThisMonth.reduce((s, p) => s + toNum(p.amount), 0);
   const outstandingTotal = outstandingInvoices.reduce((s, i) => s + toNum(i.totalAmount), 0);
+  const monthlyRetainerTotal = toNum(monthlyRetainerAgg._sum.retainerAmount ?? 0);
   const activityItems = mergeActivity(recentPayments, recentSentInvoices, recentPublishedPosts);
 
   const monthlyRevenue: { month: string; amount: number }[] = [];
@@ -198,7 +205,7 @@ export default async function HubHomePage() {
       </div>
 
       {/* KPI cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
@@ -244,6 +251,19 @@ export default async function HubHomePage() {
             <div>
               <p className="text-2xl font-bold text-(--hub-text)">{renewalsNext7.length}</p>
               <p className="text-sm text-(--hub-muted)">Renewals (next 7 days)</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-(--hub-border-light) bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+              <TrendingUp className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-(--hub-text)">
+                R {monthlyRetainerTotal.toLocaleString("en-ZA")}
+              </p>
+              <p className="text-sm text-(--hub-muted)">Monthly retainers (active)</p>
             </div>
           </div>
         </div>
